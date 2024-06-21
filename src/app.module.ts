@@ -16,19 +16,10 @@ import { JwtModule } from '@nestjs/jwt';
       maxRedirects: 5,
     }),
     ConfigModule.forRoot({
-      envFilePath: '.env',
       isGlobal: true,
     }),
     PassportModule,
     MongooseModule.forRoot(process.env.MONGODB_URL),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async ( configService: ConfigService ) => ({
-        secret: configService.get<string>('JWT-SECRET'),
-        signOptions: { expiresIn: '1h'}
-      }),
-    }),
     UsersModule,
     AdminProfileModule,
     SuperAgentProfileModule,

@@ -11,29 +11,29 @@ export class UsersService {
         private readonly agentRepo: AgentProfileRepository
     ) { }
 
-    async createUser(createUserDto: CreateUserDto | CreateAgentProfileDto, req: any) {
-        const { email, role } = createUserDto;
-        const existingUser = await this.userRepo.findOne({ email });
-        if (existingUser) {
-            throw new BadRequestException('Email already exists');
-        }
+    // async createUser(createUserDto: CreateUserDto | CreateAgentProfileDto, req: any) {
+    //     const { email, role } = createUserDto;
+    //     const existingUser = await this.userRepo.findOne({ email });
+    //     if (existingUser) {
+    //         throw new BadRequestException('Email already exists');
+    //     }
 
-        if (role === 'Agent') {
-            return await this.createAgent(createUserDto as CreateAgentProfileDto);
-        } else {
-            return await this.userRepo.create(createUserDto);
-        }
-    }
+    //     if (role === 'Agent') {
+    //         return await this.createAgent(createUserDto as CreateAgentProfileDto);
+    //     } else {
+    //         return await this.userRepo.create(createUserDto);
+    //     }
+    // }
 
-    private async createAgent(createAgentDto: CreateAgentProfileDto) {
-        const agentUser = await this.userRepo.create(createAgentDto);
-        const agentProfile = await this.agentRepo.create({
-            ...createAgentDto,
-            user: agentUser._id,
-        });
+    // private async createAgent(createAgentDto: CreateAgentProfileDto) {
+    //     const agentUser = await this.userRepo.create(createAgentDto);
+    //     const agentProfile = await this.agentRepo.create({
+    //         ...createAgentDto,
+    //         user: agentUser._id,
+    //     });
 
-        return { agentUser, agentProfile };
-    }
+    //     return { agentUser, agentProfile };
+    // }
 
     async findOne(id: string) {
         const user = await this.userRepo.findOne({ _id: id });

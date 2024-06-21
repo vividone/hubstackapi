@@ -19,22 +19,7 @@ import { LoginUser } from './users.entity';
 export class UsersController {
     constructor(private readonly usersService: UsersService){}
 
-    @Post('Register')
-    registerUser(@Body() createUserDto: CreateUserDto, @Req() req: Request){
-        if(!createUserDto.role){
-            throw new BadRequestException('Role is required');
-        }
-        return this.usersService.createUser(createUserDto, req);
-    }
-
-    @Post('Register-agent')
-    registerAgent(@Body() createAgentDto: CreateAgentProfileDto, @Req() req: Request){
-        if( createAgentDto.role !== 'Agent'){
-            throw new BadRequestException('Role must be agent for agent registration')
-        }
-        return this.usersService.createUser(createAgentDto, req);
-    }
-
+    
     
    
 }
