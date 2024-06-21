@@ -6,3 +6,8 @@ export class Users{
     phone_number: string;
     username: string;
 }
+
+export class LoginUser {
+    email: string;
+    password: string;
+}

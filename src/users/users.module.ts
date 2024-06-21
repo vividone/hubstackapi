@@ -7,6 +7,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { HttpModule } from '@nestjs/axios';
 import { SuperAgentProfileModule } from 'src/super_agent_profile/super_agent_profile.module';
 import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { AuthService } from 'src/auth/auth.service';
 
 @Module({
   controllers: [UsersController],
@@ -20,5 +22,6 @@ import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
     SuperAgentProfileModule,
     AgentProfileModule,
   ],
+  exports: [ UsersService, UserRepository ]
 })
 export class UsersModule {}
