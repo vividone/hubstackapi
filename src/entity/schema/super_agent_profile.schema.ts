@@ -5,10 +5,8 @@ import { Users } from './user.schema';
 export type SuperAgentDocument = HydratedDocument<SuperAgent>;
 
 export
-@Schema()
-class SuperAgent{
-    @Prop()
-    address: string;
+@Schema({ timestamps: true })
+class SuperAgent extends Users{
 
     @Prop()
     business_username: string;
@@ -18,10 +16,6 @@ class SuperAgent{
 
     @Prop()
     location: string;
-
-    @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
-    users: Users | Types.ObjectId;
-
 }
 
 export const SuperAgentSchema = SchemaFactory.createForClass(SuperAgent)

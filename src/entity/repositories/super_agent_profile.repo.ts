@@ -7,7 +7,7 @@ import { SuperAgentDocument, SuperAgent } from '../schema/super_agent_profile.sc
 
 @Global()
 @Injectable()
-export class SuperAgentRepository extends EntityRepository <SuperAgentDocument> {
+export class SuperAgentProfileRepository extends EntityRepository <SuperAgentDocument> {
     constructor(@InjectModel(SuperAgent.name) SuperAgentModel: Model<SuperAgentDocument>) {
         super(SuperAgentModel);
     } 

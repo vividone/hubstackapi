@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AdminProfileModule } from './admin_profile/admin_profile.module';
 import { SuperAgentProfileModule } from './super_agent_profile/super_agent_profile.module';
-import { AgentModule } from './agent_profile/agent_profile.module';
+import { AgentProfileModule } from './agent_profile/agent_profile.module';
 
 @Module({
     imports: [HttpModule.register({
@@ -20,7 +20,7 @@ import { AgentModule } from './agent_profile/agent_profile.module';
     UsersModule,
     AdminProfileModule,
     SuperAgentProfileModule,
-    AgentModule,
+    AgentProfileModule,
   ],
 })
 export class AppModule {}

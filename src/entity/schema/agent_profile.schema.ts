@@ -5,11 +5,9 @@ import { Users } from './user.schema';
 export type AgentDocument = HydratedDocument<Agent>;
 
 export
-@Schema()
-class Agent{
-    @Prop()
-    address: string;
-
+@Schema({ timestamps : true })
+class Agent extends Users {
+    
     @Prop()
     business_username: string;
 
@@ -24,9 +22,6 @@ class Agent{
 
     @Prop()
     super_agent_username: string;
-
-    @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
-    users: Users | Types.ObjectId;
 
 }
 
