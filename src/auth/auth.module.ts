@@ -7,6 +7,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from 'src/users/users.module';
 import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
+import { SuperAgentProfileModule } from 'src/super_agent_profile/super_agent_profile.module';
+import { InvitationsModule } from 'src/invitations/invitations.module';
 @Module({
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, ConfigService ],
@@ -19,6 +21,8 @@ import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
         signOptions: { expiresIn: '1h' },
       }),
     }),
+    InvitationsModule,
+    SuperAgentProfileModule,
     AgentProfileModule,
     UsersModule,
     PassportModule,

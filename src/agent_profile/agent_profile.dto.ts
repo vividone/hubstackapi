@@ -7,7 +7,7 @@ export class CreateAgentProfileDto extends CreateUserDto {
 
     @IsNotEmpty()
     @IsString()
-    super_agent_username: string;
+    referal_username: string;
 
     @IsNotEmpty()
     @IsString()

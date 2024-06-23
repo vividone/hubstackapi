@@ -7,17 +7,20 @@ import { UserRepository } from 'src/entity/repositories/user.repo';
 import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { CreateUserDto } from 'src/users/users.dto';
+import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
+import { SuperAgentProfileRepository } from 'src/entity/repositories/super_agent_profile.repo';
 
 @Injectable()
 export class AuthService{
     constructor(
         private readonly userRepo : UserRepository,
         private readonly agentRepo: AgentProfileRepository,
+        private readonly superAgentRepo: SuperAgentProfileRepository,
         private readonly jwtService : JwtService,
 
     ){}
 
-    async createUser(createUserDto: CreateUserDto | CreateAgentProfileDto, req: any) {
+    async createUser(createUserDto: CreateUserDto | CreateAgentProfileDto | CreateSuperAgentProfileDto, req: any) {
         const { email, role } = createUserDto;
         const existingUser = await this.userRepo.findOne({ email });
         if (existingUser) {
@@ -26,9 +29,12 @@ export class AuthService{
 
         if (role === 'Agent') {
             return await this.createAgent(createUserDto as CreateAgentProfileDto);
-        } else {
+        } else if ( role === 'SuperAgent'){
+            return await this.createSuperAgent(createUserDto as CreateSuperAgentProfileDto);
+        } {
             return await this.userRepo.create(createUserDto);
         }
+        
     }
 
     private async createAgent(createAgentDto: CreateAgentProfileDto) {
@@ -41,12 +47,22 @@ export class AuthService{
         return { agentUser, agentProfile };
     }
 
+    private async createSuperAgent(createSuperAgentDto: CreateSuperAgentProfileDto) {
+        const superAgentUser = await this.userRepo.create(createSuperAgentDto);
+        const superAgentProfile = await this.superAgentRepo.create({
+            ...createSuperAgentDto,
+            user: superAgentUser._id,
+        });
+
+        return { superAgentUser, superAgentProfile };
+    }
+
     async validateUser ( email: string, password: string) {
         const user = await this.userRepo.findOne({ email })
         if (user && await user.comparePassword(password)) {
             const { password, ...result } = user.toObject();
             return result;
-            }
+        }
         return null;
     }
 

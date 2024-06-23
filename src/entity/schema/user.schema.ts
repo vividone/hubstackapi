@@ -3,16 +3,9 @@ import { HydratedDocument, Types } from 'mongoose';
 import { SuperAgent } from './super_agent_profile.schema';
 import * as bcrypt from 'bcryptjs'
 import { Agent } from './agent_profile.schema';
+import { Role } from 'src/enum';
 
 export type UserDocument = HydratedDocument<Users>;
-
-export enum Role {
-    SUPER_ADMIN = 'physical',
-    SUPER_AGENT ='virtual',
-    AGENT = 'agent',
-    INDIVIDUAL = 'individual'
-  }
-  
 
 export
 @Schema({ timestamps : true, discriminatorKey: 'role' })

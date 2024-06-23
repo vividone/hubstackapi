@@ -16,6 +16,15 @@ class SuperAgent extends Users{
 
     @Prop()
     location: string;
+
+    @Prop()
+    is_verified: boolean;
+
+    @Prop()
+    admin_username: string;
+
+    @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
+    user: Users | Types.ObjectId; 
 }
 
 export const SuperAgentSchema = SchemaFactory.createForClass(SuperAgent)
