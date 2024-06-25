@@ -12,7 +12,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { InvitationsModule } from './invitations/invitations.module';
 
 @Module({
-    imports: [HttpModule.register({
+  imports: [
+    HttpModule.register({
       timeout: 10000,
       maxRedirects: 5,
     }),

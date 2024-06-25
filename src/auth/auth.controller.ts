@@ -1,14 +1,14 @@
 import {
-    Body,
-    Get,
-    Param,
-    Post,
-    Patch,
-    Delete,
-    Req,
-    BadRequestException,
-    NotFoundException,
-  } from '@nestjs/common';
+  Body,
+  Get,
+  Param,
+  Post,
+  Patch,
+  Delete,
+  Req,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { LoginUser } from 'src/users/users.entity';
 import { AuthService } from './auth.service';
@@ -21,73 +21,96 @@ import { InvitationsService } from 'src/invitations/invitations.service';
 
 @Controller('auth')
 export class AuthController {
-    constructor(
-        private readonly authService: AuthService,
-        private readonly invitationService: InvitationsService
-    ){}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly invitationService: InvitationsService,
+  ) {}
 
-    @Post('Register')
-    registerUser(@Body() createUserDto: CreateUserDto, @Req() req: Request){
-        if(!createUserDto.role){
-            throw new BadRequestException('Role is required');
-        }
-        return this.authService.createUser(createUserDto, req);
+  @Post('register-individual')
+  registerUser(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
+    if (!createUserDto.role) {
+      throw new BadRequestException('Role is required');
+    }
+    return this.authService.createUser(createUserDto, req);
+  }
+
+  @Post('agent-referal-registration')
+  async registerAgentByInvitation(
+    @Body() createAgentDto: CreateAgentProfileDto,
+    @Req() req: any,
+  ) {
+    const { referal_username } = createAgentDto;
+
+    const invitation =
+      await this.invitationService.findInvitationByUsername(referal_username);
+    if (!invitation || invitation.isUsed) {
+      throw new NotFoundException('Invalid invitation.');
     }
 
+    createAgentDto.role = 'Agent';
 
-    @Post('agent-referal-registration')
-    async registerAgentByInvitation(@Body() createAgentDto: CreateAgentProfileDto, @Req() req: any) {
-        const { referal_username } = createAgentDto;
+    const createdAgent = await this.authService.createUser(createAgentDto, req);
+    await this.invitationService.markInvitationAsUsed(
+      invitation._id,
+      invitation,
+    );
 
-        const invitation = await this.invitationService.findInvitationByUsername(referal_username);
-        if (!invitation || invitation.isUsed) {
-            throw new NotFoundException('Invalid invitation.');
-        }
+    return { message: 'Agent registered successfully.', Agent: createdAgent };
+  }
 
-        createAgentDto.role = 'Agent'
+  @Post('super-agent-referal-registration')
+  async registerSuperAgentByInvitation(
+    @Body() createSuperAgentDto: CreateSuperAgentProfileDto,
+    @Req() req: any,
+  ) {
+    const { referal_username } = createSuperAgentDto;
 
-        const createdAgent = await this.authService.createUser(createAgentDto, req);
-        await this.invitationService.markInvitationAsUsed(invitation._id, invitation);
-
-        return { message: 'Agent registered successfully.', Agent: createdAgent };
+    const invitation =
+      await this.invitationService.findInvitationByUsername(referal_username);
+    if (!invitation || invitation.isUsed) {
+      throw new NotFoundException('Invalid invitation.');
     }
 
+    createSuperAgentDto.role = 'SuperAgent';
 
-    @Post('super-agent-referal-registration')
-    async registerSuperAgentByInvitation(@Body() createSuperAgentDto: CreateSuperAgentProfileDto, @Req() req: any) {
-        const { referal_username } = createSuperAgentDto;
+    const createdSuperAgent = await this.authService.createUser(
+      createSuperAgentDto,
+      req,
+    );
+    await this.invitationService.markInvitationAsUsed(
+      invitation._id,
+      invitation,
+    );
 
-        const invitation = await this.invitationService.findInvitationByUsername(referal_username);
-        if (!invitation || invitation.isUsed) {
-            throw new NotFoundException('Invalid invitation.');
-        }
-    
-        createSuperAgentDto.role = 'SuperAgent'
+    return {
+      message: 'SuperAgent registered successfully.',
+      superAgent: createdSuperAgent,
+    };
+  }
 
-        const createdSuperAgent = await this.authService.createUser(createSuperAgentDto, req);
-        await this.invitationService.markInvitationAsUsed(invitation._id, invitation);
-
-        return { message: 'SuperAgent registered successfully.', superAgent: createdSuperAgent };
+  @Post('register-agent')
+  registerAgent(
+    @Body() createAgentDto: CreateAgentProfileDto,
+    @Req() req: Request,
+  ) {
+    if (createAgentDto.role !== 'Agent') {
+      throw new BadRequestException(
+        'Role must be agent for agent registration',
+      );
     }
+    return this.authService.createUser(createAgentDto, req);
+  }
 
-    @Post('Register-agent')
-    registerAgent(@Body() createAgentDto: CreateAgentProfileDto, @Req() req: Request){
-        if( createAgentDto.role !== 'Agent'){
-            throw new BadRequestException('Role must be agent for agent registration')
-        }
-        return this.authService.createUser(createAgentDto, req);
-    }
+  // @Post('Register-superAgent')
+  // registerSuperAgent(@Body() createSuperAgentDto: CreateSuperAgentProfileDto, @Req() req: Request){
+  //     if( createSuperAgentDto.role !== 'SuperAgent'){
+  //         throw new BadRequestException('Role must be SuperAgent for SuperAgent registration')
+  //     }
+  //     return this.authService.createUser(createSuperAgentDto, req);
+  // }
 
-    // @Post('Register-superAgent')
-    // registerSuperAgent(@Body() createSuperAgentDto: CreateSuperAgentProfileDto, @Req() req: Request){
-    //     if( createSuperAgentDto.role !== 'SuperAgent'){
-    //         throw new BadRequestException('Role must be SuperAgent for SuperAgent registration')
-    //     }
-    //     return this.authService.createUser(createSuperAgentDto, req);
-    // }
-
-    @Post('login')
-    loginUser(@Body() loginUserDto: LoginUser,@Req() req: Request) {
-        return this.authService.loginUser(loginUserDto);
-    }
+  @Post('login')
+  loginUser(@Body() loginUserDto: LoginUser, @Req() req: Request) {
+    return this.authService.loginUser(loginUserDto);
+  }
 }

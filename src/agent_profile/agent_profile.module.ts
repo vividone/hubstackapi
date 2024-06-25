@@ -15,6 +15,6 @@ import { HttpModule } from '@nestjs/axios';
       maxRedirects: 5,
     }),
   ],
-  exports: [AgentService, AgentProfileRepository]
+  exports: [AgentService, AgentProfileRepository],
 })
 export class AgentProfileModule {}

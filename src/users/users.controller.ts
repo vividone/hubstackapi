@@ -17,7 +17,7 @@ import { LoginUser } from './users.entity';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get('all-users')
   async findAllUsers() {

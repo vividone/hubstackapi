@@ -10,11 +10,13 @@ import { UsersModule } from 'src/users/users.module';
 @Module({
   controllers: [InvitationsController],
   providers: [InvitationsService, InvitationsRepository],
-  imports:[
-    MongooseModule.forFeature([{ name: Invitations.name, schema: InvitationSchema }]),
+  imports: [
+    MongooseModule.forFeature([
+      { name: Invitations.name, schema: InvitationSchema },
+    ]),
     SuperAgentProfileModule,
-    UsersModule
+    UsersModule,
   ],
-  exports: [InvitationsService, InvitationsRepository]
+  exports: [InvitationsService, InvitationsRepository],
 })
 export class InvitationsModule {}

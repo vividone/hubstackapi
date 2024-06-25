@@ -11,7 +11,7 @@ import { SuperAgentProfileModule } from 'src/super_agent_profile/super_agent_pro
 import { InvitationsModule } from 'src/invitations/invitations.module';
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, ConfigService ],
+  providers: [AuthService, JwtStrategy, ConfigService],
   imports: [
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -27,6 +27,6 @@ import { InvitationsModule } from 'src/invitations/invitations.module';
     UsersModule,
     PassportModule,
   ],
-  exports: [AuthService]
+  exports: [AuthService],
 })
 export class AuthModule {}

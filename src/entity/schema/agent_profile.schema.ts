@@ -5,27 +5,25 @@ import { Users } from './user.schema';
 export type AgentDocument = HydratedDocument<Agent>;
 
 export
-@Schema({ timestamps : true })
+@Schema({ timestamps: true })
 class Agent extends Users {
-    
-    @Prop()
-    business_username: string;
+  @Prop()
+  business_username: string;
 
-    @Prop()
-    region: string;
+  @Prop()
+  region: string;
 
-    @Prop()
-    location: string;
+  @Prop()
+  location: string;
 
-    @Prop()
-    is_verified: boolean;
+  @Prop()
+  is_verified: boolean;
 
-    @Prop()
-    super_agent_username: string;
+  @Prop()
+  super_agent_username: string;
 
-    @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
-    user: Users | Types.ObjectId; 
-
+  @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
+  user: Users | Types.ObjectId;
 }
 
-export const AgentSchema = SchemaFactory.createForClass(Agent)
+export const AgentSchema = SchemaFactory.createForClass(Agent);

@@ -5,14 +5,13 @@ import { Status } from 'src/enum';
 export type InvitationsDocument = HydratedDocument<Invitations>;
 
 export
-@Schema ({ timestamps: true})
+@Schema({ timestamps: true })
 class Invitations {
-  
-  @Prop({ required: true})
+  @Prop({ required: true })
   invitersUsername: string;
 
   @Prop({ default: Status.PENDING })
-  status: Status
+  status: Status;
 
   @Prop({ type: Date })
   invitedAt: Date;
@@ -24,4 +23,4 @@ class Invitations {
   isUsed: boolean;
 }
 
-export const InvitationSchema = SchemaFactory.createForClass(Invitations)
+export const InvitationSchema = SchemaFactory.createForClass(Invitations);

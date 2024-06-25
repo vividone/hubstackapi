@@ -10,7 +10,9 @@ import { SuperAgent, SuperAgentSchema } from 'src/entity';
   controllers: [SuperAgentProfileController],
   providers: [SuperAgentProfileService, SuperAgentProfileRepository],
   imports: [
-    MongooseModule.forFeature([{ name: SuperAgent.name, schema: SuperAgentSchema }]),
+    MongooseModule.forFeature([
+      { name: SuperAgent.name, schema: SuperAgentSchema },
+    ]),
   ],
   exports: [SuperAgentProfileService, SuperAgentProfileRepository],
 })

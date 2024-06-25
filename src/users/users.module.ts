@@ -14,7 +14,7 @@ import { AuthService } from 'src/auth/auth.service';
   controllers: [UsersController],
   providers: [UsersService, UserRepository],
   imports: [
-    MongooseModule.forFeature([{ name: Users.name, schema: UserSchema}]),
+    MongooseModule.forFeature([{ name: Users.name, schema: UserSchema }]),
     HttpModule.register({
       timeout: 5000,
       maxRedirects: 5,
@@ -22,6 +22,6 @@ import { AuthService } from 'src/auth/auth.service';
     SuperAgentProfileModule,
     AgentProfileModule,
   ],
-  exports: [ UsersService, UserRepository ]
+  exports: [UsersService, UserRepository],
 })
 export class UsersModule {}
