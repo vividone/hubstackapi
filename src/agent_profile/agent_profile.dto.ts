@@ -7,7 +7,7 @@ export class CreateAgentProfileDto extends CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
-  business_username: string;
+  business_name: string;
 
   @IsNotEmpty()
   @IsString()

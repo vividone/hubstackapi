@@ -1,5 +1,5 @@
 export class AgentProfile {
-  business_username: string;
+  business_name: string;
   super_agent_username: string;
   region: string;
   location: string;
