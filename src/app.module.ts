@@ -21,7 +21,6 @@ import { EmailService } from './helpers/email.helper';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    EmailService,
     PassportModule,
     MongooseModule.forRoot(process.env.MONGODB_URL),
     UsersModule,
