@@ -4009,7 +4009,7 @@ node-emoji@1.11.0:
   dependencies:
     lodash "^4.17.21"
 
-node-fetch@^2.6.1:
+node-fetch@^2.6.0, node-fetch@^2.6.1:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.7.0.tgz#d0f0fa6e3e2dc1d27efcd8ad99d550bda94d187d"
   integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
@@ -5373,3 +5373,10 @@ yocto-queue@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
+
+zeptomail@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/zeptomail/-/zeptomail-6.0.0.tgz#8abf36abfe71036c8b5185ed9540f9ea72781b90"
+  integrity sha512-RO7xOBGVGthxMK4IsOVWdkNUAxn1VGFer8Awo+t7KMaO/8xMgQtSGqFcjr48SeYbzDuw6U1FKfpRmeyXt7edOA==
+  dependencies:
+    node-fetch "^2.6.0"

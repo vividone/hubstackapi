@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { InvitationsModule } from './invitations/invitations.module';
+import { EmailService } from './helpers/email.helper';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { InvitationsModule } from './invitations/invitations.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    EmailService,
     PassportModule,
     MongooseModule.forRoot(process.env.MONGODB_URL),
     UsersModule,

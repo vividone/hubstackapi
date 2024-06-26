@@ -41,11 +41,11 @@ export class AuthController {
   ) {
     const { referal_username } = createAgentDto;
 
-    const invitation =
-      await this.invitationService.findInvitationByUsername(referal_username);
-    if (!invitation || invitation.isUsed) {
-      throw new NotFoundException('Invalid invitation.');
-    }
+        const invitation = await this.invitationService.findInvitationByUsername(referal_username);
+        console.log(invitation._id);
+        if (!invitation || invitation.isUsed) {
+            throw new NotFoundException('Invalid invitation.');
+        }
 
     createAgentDto.role = 'Agent';
 
@@ -58,35 +58,22 @@ export class AuthController {
     return { message: 'Agent registered successfully.', Agent: createdAgent };
   }
 
-  @Post('super-agent-referal-registration')
-  async registerSuperAgentByInvitation(
-    @Body() createSuperAgentDto: CreateSuperAgentProfileDto,
-    @Req() req: any,
-  ) {
-    const { referal_username } = createSuperAgentDto;
+    // @Post('super-agent-referal-registration')
+    // async registerSuperAgentByInvitation(@Body() createSuperAgentDto: CreateSuperAgentProfileDto, @Req() req: any) {
+    //     const { referal_username } = createSuperAgentDto;
 
-    const invitation =
-      await this.invitationService.findInvitationByUsername(referal_username);
-    if (!invitation || invitation.isUsed) {
-      throw new NotFoundException('Invalid invitation.');
-    }
+    //     const invitation = await this.invitationService.findInvitationByUsername(referal_username);
+    //     if (!invitation || invitation.isUsed) {
+    //         throw new NotFoundException('Invalid invitation.');
+    //     }
+    
+    //     createSuperAgentDto.role = 'SuperAgent'
 
-    createSuperAgentDto.role = 'SuperAgent';
+    //     const createdSuperAgent = await this.authService.createUser(createSuperAgentDto, req);
+    //     await this.invitationService.markInvitationAsUsed(invitation._id, invitation);
 
-    const createdSuperAgent = await this.authService.createUser(
-      createSuperAgentDto,
-      req,
-    );
-    await this.invitationService.markInvitationAsUsed(
-      invitation._id,
-      invitation,
-    );
-
-    return {
-      message: 'SuperAgent registered successfully.',
-      superAgent: createdSuperAgent,
-    };
-  }
+    //     return { message: 'SuperAgent registered successfully.', superAgent: createdSuperAgent };
+    // }
 
   @Post('register-agent')
   registerAgent(
