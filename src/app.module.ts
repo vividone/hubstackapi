@@ -8,9 +8,7 @@ import { SuperAgentProfileModule } from './super_agent_profile/super_agent_profi
 import { AgentProfileModule } from './agent_profile/agent_profile.module';
 import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
 import { InvitationsModule } from './invitations/invitations.module';
-import { EmailService } from './helpers/email.helper';
 
 @Module({
   imports: [

@@ -19,4 +19,8 @@ export class UsersService {
     }
     return user;
   }
+
+  async updateRefreshToken(userId: string, refreshToken: string) {
+    await this.userRepo.findOneAndUpdate({_id: userId}, { refreshToken })
+}
 }

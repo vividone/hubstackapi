@@ -1,31 +1,29 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
-import { JwtPayload } from './jwt-payload';
-import { LoginUser } from 'src/users/users.entity';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
+import { SuperAgentProfileRepository } from 'src/entity/repositories/super_agent_profile.repo';
+import { OtpService } from './otp.mail';
+import { JwtPayload } from './jwt-payload';
+import { LoginUser } from 'src/users/users.entity'; 
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { CreateUserDto } from 'src/users/users.dto';
 import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
-import { SuperAgentProfileRepository } from 'src/entity/repositories/super_agent_profile.repo';
-import { OtpService } from 'src/helpers/otp.mail';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly userRepo: UserRepository,
+        private readonly userService: UsersService,
         private readonly agentRepo: AgentProfileRepository,
         private readonly superAgentRepo: SuperAgentProfileRepository,
         private readonly jwtService: JwtService,
-        private readonly otpService: OtpService
-    ) { }
+        private readonly otpService: OtpService,
+    ) {}
 
     async createUser(
-        createUserDto:
-            | CreateUserDto
-            | CreateAgentProfileDto
-            | CreateSuperAgentProfileDto,
+        createUserDto: CreateUserDto | CreateAgentProfileDto | CreateSuperAgentProfileDto,
         req: any,
     ) {
         const { email, role } = createUserDto;
@@ -34,18 +32,20 @@ export class AuthService {
             throw new BadRequestException('Email already exists');
         }
 
+        let user;
         if (role === 'Agent') {
-            return await this.createAgent(createUserDto as CreateAgentProfileDto);
+            user = await this.createAgent(createUserDto as CreateAgentProfileDto);
         } else if (role === 'SuperAgent') {
-            return await this.createSuperAgent(
-                createUserDto as CreateSuperAgentProfileDto,
-            );
+            user = await this.createSuperAgent(createUserDto as CreateSuperAgentProfileDto);
+        } else {
+            user = await this.userRepo.create(createUserDto);
         }
+
         const otp = this.otpService.generateOTP();
-        await this.otpService.sendOtpEmail(email, createUserDto.first_name, createUserDto.last_name, otp);
-        {
-            return await this.userRepo.create(createUserDto);
-        }
+        await this.otpService.sendOtpEmail(email, otp, createUserDto.first_name, createUserDto.last_name);
+        await this.otpService.saveOtpToUser(email, otp);
+
+        return user;
     }
 
     private async createAgent(createAgentDto: CreateAgentProfileDto) {
@@ -58,9 +58,7 @@ export class AuthService {
         return { agentUser, agentProfile };
     }
 
-    private async createSuperAgent(
-        createSuperAgentDto: CreateSuperAgentProfileDto,
-    ) {
+    private async createSuperAgent(createSuperAgentDto: CreateSuperAgentProfileDto) {
         const superAgentUser = await this.userRepo.create(createSuperAgentDto);
         const superAgentProfile = await this.superAgentRepo.create({
             ...createSuperAgentDto,
@@ -82,25 +80,48 @@ export class AuthService {
     async generateToken(user: any) {
         const payload: JwtPayload = {
             email: user.email,
-            userId: user._id,
             password: user.password,
+            userId: user._id,
         };
         return {
             access_token: this.jwtService.sign(payload),
         };
     }
 
-    async loginUser(loginUser: LoginUser) {
-        const { email, password } = loginUser;
+    generateRefreshToken(userId: string) {
+        const payload = { id: userId };
+        const refresh_token = this.jwtService.sign(payload, { expiresIn: '7d' });
+        return { refresh_token };
+    }
+
+    async loginUser(loginUserDto: LoginUser, res: any) {
+        const { email, password } = loginUserDto;
 
         const user = await this.userRepo.findOne({ email });
         if (!user || !(await user.comparePassword(password))) {
             throw new BadRequestException('Invalid credentials');
         }
-        return this.generateToken(user);
+
+        const refreshToken = this.generateRefreshToken(user._id);
+        await this.userService.updateRefreshToken(user._id, refreshToken.refresh_token);
+
+        this.setRefreshTokenCookie(res, refreshToken.refresh_token);
+
+        const userData = await this.userRepo.findOne(user._id, { password: false });
+        //const token = await this.generateToken(userData);
+
+        return {
+            status: 'Success',
+            message: 'Login successful',
+            data: userData,
+            refreshToken,
+        };
     }
 
-    private generateOTP(): string {
-        return Math.floor(100000 + Math.random() * 900000).toString();
+    private setRefreshTokenCookie(res: any, token: string) {
+        res.cookie('refreshToken', token, {
+            httpOnly: true,
+            maxAge: 72 * 60 * 60 * 1000, // 72 hours in milliseconds
+        });
     }
 }

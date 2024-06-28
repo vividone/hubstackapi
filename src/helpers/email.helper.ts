@@ -11,9 +11,9 @@ export class EmailService {
     this.client = new SendMailClient({ url, token });
   }
 
-  async sendEmail(sender: string, mailSubject: string, loadedTemplate: string, addressee: any){
+  async sendEmail(sender: string, mailSubject: string, loadedTemplate: string, addressee: any) {
     try {
-      await this.client.sendMail({
+      const response = await this.client.sendMail({
         from: {
           address: sender,
           name: 'noreply',
@@ -29,9 +29,10 @@ export class EmailService {
         subject: mailSubject,
         htmlbody: loadedTemplate,
       });
+
       console.log('mail sent');
     } catch (error) {
-      console.error('mail error', error);
+      console.error('Mail error:', error);
     }
   }
 

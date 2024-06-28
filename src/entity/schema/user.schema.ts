@@ -32,6 +32,12 @@ class Users {
   role: Role;
 
   @Prop()
+  otp: string;
+
+  @Prop({ default: false})
+  isVerified: boolean;
+
+  @Prop()
   is_active: boolean;
 }
 

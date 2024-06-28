@@ -5,9 +5,11 @@ import {
   Post,
   Patch,
   Delete,
+  Res,
   Req,
   BadRequestException,
   NotFoundException,
+  HttpStatus,
 } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { LoginUser } from 'src/users/users.entity';
@@ -18,12 +20,15 @@ import { CreateUserDto } from 'src/users/users.dto';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
 import { InvitationsService } from 'src/invitations/invitations.service';
+import { VerifyOtpDto } from './verfy_otp.dto';
+import { OtpService } from './otp.mail';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly invitationService: InvitationsService,
+    private readonly otpService: OtpService
   ) {}
 
   @Post('register-individual')
@@ -88,16 +93,28 @@ export class AuthController {
     return this.authService.createUser(createAgentDto, req);
   }
 
-  // @Post('Register-superAgent')
-  // registerSuperAgent(@Body() createSuperAgentDto: CreateSuperAgentProfileDto, @Req() req: Request){
-  //     if( createSuperAgentDto.role !== 'SuperAgent'){
-  //         throw new BadRequestException('Role must be SuperAgent for SuperAgent registration')
-  //     }
-  //     return this.authService.createUser(createSuperAgentDto, req);
-  // }
+  @Post('verify-otp')
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    const { email, otp } = verifyOtpDto;
+    return this.otpService.verifyOtp(email, otp);
+  }
 
   @Post('login')
-  loginUser(@Body() loginUserDto: LoginUser, @Req() req: Request) {
-    return this.authService.loginUser(loginUserDto);
+  async loginUser(@Body() loginUserDto: LoginUser, @Res() res: any) {
+      try {
+          const result = await this.authService.loginUser(loginUserDto, res);
+          return res.status(HttpStatus.OK).json(result);
+      } catch (error) {
+          if (error instanceof BadRequestException) {
+              return res.status(HttpStatus.BAD_REQUEST).json({
+                  status: 'Failure',
+                  error: error.message,
+              });
+          }
+          return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+              status: 'Failure',
+              error: 'Internal Server Error',
+          });
+      }
   }
 }
