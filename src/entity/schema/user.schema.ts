@@ -34,7 +34,7 @@ class Users {
   @Prop()
   otp: string;
 
-  @Prop({ default: false})
+  @Prop({ default: false })
   isVerified: boolean;
 
   @Prop()

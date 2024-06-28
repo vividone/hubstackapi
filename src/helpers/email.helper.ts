@@ -11,7 +11,12 @@ export class EmailService {
     this.client = new SendMailClient({ url, token });
   }
 
-  async sendEmail(sender: string, mailSubject: string, loadedTemplate: string, addressee: any) {
+  async sendEmail(
+    sender: string,
+    mailSubject: string,
+    loadedTemplate: string,
+    addressee: any,
+  ) {
     try {
       const response = await this.client.sendMail({
         from: {
@@ -36,7 +41,10 @@ export class EmailService {
     }
   }
 
-  loadTemplate(templateString: string, loadedValues: Record<string, string>): string {
+  loadTemplate(
+    templateString: string,
+    loadedValues: Record<string, string>,
+  ): string {
     return templateString.replace(/%\w+%/g, (all) => loadedValues[all] || all);
   }
 }

@@ -1,10 +1,6 @@
 import {
   Body,
-  Get,
-  Param,
   Post,
-  Patch,
-  Delete,
   Res,
   Req,
   BadRequestException,
@@ -15,10 +11,8 @@ import { Controller } from '@nestjs/common';
 import { LoginUser } from 'src/users/users.entity';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
-import { UsersService } from 'src/users/users.service';
 import { CreateUserDto } from 'src/users/users.dto';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
-import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
 import { InvitationsService } from 'src/invitations/invitations.service';
 import { VerifyOtpDto } from './verfy_otp.dto';
 import { OtpService } from './otp.mail';
@@ -28,7 +22,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly invitationService: InvitationsService,
-    private readonly otpService: OtpService
+    private readonly otpService: OtpService,
   ) {}
 
   @Post('register-individual')
@@ -46,11 +40,12 @@ export class AuthController {
   ) {
     const { referal_username } = createAgentDto;
 
-        const invitation = await this.invitationService.findInvitationByUsername(referal_username);
-        console.log(invitation._id);
-        if (!invitation || invitation.isUsed) {
-            throw new NotFoundException('Invalid invitation.');
-        }
+    const invitation =
+      await this.invitationService.findInvitationByUsername(referal_username);
+    console.log(invitation._id);
+    if (!invitation || invitation.isUsed) {
+      throw new NotFoundException('Invalid invitation.');
+    }
 
     createAgentDto.role = 'Agent';
 
@@ -63,22 +58,22 @@ export class AuthController {
     return { message: 'Agent registered successfully.', Agent: createdAgent };
   }
 
-    // @Post('super-agent-referal-registration')
-    // async registerSuperAgentByInvitation(@Body() createSuperAgentDto: CreateSuperAgentProfileDto, @Req() req: any) {
-    //     const { referal_username } = createSuperAgentDto;
+  // @Post('super-agent-referal-registration')
+  // async registerSuperAgentByInvitation(@Body() createSuperAgentDto: CreateSuperAgentProfileDto, @Req() req: any) {
+  //     const { referal_username } = createSuperAgentDto;
 
-    //     const invitation = await this.invitationService.findInvitationByUsername(referal_username);
-    //     if (!invitation || invitation.isUsed) {
-    //         throw new NotFoundException('Invalid invitation.');
-    //     }
-    
-    //     createSuperAgentDto.role = 'SuperAgent'
+  //     const invitation = await this.invitationService.findInvitationByUsername(referal_username);
+  //     if (!invitation || invitation.isUsed) {
+  //         throw new NotFoundException('Invalid invitation.');
+  //     }
 
-    //     const createdSuperAgent = await this.authService.createUser(createSuperAgentDto, req);
-    //     await this.invitationService.markInvitationAsUsed(invitation._id, invitation);
+  //     createSuperAgentDto.role = 'SuperAgent'
 
-    //     return { message: 'SuperAgent registered successfully.', superAgent: createdSuperAgent };
-    // }
+  //     const createdSuperAgent = await this.authService.createUser(createSuperAgentDto, req);
+  //     await this.invitationService.markInvitationAsUsed(invitation._id, invitation);
+
+  //     return { message: 'SuperAgent registered successfully.', superAgent: createdSuperAgent };
+  // }
 
   @Post('register-agent')
   registerAgent(
@@ -101,20 +96,20 @@ export class AuthController {
 
   @Post('login')
   async loginUser(@Body() loginUserDto: LoginUser, @Res() res: any) {
-      try {
-          const result = await this.authService.loginUser(loginUserDto, res);
-          return res.status(HttpStatus.OK).json(result);
-      } catch (error) {
-          if (error instanceof BadRequestException) {
-              return res.status(HttpStatus.BAD_REQUEST).json({
-                  status: 'Failure',
-                  error: error.message,
-              });
-          }
-          return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-              status: 'Failure',
-              error: 'Internal Server Error',
-          });
+    try {
+      const result = await this.authService.loginUser(loginUserDto, res);
+      return res.status(HttpStatus.OK).json(result);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          status: 'Failure',
+          error: error.message,
+        });
       }
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        status: 'Failure',
+        error: 'Internal Server Error',
+      });
+    }
   }
 }

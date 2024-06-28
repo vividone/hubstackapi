@@ -13,7 +13,13 @@ import { OtpService } from 'src/auth/otp.mail';
 import { EmailService } from 'src/helpers/email.helper';
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, ConfigService, OtpService, EmailService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    ConfigService,
+    OtpService,
+    EmailService,
+  ],
   imports: [
     JwtModule.registerAsync({
       imports: [ConfigModule],

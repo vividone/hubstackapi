@@ -14,22 +14,35 @@ export class InvitationsService {
     return await this.invitationRepo.findOne({ invitersUsername });
   }
 
-    async approveInvitation(invitationId: string, updateInvitation: CreateInvitationDto) {
-        const updatedInvitation = {...updateInvitation, isApproved: true, status: 'Approved'};
-        return await this.invitationRepo.findOneAndUpdate(
-            {_id: invitationId},
-            updatedInvitation,
-        );
-    }
+  async approveInvitation(
+    invitationId: string,
+    updateInvitation: CreateInvitationDto,
+  ) {
+    const updatedInvitation = {
+      ...updateInvitation,
+      isApproved: true,
+      status: 'Approved',
+    };
+    return await this.invitationRepo.findOneAndUpdate(
+      { _id: invitationId },
+      updatedInvitation,
+    );
+  }
 
-    async markInvitationAsUsed(invitationId: string, updateInvitation: CreateInvitationDto) {
-        const updatedInvitation = {...updateInvitation, isUsed: true, invitersUsername: null};
-        console.log(updatedInvitation)
-        await this.invitationRepo.findOneAndUpdate(
-            {_id: invitationId},
-            updatedInvitation,
-        );
-        return await this.invitationRepo.findOne({_id: invitationId});
-    }
-    
+  async markInvitationAsUsed(
+    invitationId: string,
+    updateInvitation: CreateInvitationDto,
+  ) {
+    const updatedInvitation = {
+      ...updateInvitation,
+      isUsed: true,
+      invitersUsername: null,
+    };
+    console.log(updatedInvitation);
+    await this.invitationRepo.findOneAndUpdate(
+      { _id: invitationId },
+      updatedInvitation,
+    );
+    return await this.invitationRepo.findOne({ _id: invitationId });
+  }
 }
