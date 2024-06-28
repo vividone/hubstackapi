@@ -9,9 +9,11 @@ import { UsersModule } from 'src/users/users.module';
 import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
 import { SuperAgentProfileModule } from 'src/super_agent_profile/super_agent_profile.module';
 import { InvitationsModule } from 'src/invitations/invitations.module';
+import { OtpService } from 'src/auth/otp.mail';
+import { EmailService } from 'src/helpers/email.helper';
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, ConfigService],
+  providers: [AuthService, JwtStrategy, ConfigService, OtpService, EmailService],
   imports: [
     JwtModule.registerAsync({
       imports: [ConfigModule],
