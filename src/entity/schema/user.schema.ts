@@ -11,10 +11,10 @@ export
 @Schema({ timestamps: true, discriminatorKey: 'role' })
 class Users {
   @Prop()
-  first_name: string;
+  firstname: string;
 
   @Prop()
-  last_name: string;
+  lastname: string;
 
   @Prop()
   username: string;
