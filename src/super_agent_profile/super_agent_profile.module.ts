@@ -3,8 +3,9 @@ import { SuperAgentProfileController } from './super_agent_profile.controller';
 import { SuperAgentProfileService } from './super_agent_profile.service';
 import { SuperAgentProfileRepository } from 'src/entity/repositories/super_agent_profile.repo';
 import { MongooseModule } from '@nestjs/mongoose';
-import { SuperAgentProfile } from './super_agent_profile.entity';
 import { SuperAgent, SuperAgentSchema } from 'src/entity';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   controllers: [SuperAgentProfileController],
@@ -13,6 +14,8 @@ import { SuperAgent, SuperAgentSchema } from 'src/entity';
     MongooseModule.forFeature([
       { name: SuperAgent.name, schema: SuperAgentSchema },
     ]),
+    UsersModule,
+    JwtModule
   ],
   exports: [SuperAgentProfileService, SuperAgentProfileRepository],
 })

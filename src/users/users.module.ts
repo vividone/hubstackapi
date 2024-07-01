@@ -7,8 +7,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { HttpModule } from '@nestjs/axios';
 import { SuperAgentProfileModule } from 'src/super_agent_profile/super_agent_profile.module';
 import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
-import { AuthModule } from 'src/auth/auth.module';
-import { AuthService } from 'src/auth/auth.service';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [UsersController],
@@ -19,8 +18,8 @@ import { AuthService } from 'src/auth/auth.service';
       timeout: 5000,
       maxRedirects: 5,
     }),
-    SuperAgentProfileModule,
     AgentProfileModule,
+    JwtModule
   ],
   exports: [UsersService, UserRepository],
 })

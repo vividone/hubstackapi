@@ -20,6 +20,14 @@ export class UsersService {
     return user;
   }
 
+  async getUserRoles(userId: string) {
+    const user = await this.userRepo.findOne({ _id: userId });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return [user.role];
+  }
+
   async updateRefreshToken(userId: string, refreshToken: string) {
     await this.userRepo.findOneAndUpdate({ _id: userId }, { refreshToken });
   }
