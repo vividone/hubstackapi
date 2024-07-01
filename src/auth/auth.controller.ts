@@ -100,6 +100,7 @@ export class AuthController {
       const result = await this.authService.loginUser(loginUserDto, res);
       return res.status(HttpStatus.OK).json(result);
     } catch (error) {
+      console.error('Error during login:', error); 
       if (error instanceof BadRequestException) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           status: 'Failure',

@@ -1,24 +1,19 @@
 import {
-  Body,
   Get,
-  Param,
-  Post,
-  Patch,
-  Delete,
-  Req,
-  BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
-import { Request } from 'express';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './users.dto';
-import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
-import { LoginUser } from './users.entity';
+import { Roles } from 'src/role_auth_middleware/roles.decorator';
+import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
+import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('all-users')
   async findAllUsers() {
     return this.usersService.findAll();

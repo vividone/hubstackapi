@@ -6,6 +6,7 @@ import { InvitationsRepository } from 'src/entity/repositories/invitations.repo'
 import { MongooseModule } from '@nestjs/mongoose';
 import { InvitationSchema, Invitations } from 'src/entity';
 import { UsersModule } from 'src/users/users.module';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [InvitationsController],
@@ -16,6 +17,7 @@ import { UsersModule } from 'src/users/users.module';
     ]),
     SuperAgentProfileModule,
     UsersModule,
+    JwtModule
   ],
   exports: [InvitationsService, InvitationsRepository],
 })

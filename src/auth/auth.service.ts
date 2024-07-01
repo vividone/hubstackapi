@@ -46,6 +46,9 @@ export class AuthService {
       user = await this.userRepo.create(createUserDto);
     }
 
+    user.role = role;
+    await user.save();
+
     const otp = this.otpService.generateOTP();
     await this.otpService.sendOtpEmail(
       email,
@@ -84,6 +87,8 @@ export class AuthService {
     const user = await this.userRepo.findOne({ email });
     if (user && (await user.comparePassword(password))) {
       const { password, ...result } = user.toObject();
+
+    console.log('Validated User:', result);
       return result;
     }
     return null;
@@ -94,6 +99,7 @@ export class AuthService {
       email: user.email,
       password: user.password,
       userId: user._id,
+      roles: [user.role], 
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -123,12 +129,13 @@ export class AuthService {
     this.setRefreshTokenCookie(res, refreshToken.refresh_token);
 
     const userData = await this.userRepo.findOne(user._id, { password: false });
-    //const token = await this.generateToken(userData);
+    const token = await this.generateToken(userData);
 
     return {
       status: 'Success',
       message: 'Login successful',
       data: userData,
+      token,
       refreshToken,
     };
   }
