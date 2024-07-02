@@ -46,9 +46,6 @@ export class AuthService {
       user = await this.userRepo.create(createUserDto);
     }
 
-    user.role = role;
-    await user.save();
-
     const otp = this.otpService.generateOTP();
     await this.otpService.sendOtpEmail(
       email,

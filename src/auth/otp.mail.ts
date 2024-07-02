@@ -47,8 +47,8 @@ export class OtpService {
     await user.save();
   }
 
-  async verifyOtp(email: string, otp: string) {
-    const user = await this.userRepo.findOne({ email, otp });
+  async verifyOtp( otp: string) {
+    const user = await this.userRepo.findOne({ otp });
     if (!user) {
       throw new BadRequestException('Invalid OTP');
     }

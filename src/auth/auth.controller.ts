@@ -6,6 +6,7 @@ import {
   BadRequestException,
   NotFoundException,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { LoginUser } from 'src/users/users.entity';
@@ -90,8 +91,8 @@ export class AuthController {
 
   @Post('verify-otp')
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    const { email, otp } = verifyOtpDto;
-    return this.otpService.verifyOtp(email, otp);
+    const { otp } = verifyOtpDto;
+    return this.otpService.verifyOtp(otp);
   }
 
   @Post('login')
