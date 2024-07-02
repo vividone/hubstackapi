@@ -15,15 +15,12 @@ import { Request } from 'express';
 import { CreateUserDto } from 'src/users/users.dto';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { InvitationsService } from 'src/invitations/invitations.service';
-import { VerifyOtpDto } from './verfy_otp.dto';
-import { OtpService } from './otp.mail';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly invitationService: InvitationsService,
-    private readonly otpService: OtpService,
   ) {}
 
   @Post('register-individual')
@@ -90,9 +87,8 @@ export class AuthController {
   }
 
   @Post('verify-otp')
-  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    const { otp } = verifyOtpDto;
-    return this.otpService.verifyOtp(otp);
+  async verifyOtp(@Body() otp: string) {
+    return this.authService.verifyOtp(otp);
   }
 
   @Post('login')
@@ -112,6 +108,39 @@ export class AuthController {
         status: 'Failure',
         error: 'Internal Server Error',
       });
+    }
+  }
+
+  @Post('forgot-password')
+  async forgotPasswordToken(@Body('email') email: string) {
+    try {
+      const result = await this.authService.forgotPasswordToken(email);
+      return { status: 'Success', ...result }; 
+    } catch (error) {
+      console.error('Error during forgot password token generation:', error);
+
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw new BadRequestException('Internal Server Error');
+    }
+  }
+
+  @Post('reset-password/:token')
+  async resetForgottenPassword(
+    @Body('password') password: string,
+    @Param('token') token: string,
+  ) {
+    try {
+      const result = await this.authService.resetForgottenPassword(password, token);
+      return { status: 'Success', ...result }; 
+    } catch (error) {
+      console.error('Error during password reset:', error);
+
+      if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      }
+      throw new BadRequestException('Internal Server Error');
     }
   }
 }

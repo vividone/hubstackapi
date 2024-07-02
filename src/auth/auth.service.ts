@@ -1,15 +1,17 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
 import { SuperAgentProfileRepository } from 'src/entity/repositories/super_agent_profile.repo';
-import { OtpService } from './otp.mail';
+import { OtpService } from '../mailing/otp.mail';
 import { JwtPayload } from './jwt-payload';
+import * as bcrypt from 'bcryptjs';
 import { LoginUser } from 'src/users/users.entity';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { CreateUserDto } from 'src/users/users.dto';
 import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
 import { UsersService } from 'src/users/users.service';
+import { ResetPasswordService } from '../mailing/resetPassword.mail';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +22,8 @@ export class AuthService {
     private readonly superAgentRepo: SuperAgentProfileRepository,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
-  ) {}
+    private readonly resetPasswordService: ResetPasswordService
+  ) { }
 
   async createUser(
     createUserDto:
@@ -50,10 +53,10 @@ export class AuthService {
     await this.otpService.sendOtpEmail(
       email,
       otp,
-      createUserDto.first_name,
-      createUserDto.last_name,
+      createUserDto.firstname,
+      createUserDto.lastname,
     );
-    await this.otpService.saveOtpToUser(email, otp);
+    await this.userService.saveOtpToUser(email, otp);
 
     return user;
   }
@@ -85,10 +88,21 @@ export class AuthService {
     if (user && (await user.comparePassword(password))) {
       const { password, ...result } = user.toObject();
 
-    console.log('Validated User:', result);
+      console.log('Validated User:', result);
       return result;
     }
     return null;
+  }
+
+  async verifyOtp( otp: string) {
+    const user = await this.userRepo.findOne({ otp });
+    if (!user) {
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    user.isVerified = true;
+    user.otp = null;
+    return await user.save();
   }
 
   async generateToken(user: any) {
@@ -96,7 +110,7 @@ export class AuthService {
       email: user.email,
       password: user.password,
       userId: user._id,
-      roles: [user.role], 
+      roles: [user.role],
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -143,4 +157,47 @@ export class AuthService {
       maxAge: 72 * 60 * 60 * 1000, // 72 hours in milliseconds
     });
   }
+
+  async forgotPasswordToken(email: string) {
+    const user = await this.userRepo.findOne({ email });
+    if (!user) {
+      throw new NotFoundException('Email does not exist');
+    }
+
+    const payload = { email: user.email, userId: user._id };
+    const resetToken = this.jwtService.sign(payload, { expiresIn: '10m' });
+
+    const resetPasswordUrl = `http://localhost:4000/v1/auth/reset-password?token=${resetToken}`;
+    console.log(resetPasswordUrl);
+
+    await this.resetPasswordService.sendResetPasswordEmail(email, resetPasswordUrl);
+
+    return {
+      status: 'Success',
+      message: 'Password reset token sent to email',
+    };
+  }
+
+  async resetForgottenPassword(password: string, token: string) {
+    try {
+      const decoded = this.jwtService.verify(token);
+
+      const user = await this.userRepo.findOne({_id: decoded.id});
+      if (!user) {
+        throw new BadRequestException('Token is invalid or has expired');
+      }
+
+      user.password = await bcrypt.hash(password, 10);
+      await user.save();
+
+      return {
+        status: 'Success',
+        message: 'Password has been reset successfully',
+      };
+    } catch (error) {
+      console.error('Error during password reset:', error);
+      throw new BadRequestException('Token is invalid or has expired');
+    }
+  }
+  
 }
