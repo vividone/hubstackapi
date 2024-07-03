@@ -1,8 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { SuperAgent } from './super_agent_profile.schema';
 import * as bcrypt from 'bcryptjs';
-import { Agent } from './agent_profile.schema';
+import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/enum';
 
 export type UserDocument = HydratedDocument<Users>;
@@ -39,6 +38,7 @@ class Users {
 
   @Prop()
   is_active: boolean;
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);
@@ -66,3 +66,4 @@ UserSchema.methods.comparePassword = async function (
     return false;
   }
 };
+

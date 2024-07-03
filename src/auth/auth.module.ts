@@ -9,8 +9,9 @@ import { UsersModule } from 'src/users/users.module';
 import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
 import { SuperAgentProfileModule } from 'src/super_agent_profile/super_agent_profile.module';
 import { InvitationsModule } from 'src/invitations/invitations.module';
-import { OtpService } from 'src/auth/otp.mail';
-import { EmailService } from 'src/helpers/email.helper';
+import { OtpService } from 'src/mailing/otp.mail';
+import { EmailService } from 'src/configs/email.helper';
+import { ResetPasswordService } from '../mailing/resetPassword.mail';
 @Module({
   controllers: [AuthController],
   providers: [
@@ -19,6 +20,7 @@ import { EmailService } from 'src/helpers/email.helper';
     ConfigService,
     OtpService,
     EmailService,
+    ResetPasswordService
   ],
   imports: [
     JwtModule.registerAsync({

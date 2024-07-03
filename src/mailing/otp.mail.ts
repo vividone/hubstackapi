@@ -1,12 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { EmailService } from '../helpers/email.helper';
+import { EmailService } from '../configs/email.helper';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 
 @Injectable()
 export class OtpService {
   constructor(
     private readonly emailService: EmailService,
-    private readonly userRepo: UserRepository,
   ) {}
 
   generateOTP(): string {
@@ -30,31 +29,5 @@ export class OtpService {
       loadedTemplate,
       { email, firstname, lastName },
     );
-  }
-
-  private async findUserByEmail(email: string) {
-    const user = await this.userRepo.findOne({ email });
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-    return user;
-  }
-
-  async saveOtpToUser(email: string, otp: string) {
-    const user = await this.findUserByEmail(email);
-    user.otp = otp;
-    user.isVerified = false;
-    await user.save();
-  }
-
-  async verifyOtp(email: string, otp: string) {
-    const user = await this.userRepo.findOne({ email, otp });
-    if (!user) {
-      throw new BadRequestException('Invalid OTP');
-    }
-
-    user.isVerified = true;
-    user.otp = null;
-    return await user.save();
   }
 }
