@@ -8,7 +8,7 @@ export
 @Schema({ timestamps: true })
 class SuperAgent extends Users {
   @Prop()
-  business_username: string;
+  business_name: string;
 
   @Prop()
   region: string;
@@ -20,7 +20,7 @@ class SuperAgent extends Users {
   is_verified: boolean;
 
   @Prop()
-  admin_username: string;
+  superagent_username: string;
 
   @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
   user: Users | Types.ObjectId;
