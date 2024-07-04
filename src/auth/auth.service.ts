@@ -30,6 +30,7 @@ export class AuthService {
       | CreateUserDto
       | CreateAgentProfileDto
       | CreateSuperAgentProfileDto,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req: any,
   ) {
     const { email, role } = createUserDto;
@@ -86,6 +87,7 @@ export class AuthService {
   async validateUser(email: string, password: string) {
     const user = await this.userRepo.findOne({ email });
     if (user && (await user.comparePassword(password))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user.toObject();
 
       console.log('Validated User:', result);

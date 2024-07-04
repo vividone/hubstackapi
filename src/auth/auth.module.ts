@@ -20,7 +20,7 @@ import { ResetPasswordService } from '../mailing/resetPassword.mail';
     ConfigService,
     OtpService,
     EmailService,
-    ResetPasswordService
+    ResetPasswordService,
   ],
   imports: [
     JwtModule.registerAsync({

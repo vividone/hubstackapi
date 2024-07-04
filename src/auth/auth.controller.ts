@@ -87,8 +87,8 @@ export class AuthController {
   }
 
   @Post('verify-otp')
-  async verifyOtp(@Body() otp: string) {
-    return this.authService.verifyOtp(otp);
+  async verifyOtp(@Body() verifyOtp: any) {
+    return this.authService.verifyOtp(verifyOtp.otp);
   }
 
   @Post('login')

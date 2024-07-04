@@ -1,7 +1,4 @@
-import {
-  Get,
-  UseGuards,
-} from '@nestjs/common';
+import { Get, UseGuards } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
