@@ -1,13 +1,16 @@
-import { Get, UseGuards } from '@nestjs/common';
+import { Body, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
+import { CreateUserDto } from './users.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Admin')
@@ -15,4 +18,11 @@ export class UsersController {
   async findAllUsers() {
     return this.usersService.findAll();
   }
+
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Individual')
+  @Put('update-profile/:id')
+    async updateAgentProfile(@Param('id') id: string, @Body() updateUserDto: CreateUserDto,) {
+        return await this.usersService.updateUser(id, updateUserDto);
+    }
 }

@@ -18,7 +18,6 @@ import { JwtModule } from '@nestjs/jwt';
       timeout: 5000,
       maxRedirects: 5,
     }),
-    AgentProfileModule,
     JwtModule,
   ],
   exports: [UsersService, UserRepository],
