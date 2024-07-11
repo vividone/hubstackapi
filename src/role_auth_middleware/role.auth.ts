@@ -12,7 +12,7 @@ import { UsersService } from 'src/users/users.service';
 export class RolesAuth implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private usersService: UsersService
+    private usersService: UsersService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

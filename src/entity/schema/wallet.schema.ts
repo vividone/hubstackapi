@@ -33,8 +33,6 @@ class Wallet {
 
   @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
   user: Users | Types.ObjectId;
-
 }
-
 
 export const WalletSchema = SchemaFactory.createForClass(Wallet);

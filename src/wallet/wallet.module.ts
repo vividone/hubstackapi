@@ -18,6 +18,7 @@ import { UsersModule } from 'src/users/users.module';
       maxRedirects: 5,
     }),
     JwtModule,
-    UsersModule
-]})
+    UsersModule,
+  ],
+})
 export class WalletModule {}

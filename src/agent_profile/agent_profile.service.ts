@@ -15,7 +15,8 @@ export class AgentService {
   ) {}
 
   async updateAgentProfile(id: string, updateAgentDto: CreateAgentProfileDto) {
-    const { email, password, firstname, lastname, ...otherFields } = updateAgentDto;
+    const { email, password, firstname, lastname, ...otherFields } =
+      updateAgentDto;
 
     if (email) {
       const existingUser = await this.agentRepo.findOne({ email });
