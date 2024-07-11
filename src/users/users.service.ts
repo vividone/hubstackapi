@@ -30,7 +30,7 @@ export class UsersService {
   async getUserRoles(userId: string) {
     const user = await this.userRepo.findOne({ _id: userId });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('get user roles: User not found');
     }
     return [user.role];
   }

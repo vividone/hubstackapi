@@ -1,9 +1,94 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import axios from 'axios';
+import { CreateWalletDto } from './create.wallet.dto';
+import { WalletRepository } from 'src/entity/repositories/wallet.repo';
+import { UserRepository } from 'src/entity/repositories/user.repo';
 
 @Injectable()
 export class WalletService {
-  private readonly baseUrl : string = process.env.FLW_BASE_URL ;
-  private readonly secretKey: string = process.env.FLW_SECRET_KEY;
+    constructor(
+        private readonly walletRepo: WalletRepository,
+        private readonly userRepo: UserRepository
+    ) {}
 
-  
+    async createSubaccount(data: CreateWalletDto, id: string) {
+        const baseUrl: string = process.env.FLW_BASE_URL;
+        const secretKey: string = process.env.FLW_SECRET_KEY;
+        try {
+            const user = await this.userRepo.findOne({_id: id });
+
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+
+            const email : string = user.email;
+            let account_reference : string = this.generateAccountReference();
+            const country = 'NG';
+
+            const { dateOfBirth, BVN, homeAddress, ...rest } = data;
+            const requestData = {
+                email,
+                account_name: `${data.firstname} ${data.lastname}`,
+                account_reference,
+                country,
+                ...rest
+            };
+
+            const response = await axios.post(
+                `${baseUrl}/payout-subaccounts`,
+                requestData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${secretKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            const { nuban, account_name, bank_code, bank_name } = response.data.data;
+
+            const createdSubaccount = {
+                email: email,
+                accountName: account_name,
+                accountNumber: nuban,
+                bankName: bank_name,
+                bankCode: bank_code,
+                accountReference: account_reference,
+                BVN: data.BVN,
+                homeAddress: data.homeAddress,
+                user: user._id
+            };
+
+            const savedSubaccount = await this.walletRepo.create(createdSubaccount);
+
+            return {
+                message: 'Subaccount created successfully',
+                data: savedSubaccount,
+            };
+        } catch (error) {
+            if (error.response) {
+                console.error('Error response data:', error.response.data);
+                throw new Error(error.response.data.message || 'An error occurred while creating subaccount');
+            } else if (error.request) {
+                console.error('Error request:', error.request);
+                throw new Error('No response received from the server');
+            } else {
+                console.error('Error message:', error.message);
+                throw new Error('An error occurred while creating subaccount');
+            }
+        }
+    }
+
+    private generateAccountReference(): string {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const prefix = 'HUBSTK';
+        let result = prefix;
+        const randomLength = 20 - prefix.length;
+        for (let i = 0; i < randomLength; i++) {
+            const randomIndex = Math.floor(Math.random() * characters.length);
+            result += characters[randomIndex];
+        }
+
+        return result;
+    }
 }

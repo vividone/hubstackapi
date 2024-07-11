@@ -6,7 +6,7 @@ export type WalletDocument = HydratedDocument<Wallet>;
 
 export
 @Schema({ timestamps: true })
-class Wallet extends Users {
+class Wallet {
   @Prop()
   accountName: string;
 
@@ -24,6 +24,12 @@ class Wallet extends Users {
 
   @Prop()
   dateOfBirth: Date;
+
+  @Prop()
+  homeAddress: string;
+
+  @Prop({ default: 'NG' })
+  country: string;
 
   @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
   user: Users | Types.ObjectId;

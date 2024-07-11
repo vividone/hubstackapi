@@ -5,8 +5,6 @@ import { Users, UserSchema } from 'src/entity';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { MongooseModule } from '@nestjs/mongoose';
 import { HttpModule } from '@nestjs/axios';
-// import { SuperAgentProfileModule } from 'src/super_agent_profile/super_agent_profile.module';
-import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({

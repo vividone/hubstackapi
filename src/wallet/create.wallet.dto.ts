@@ -1,33 +1,33 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import moment from 'moment';
 
-export class CreateUserDto {
-  @IsNotEmpty()
-  @IsEmail()
-  @IsString()
-  email: string;
+export class CreateWalletDto {
 
-  @IsNotEmpty()
-  @IsString()
-  firstname: string;
+    @IsNotEmpty()
+    @IsString()
+    firstname: string;
 
-  @IsNotEmpty()
-  @IsString()
-  lastname: string;
+    @IsNotEmpty()
+    @IsString()
+    lastname: string;
 
-  @IsNotEmpty()
-  @IsString()
-  dateOfBirth: string;
+    @IsNotEmpty()
+    @IsString()
+    dateOfBirth: string;
 
-  @IsNotEmpty()
-  @IsString()
-  BVN: string;
+    @IsNotEmpty()
+    @IsString()
+    BVN: string;
 
-  @IsNotEmpty()
-  @IsString()
-  phoneNumber: string;
+    @IsNotEmpty()
+    @IsString()
+    mobilenumber: string;
 
-  @IsNotEmpty()
-  @IsString()
-  home_address: string;
-  
+    @IsNotEmpty()
+    @IsString()
+    homeAddress: string;
+
+    get formattedDateOfBirth(): string {
+        return this.dateOfBirth ? moment(this.dateOfBirth).format('YYYY/MM/DD') : '';
+    }
 }
