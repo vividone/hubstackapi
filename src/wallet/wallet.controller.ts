@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpException, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, Param, UseGuards, Req, Get } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateWalletDto } from './create.wallet.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
@@ -24,5 +24,26 @@ export class WalletController {
             console.error(error);
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Roles('SuperAgent', 'Agent', 'Individual')
+    @UseGuards(JwtAuthGuard)
+    @Get('subaccount-balance/:accountReference')
+    async getSubaccountBalance(@Param('accountReference') accountReference: string, @Req() request: CustomRequest) {
+        return this.walletService.getSubaccountBalance(accountReference);
+    }
+
+    @Roles('SuperAgent', 'Agent', 'Individual')
+    @UseGuards(JwtAuthGuard)
+    @Get('static-account/:accountReference')
+    async getAStaticVirtualAccount(@Param('accountReference') accountReference: string, @Req() request: CustomRequest) {
+        return this.walletService.getAStaticAccount(accountReference);
+    }
+
+    @Roles('Admin')
+    @UseGuards(JwtAuthGuard)
+    @Get('sub-accounts')
+    async getAllSubAccounts() {
+        return this.walletService.getAllStaticAccounts();
     }
 }
