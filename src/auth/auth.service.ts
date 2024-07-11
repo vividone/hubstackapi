@@ -43,7 +43,7 @@ export class AuthService {
       throw new BadRequestException('Email already exists');
     }
 
-    let user;
+    let user: any;
     if (role === 'Agent') {
       user = await this.createAgent(createUserDto as CreateAgentProfileDto);
     } else if (role === 'SuperAgent') {
@@ -115,7 +115,7 @@ export class AuthService {
     const payload: JwtPayload = {
       email: user.email,
       password: user.password,
-      userId: user._id,
+      id: user._id,
       roles: [user.role],
     };
     return {

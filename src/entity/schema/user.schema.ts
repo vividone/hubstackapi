@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
 import { Role } from 'src/enum';
 
 export type UserDocument = HydratedDocument<Users>;
@@ -18,7 +17,7 @@ class Users {
   @Prop()
   username: string;
 
-  @Prop()
+  @Prop({ unique: true})
   email: string;
 
   @Prop()

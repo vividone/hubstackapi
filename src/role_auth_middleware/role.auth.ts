@@ -12,10 +12,10 @@ import { UsersService } from 'src/users/users.service';
 export class RolesAuth implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private usersService: UsersService,
+    private usersService: UsersService
   ) {}
 
-  async canActivate(context: ExecutionContext) {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>(ROLES_KEY, context.getHandler());
     if (!roles) {
       return true;
@@ -24,11 +24,15 @@ export class RolesAuth implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.userId) {
+    if (!user || !user.id) {
       throw new ForbiddenException('User not authenticated');
     }
 
-    const userRoles = await this.usersService.getUserRoles(user.userId);
+    const userRoles = await this.usersService.getUserRoles(user.id);
+
+    if (!userRoles) {
+      throw new ForbiddenException('User roles not found');
+    }
 
     const hasRole = roles.some((role) => userRoles.includes(role));
     if (!hasRole) {

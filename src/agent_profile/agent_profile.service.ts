@@ -15,7 +15,7 @@ export class AgentService {
   ) {}
 
   async updateAgentProfile(id: string, updateAgentDto: CreateAgentProfileDto) {
-    const { email, password, ...otherFields } = updateAgentDto;
+    const { email, password, firstname, lastname, ...otherFields } = updateAgentDto;
 
     if (email) {
       const existingUser = await this.agentRepo.findOne({ email });
@@ -37,8 +37,6 @@ export class AgentService {
 
     if (user) {
       Object.assign(user, {
-        firstname: updatedAgent.firstname,
-        lastName: updatedAgent.lastName,
         phoneNumber: updatedAgent.phoneNumber,
         username: updatedAgent.username,
       });

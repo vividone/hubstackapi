@@ -10,9 +10,9 @@ import { CreateUserDto } from './users.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('all-users')
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Admin')
-  @Get('all-users')
   async findAllUsers() {
     return this.usersService.findAll();
   }

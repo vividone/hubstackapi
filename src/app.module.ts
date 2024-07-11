@@ -9,6 +9,7 @@ import { AgentProfileModule } from './agent_profile/agent_profile.module';
 import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { InvitationsModule } from './invitations/invitations.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InvitationsModule } from './invitations/invitations.module';
     AgentProfileModule,
     AuthModule,
     InvitationsModule,
+    WalletModule,
   ],
 })
 export class AppModule {}
