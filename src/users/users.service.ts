@@ -30,7 +30,7 @@ export class UsersService {
   async getUserRoles(userId: string) {
     const user = await this.userRepo.findOne({ _id: userId });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('get user roles: User not found');
     }
     return [user.role];
   }
@@ -55,7 +55,7 @@ export class UsersService {
   }
 
   async updateUser(id: string, updateUserDto: CreateUserDto) {
-    const { email, password, ...otherFields } = updateUserDto;
+    const { email, password,firstname, lastname, ...otherFields } = updateUserDto;
 
     if (email) {
       const existingUser = await this.userRepo.findOne({ email });
