@@ -24,8 +24,6 @@ class Agent extends Users {
 
   @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
   user: Users | Types.ObjectId;
-
 }
-
 
 export const AgentSchema = SchemaFactory.createForClass(Agent);

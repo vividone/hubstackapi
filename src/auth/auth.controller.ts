@@ -97,7 +97,7 @@ export class AuthController {
       const result = await this.authService.loginUser(loginUserDto, res);
       return res.status(HttpStatus.OK).json(result);
     } catch (error) {
-      console.error('Error during login:', error); 
+      console.error('Error during login:', error);
       if (error instanceof BadRequestException) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           status: 'Failure',
@@ -115,7 +115,7 @@ export class AuthController {
   async forgotPasswordToken(@Body('email') email: string) {
     try {
       const result = await this.authService.forgotPasswordToken(email);
-      return { status: 'Success', ...result }; 
+      return { status: 'Success', ...result };
     } catch (error) {
       console.error('Error during forgot password token generation:', error);
 
@@ -132,8 +132,11 @@ export class AuthController {
     @Param('token') token: string,
   ) {
     try {
-      const result = await this.authService.resetForgottenPassword(password, token);
-      return { status: 'Success', ...result }; 
+      const result = await this.authService.resetForgottenPassword(
+        password,
+        token,
+      );
+      return { status: 'Success', ...result };
     } catch (error) {
       console.error('Error during password reset:', error);
 

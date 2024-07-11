@@ -1,12 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { EmailService } from '../configs/email.helper';
-import { UserRepository } from 'src/entity/repositories/user.repo';
 
 @Injectable()
 export class OtpService {
-  constructor(
-    private readonly emailService: EmailService,
-  ) {}
+  constructor(private readonly emailService: EmailService) {}
 
   generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();

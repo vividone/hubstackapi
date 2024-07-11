@@ -15,7 +15,7 @@ import { UsersModule } from 'src/users/users.module';
       { name: SuperAgent.name, schema: SuperAgentSchema },
     ]),
     UsersModule,
-    JwtModule
+    JwtModule,
   ],
   exports: [SuperAgentProfileService, SuperAgentProfileRepository],
 })
