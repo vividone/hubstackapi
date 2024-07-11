@@ -54,7 +54,6 @@ export class WalletService {
                 bankName: bank_name,
                 bankCode: bank_code,
                 accountReference: account_reference,
-                BVN: data.BVN,
                 homeAddress: data.homeAddress,
                 user: user._id
             };

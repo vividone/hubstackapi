@@ -1,5 +1,4 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import moment from 'moment';
 
 export class CreateWalletDto {
 
@@ -27,7 +26,4 @@ export class CreateWalletDto {
     @IsString()
     homeAddress: string;
 
-    get formattedDateOfBirth(): string {
-        return this.dateOfBirth ? moment(this.dateOfBirth).format('YYYY/MM/DD') : '';
-    }
 }

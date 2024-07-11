@@ -28,14 +28,14 @@ export class WalletController {
 
     @Roles('SuperAgent', 'Agent', 'Individual')
     @UseGuards(JwtAuthGuard)
-    @Get('subaccount-balance/:accountReference')
+    @Get('account-balance/:accountReference')
     async getSubaccountBalance(@Param('accountReference') accountReference: string, @Req() request: CustomRequest) {
         return this.walletService.getSubaccountBalance(accountReference);
     }
 
     @Roles('SuperAgent', 'Agent', 'Individual')
     @UseGuards(JwtAuthGuard)
-    @Get('static-account/:accountReference')
+    @Get('account/:accountReference')
     async getAStaticVirtualAccount(@Param('accountReference') accountReference: string, @Req() request: CustomRequest) {
         return this.walletService.getAStaticAccount(accountReference);
     }

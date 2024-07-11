@@ -33,8 +33,6 @@ export class AgentService {
 
     if (user) {
       Object.assign(user, {
-        firstname: updatedAgent.firstname,
-        lastName: updatedAgent.lastName,
         phoneNumber: updatedAgent.phoneNumber,
         username: updatedAgent.username,
       });

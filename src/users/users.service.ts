@@ -55,7 +55,7 @@ export class UsersService {
   }
 
   async updateUser(id: string, updateUserDto: CreateUserDto) {
-    const { email, password, ...otherFields } = updateUserDto;
+    const { email, password,firstname, lastname, ...otherFields } = updateUserDto;
 
     if (email) {
       const existingUser = await this.userRepo.findOne({ email });
