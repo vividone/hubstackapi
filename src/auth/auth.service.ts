@@ -12,6 +12,7 @@ import { CreateUserDto } from 'src/users/users.dto';
 import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
 import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
+import { WalletService } from 'src/wallet/wallet.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly agentRepo: AgentProfileRepository,
     private readonly superAgentRepo: SuperAgentProfileRepository,
+    private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
     private readonly resetPasswordService: ResetPasswordService
@@ -141,6 +143,9 @@ export class AuthService {
 
     this.setRefreshTokenCookie(res, refreshToken.refresh_token);
 
+    const wallet = await this.walletService.getUserWallet(user._id);
+    const hasWallet = wallet ? true : false;
+
     const userData = await this.userRepo.findOne(user._id, { password: false });
     const token = await this.generateToken(userData);
 
@@ -148,6 +153,7 @@ export class AuthService {
       status: 'Success',
       message: 'Login successful',
       data: userData,
+      hasWallet,
       token,
       refreshToken,
     };

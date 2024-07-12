@@ -195,4 +195,8 @@ export class WalletService {
 
         return result;
     }
+
+    async getUserWallet(userId: string) {
+      return this.walletRepo.findOne({ user: userId });
+    }
 }
