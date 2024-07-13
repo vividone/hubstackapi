@@ -7,9 +7,7 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 
 @Controller('agent')
 export class AgentController {
-    constructor(
-        private readonly agentService: AgentService
-    ) { }
+  constructor(private readonly agentService: AgentService) {}
 
     @UseGuards(JwtAuthGuard, RolesAuth)
     @Roles('Agent')

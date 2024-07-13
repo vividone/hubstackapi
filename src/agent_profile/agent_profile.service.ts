@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
 import { CreateAgentProfileDto } from './agent_profile.dto';
 import { UserRepository } from 'src/entity/repositories/user.repo';
@@ -7,8 +11,8 @@ import { UserRepository } from 'src/entity/repositories/user.repo';
 export class AgentService {
   constructor(
     private readonly agentRepo: AgentProfileRepository,
-    private readonly userRepo: UserRepository
-  ) { }
+    private readonly userRepo: UserRepository,
+  ) {}
 
   async updateAgentProfile(id: string, updateAgentDto: CreateAgentProfileDto) {
     const { email, password, firstname, lastname, ...otherFields } = updateAgentDto;
@@ -23,7 +27,7 @@ export class AgentService {
     const updatedAgent = await this.agentRepo.findOneAndUpdate(
       { _id: id, role: 'Agent' },
       { $set: otherFields },
-    )
+    );
 
     if (!updatedAgent) {
       throw new NotFoundException('Agent not found');

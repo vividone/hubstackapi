@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { SuperAgentProfileRepository } from 'src/entity/repositories/super_agent_profile.repo';
 import { CreateSuperAgentProfileDto } from './super_agent_profile.dto';
 import { UserRepository } from 'src/entity/repositories/user.repo';
@@ -7,7 +11,7 @@ import { UserRepository } from 'src/entity/repositories/user.repo';
 export class SuperAgentProfileService {
   constructor(
     private readonly superAgentRepo: SuperAgentProfileRepository,
-    private readonly userRepo: UserRepository
+    private readonly userRepo: UserRepository,
   ) {}
 
   async findAll() {
@@ -27,7 +31,10 @@ export class SuperAgentProfileService {
     return superAgent;
   }
 
-  async updateSuperAgentProfile(id: string, updateSuperAgentDto: CreateSuperAgentProfileDto) {
+  async updateSuperAgentProfile(
+    id: string,
+    updateSuperAgentDto: CreateSuperAgentProfileDto,
+  ) {
     const { email, password, ...otherFields } = updateSuperAgentDto;
 
     if (email) {
@@ -40,7 +47,7 @@ export class SuperAgentProfileService {
     const updatedAgent = await this.superAgentRepo.findOneAndUpdate(
       { _id: id, role: 'SuperAgent' },
       { $set: otherFields },
-    )
+    );
 
     if (!updatedAgent) {
       throw new NotFoundException('SuperAgent not found');
@@ -66,5 +73,4 @@ export class SuperAgentProfileService {
       user: updatedAgent,
     };
   }
-
 }

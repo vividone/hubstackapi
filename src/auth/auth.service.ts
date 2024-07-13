@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
@@ -24,8 +28,8 @@ export class AuthService {
     private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
-    private readonly resetPasswordService: ResetPasswordService
-  ) { }
+    private readonly resetPasswordService: ResetPasswordService,
+  ) {}
 
   async createUser(
     createUserDto:
@@ -98,7 +102,7 @@ export class AuthService {
     return null;
   }
 
-  async verifyOtp( otp: string) {
+  async verifyOtp(otp: string) {
     const user = await this.userRepo.findOne({ otp });
     if (!user) {
       throw new BadRequestException('Invalid OTP');
@@ -175,10 +179,13 @@ export class AuthService {
     const payload = { email: user.email, userId: user._id };
     const resetToken = this.jwtService.sign(payload, { expiresIn: '10m' });
 
-    const resetPasswordUrl = `http://localhost:4000/v1/auth/reset-password?token=${resetToken}`;
+    const resetPasswordUrl = `${process.env.APP_DOMAIN}?token=${resetToken}`;
     console.log(resetPasswordUrl);
 
-    await this.resetPasswordService.sendResetPasswordEmail(email, resetPasswordUrl);
+    await this.resetPasswordService.sendResetPasswordEmail(
+      email,
+      resetPasswordUrl,
+    );
 
     return {
       status: 'Success',
@@ -190,7 +197,7 @@ export class AuthService {
     try {
       const decoded = this.jwtService.verify(token);
 
-      const user = await this.userRepo.findOne({_id: decoded.id});
+      const user = await this.userRepo.findOne({ _id: decoded.id });
       if (!user) {
         throw new BadRequestException('Token is invalid or has expired');
       }
@@ -207,5 +214,4 @@ export class AuthService {
       throw new BadRequestException('Token is invalid or has expired');
     }
   }
-  
 }

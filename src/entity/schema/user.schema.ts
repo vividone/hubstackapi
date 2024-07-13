@@ -37,7 +37,6 @@ class Users {
 
   @Prop()
   is_active: boolean;
-
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);
@@ -65,4 +64,3 @@ UserSchema.methods.comparePassword = async function (
     return false;
   }
 };
-

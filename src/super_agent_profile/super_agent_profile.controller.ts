@@ -7,7 +7,7 @@ import { CreateSuperAgentProfileDto } from './super_agent_profile.dto';
 
 @Controller('super-agent-profile')
 export class SuperAgentProfileController {
-  constructor(private readonly superAgentService: SuperAgentProfileService) { }
+  constructor(private readonly superAgentService: SuperAgentProfileService) {}
 
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Admin', 'SuperAgent')
@@ -19,7 +19,13 @@ export class SuperAgentProfileController {
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('SuperAgent')
   @Put('update-profile/:id')
-  async updateAgentProfile(@Param('id') id: string, @Body() updateAgentDto: CreateSuperAgentProfileDto,) {
-    return await this.superAgentService.updateSuperAgentProfile(id, updateAgentDto);
+  async updateAgentProfile(
+    @Param('id') id: string,
+    @Body() updateAgentDto: CreateSuperAgentProfileDto,
+  ) {
+    return await this.superAgentService.updateSuperAgentProfile(
+      id,
+      updateAgentDto,
+    );
   }
 }

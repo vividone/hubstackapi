@@ -7,9 +7,7 @@ import { UserRepository } from 'src/entity/repositories/user.repo';
 import { CreateUserDto } from './users.dto';
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly userRepo: UserRepository,
-  ) {}
+  constructor(private readonly userRepo: UserRepository) {}
 
   async findOne(id: string) {
     const user = await this.userRepo.findOne({ _id: id });
@@ -67,7 +65,7 @@ export class UsersService {
     const updatedUser = await this.userRepo.findOneAndUpdate(
       { _id: id, role: 'Individual' },
       { $set: otherFields },
-    )
+    );
 
     return {
       status: 'Success',
@@ -75,5 +73,4 @@ export class UsersService {
       user: updatedUser,
     };
   }
-
 }

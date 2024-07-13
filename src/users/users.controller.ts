@@ -8,9 +8,7 @@ import { CreateUserDto } from './users.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Get('all-users')
   @UseGuards(JwtAuthGuard, RolesAuth)
@@ -22,7 +20,10 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Individual')
   @Put('update-profile/:id')
-    async updateAgentProfile(@Param('id') id: string, @Body() updateUserDto: CreateUserDto,) {
-        return await this.usersService.updateUser(id, updateUserDto);
-    }
+  async updateAgentProfile(
+    @Param('id') id: string,
+    @Body() updateUserDto: CreateUserDto,
+  ) {
+    return await this.usersService.updateUser(id, updateUserDto);
+  }
 }

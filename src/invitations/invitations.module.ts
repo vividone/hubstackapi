@@ -17,7 +17,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
     ]),
     SuperAgentProfileModule,
     UsersModule,
-    JwtModule
+    JwtModule,
   ],
   exports: [InvitationsService, InvitationsRepository],
 })

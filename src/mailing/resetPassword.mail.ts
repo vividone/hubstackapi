@@ -4,14 +4,9 @@ import { UserRepository } from 'src/entity/repositories/user.repo';
 
 @Injectable()
 export class ResetPasswordService {
-  constructor(
-    private readonly emailService: EmailService,
-  ) {}
+  constructor(private readonly emailService: EmailService) {}
 
-  async sendResetPasswordEmail(
-    email: string,
-    resetPasswordUrl: string,
-  ) {
+  async sendResetPasswordEmail(email: string, resetPasswordUrl: string) {
     const templateString = '<p>Your password reset url is: %URL%</p>';
     const loadedTemplate = this.emailService.loadTemplate(templateString, {
       '%URL%': resetPasswordUrl,
@@ -24,5 +19,4 @@ export class ResetPasswordService {
       { email },
     );
   }
-
 }
