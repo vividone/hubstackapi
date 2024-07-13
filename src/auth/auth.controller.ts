@@ -9,13 +9,13 @@ import {
   Param,
 } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
-import { LoginUser } from 'src/users/users.entity';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { CreateUserDto } from 'src/users/users.dto';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { InvitationsService } from 'src/invitations/invitations.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { LoginDto, LoginDtoResponse } from './dto/login.dto';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
@@ -93,8 +93,13 @@ export class AuthController {
     return this.authService.verifyOtp(verifyOtp.otp);
   }
 
+  @ApiCreatedResponse({
+    type: LoginDtoResponse,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Login to your account' })
   @Post('login')
-  async loginUser(@Body() loginUserDto: LoginUser, @Res() res: any) {
+  async loginUser(@Body() loginUserDto: LoginDto, @Res() res: any) {
     try {
       const result = await this.authService.loginUser(loginUserDto, res);
       return res.status(HttpStatus.OK).json(result);

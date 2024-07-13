@@ -227,4 +227,26 @@ export class AuthService {
       throw new BadRequestException('Token is invalid or has expired');
     }
   }
+
+  //   async updateUserPassword(password: string) {
+  //     try {
+  //       // const decoded = this.jwtService.verify(token);
+
+  //       // const user = await this.userRepo.findOne({ _id: decoded.id });
+  //       // if (!user) {
+  //       //   throw new BadRequestException('Token is invalid or has expired');
+  //       // }
+
+  //       user.password = await bcrypt.hash(password, 10);
+  //       await user.save();
+
+  //       return {
+  //         status: 'Success',
+  //         message: 'Password has been reset successfully',
+  //       };
+  //     } catch (error) {
+  //       console.error('Error during password reset:', error);
+  //       throw new BadRequestException('Token is invalid or has expired');
+  //     }
+  //   }
 }
