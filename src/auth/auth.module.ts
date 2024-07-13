@@ -26,7 +26,7 @@ import { ResetPasswordService } from '../mailing/resetPassword.mail';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: async () => ({
         secret: process.env.JWT_SECRET,
         signOptions: { expiresIn: '1h' },
       }),
