@@ -25,7 +25,7 @@ async function bootstrap() {
     .addServer('https://dev-api.hubstack.app', 'Development Server')
     .build();
   const document = SwaggerModule.createDocument(app, configSwagger);
-  SwaggerModule.setup('docs/', app, document, {
+  SwaggerModule.setup('/', app, document, {
     swaggerOptions: {
       persistAuthorization: true, // this
     },
