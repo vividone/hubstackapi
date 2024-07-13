@@ -45,6 +45,7 @@ export class WalletController {
   @Get('account-balance/:accountReference')
   async getSubaccountBalance(
     @Param('accountReference') accountReference: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Req() request: CustomRequest,
   ) {
     return this.walletService.getSubaccountBalance(accountReference);
@@ -55,6 +56,7 @@ export class WalletController {
   @Get('account/:accountReference')
   async getAStaticVirtualAccount(
     @Param('accountReference') accountReference: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Req() request: CustomRequest,
   ) {
     return this.walletService.getAStaticAccount(accountReference);
