@@ -16,6 +16,7 @@ import { CreateUserDto } from 'src/users/users.dto';
 import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
 import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
+import { WalletService } from 'src/wallet/wallet.service';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly agentRepo: AgentProfileRepository,
     private readonly superAgentRepo: SuperAgentProfileRepository,
+    private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
     private readonly resetPasswordService: ResetPasswordService,
@@ -131,32 +133,44 @@ export class AuthService {
 
   async loginUser(loginUserDto: LoginUser, res: any) {
     const { email, password } = loginUserDto;
-
+  
     const user = await this.userRepo.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
       throw new BadRequestException('Invalid credentials');
     }
-
+  
     const refreshToken = this.generateRefreshToken(user._id);
-    await this.userService.updateRefreshToken(
-      user._id,
-      refreshToken.refresh_token,
-    );
-
+    await this.userService.updateRefreshToken(user._id, refreshToken.refresh_token);
+  
     this.setRefreshTokenCookie(res, refreshToken.refresh_token);
-
+  
+    let hasWallet = false;
+    let balance = null;
+  
+    try {
+      const wallet = await this.walletService.getUserWallet(user._id);
+      hasWallet = !!wallet; 
+      
+      if (hasWallet) {
+        balance = await this.walletService.getSubaccountBalanceOnLogin(user._id);
+      }
+    } catch (error) {
+      console.error('Error fetching wallet or balance:', error.message);
+    }
+  
     const userData = await this.userRepo.findOne(user._id, { password: false });
     const token = await this.generateToken(userData);
-
+  
     return {
       status: 'Success',
       message: 'Login successful',
       data: userData,
+      hasWallet,
+      balance,
       token,
-      refreshToken,
     };
   }
-
+  
   private setRefreshTokenCookie(res: any, token: string) {
     res.cookie('refreshToken', token, {
       httpOnly: true,

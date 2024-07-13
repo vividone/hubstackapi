@@ -11,6 +11,7 @@ import { UsersModule } from 'src/users/users.module';
 @Module({
   providers: [WalletService, WalletRepository],
   controllers: [WalletController],
+  exports: [WalletRepository, WalletService],
   imports: [
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),
     HttpModule.register({

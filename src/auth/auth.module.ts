@@ -12,6 +12,8 @@ import { InvitationsModule } from 'src/invitations/invitations.module';
 import { OtpService } from 'src/mailing/otp.mail';
 import { EmailService } from 'src/configs/email.helper';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
+import { WalletService } from 'src/wallet/wallet.service';
+import { WalletModule } from 'src/wallet/wallet.module';
 @Module({
   controllers: [AuthController],
   providers: [
@@ -36,6 +38,7 @@ import { ResetPasswordService } from '../mailing/resetPassword.mail';
     AgentProfileModule,
     UsersModule,
     PassportModule,
+    WalletModule,
   ],
   exports: [AuthService],
 })
