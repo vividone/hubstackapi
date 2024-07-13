@@ -12,7 +12,9 @@ import { CreateInvitationDto } from './invitations.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Super Agent Operations')
 @Controller('invitations')
 export class InvitationsController {
   constructor(
@@ -23,10 +25,7 @@ export class InvitationsController {
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Admin', 'SuperAgent')
   @Post('send-invite')
-  createInvitation(
-    @Body() createInvitationDto: CreateInvitationDto,
-    @Req() req: Request,
-  ) {
+  createInvitation(@Body() createInvitationDto: CreateInvitationDto) {
     const { invitersUsername } = createInvitationDto;
 
     const superAgent =

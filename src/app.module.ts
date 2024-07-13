@@ -1,7 +1,7 @@
-import { Inject, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { HttpModule } from '@nestjs/axios';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AdminProfileModule } from './admin_profile/admin_profile.module';
 import { SuperAgentProfileModule } from './super_agent_profile/super_agent_profile.module';

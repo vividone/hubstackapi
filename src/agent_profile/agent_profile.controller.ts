@@ -4,7 +4,9 @@ import { CreateAgentProfileDto } from './agent_profile.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Agent')
 @Controller('agent')
 export class AgentController {
   constructor(private readonly agentService: AgentService) {}

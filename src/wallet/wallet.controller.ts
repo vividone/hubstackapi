@@ -15,13 +15,18 @@ import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { CustomRequest } from 'src/configs/custom_request';
+import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Wallet } from 'src/entity';
 
+@ApiTags('Wallet')
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
-  @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('SuperAgent', 'Agent', 'Individual')
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Create wallet for a new user' })
+  @UseGuards(JwtAuthGuard, RolesAuth)
   @Post('create-account')
   async createSubaccount(
     @Body() createWalletDto: CreateWalletDto,
@@ -42,17 +47,21 @@ export class WalletController {
 
   @Roles('SuperAgent', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
-  @Get('account-balance/:accountReference')
-  async getSubaccountBalance(
-    @Param('accountReference') accountReference: string,
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Get wallet details of a user' })
+  @Get('/:userid')
+  async getUserWallet(
+    @Param('userid') userid: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Req() request: CustomRequest,
   ) {
-    return this.walletService.getSubaccountBalance(accountReference);
+    return this.walletService.getUserWallet(userid);
   }
 
   @Roles('SuperAgent', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Get static account details of a user' })
   @Get('account/:accountReference')
   async getAStaticVirtualAccount(
     @Param('accountReference') accountReference: string,
@@ -64,13 +73,15 @@ export class WalletController {
 
   @Roles('SuperAgent', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
-  @Get('account/wallet/:userid')
-  async getUserWallet(
-    @Param('userid') userid: string,
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Get subaccount balance for wallet' })
+  @Get('account-balance/:accountReference')
+  async getSubaccountBalance(
+    @Param('accountReference') accountReference: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Req() request: CustomRequest,
   ) {
-    return this.walletService.getUserWallet(userid);
+    return this.walletService.getSubaccountBalance(accountReference);
   }
 
   @Roles('Admin')

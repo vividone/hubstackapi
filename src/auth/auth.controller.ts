@@ -15,7 +15,9 @@ import { Request } from 'express';
 import { CreateUserDto } from 'src/users/users.dto';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { InvitationsService } from 'src/invitations/invitations.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Authentication Operations')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -31,7 +33,7 @@ export class AuthController {
     return this.authService.createUser(createUserDto, req);
   }
 
-  @Post('agent-referal-registration')
+  @Post('agent-referral-registration')
   async registerAgentByInvitation(
     @Body() createAgentDto: CreateAgentProfileDto,
     @Req() req: any,
