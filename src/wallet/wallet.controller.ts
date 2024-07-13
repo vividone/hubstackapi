@@ -62,6 +62,17 @@ export class WalletController {
     return this.walletService.getAStaticAccount(accountReference);
   }
 
+  @Roles('SuperAgent', 'Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @Get('account/wallet/:userid')
+  async getUserWallet(
+    @Param('userid') userid: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Req() request: CustomRequest,
+  ) {
+    return this.walletService.getUserWallet(userid);
+  }
+
   @Roles('Admin')
   @UseGuards(JwtAuthGuard)
   @Get('sub-accounts')
