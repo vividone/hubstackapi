@@ -26,6 +26,6 @@ export class UsersController {
     @Param('id') id: string,
     @Body() updateUserDto: CreateUserDto,
   ) {
-    return await this.usersService.updateUser(id, updateUserDto);
+    return await this.usersService.updateUserProfile(id, updateUserDto);
   }
 }

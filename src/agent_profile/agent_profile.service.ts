@@ -15,7 +15,7 @@ export class AgentService {
   ) {}
 
   async updateAgentProfile(id: string, updateAgentDto: CreateAgentProfileDto) {
-    const { email, password, firstname, lastname, ...otherFields } =
+    const { email, password, firstname, lastname, referal_username, role, ...otherFields } =
       updateAgentDto;
 
     if (email) {
@@ -25,9 +25,11 @@ export class AgentService {
       }
     }
 
+    const updateData = { ...otherFields };
+
     const updatedAgent = await this.agentRepo.findOneAndUpdate(
       { _id: id, role: 'Agent' },
-      { $set: otherFields },
+      { $set: updateData },
     );
 
     if (!updatedAgent) {

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { CreateUserDto } from './users.dto';
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class UsersService {
   constructor(private readonly userRepo: UserRepository) {}
@@ -52,8 +53,23 @@ export class UsersService {
     await user.save();
   }
 
-  async updateUser(id: string, updateUserDto: CreateUserDto) {
-    const { email, ...otherFields } = updateUserDto;
+  async updatePassword(userId: string, oldPassword: string, newPassword: string) {
+    const user = await this.findOne(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isOldPasswordValid) {
+      throw new BadRequestException('Old password is incorrect');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    return await this.updateUser(user);
+  }
+
+  async updateUserProfile(id: string, updateUserDto: CreateUserDto) {
+    const { email,firstname, lastname, password, role, ...otherFields } = updateUserDto;
 
     if (email) {
       const existingUser = await this.userRepo.findOne({ email });
@@ -62,9 +78,11 @@ export class UsersService {
       }
     }
 
+    const updateData = { ...otherFields };
+
     const updatedUser = await this.userRepo.findOneAndUpdate(
       { _id: id, role: 'Individual' },
-      { $set: otherFields },
+      { $set: updateData },
     );
 
     return {
@@ -72,5 +90,9 @@ export class UsersService {
       message: 'User profile updated successfully',
       user: updatedUser,
     };
+  }
+
+  private async updateUser(user: UserRepository){
+    return await this.userRepo.create(user);
   }
 }
