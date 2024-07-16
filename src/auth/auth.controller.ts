@@ -7,6 +7,8 @@ import {
   NotFoundException,
   HttpStatus,
   Param,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -16,6 +18,10 @@ import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { InvitationsService } from 'src/invitations/invitations.service';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto, LoginDtoResponse } from './dto/login.dto';
+import { CustomRequest } from 'src/configs/custom_request';
+import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
+import { RolesAuth } from 'src/role_auth_middleware/role.auth';
+import { Roles } from 'src/role_auth_middleware/roles.decorator';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
@@ -152,5 +158,24 @@ export class AuthController {
       }
       throw new BadRequestException('Internal Server Error');
     }
+  }
+
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('SuperAgent', 'Agent', 'Individual')
+  @Put('update-password')
+  async updatePassword(@Req() request: CustomRequest, @Body() body: { oldPassword: string, newPassword: string }) {
+    const { oldPassword, newPassword } = body;
+    const userId = request.user.id; 
+
+    if (!oldPassword || !newPassword) {
+      throw new BadRequestException('Both old and new passwords are required');
+    }
+
+    const updatedUser = await this.authService.updatePassword(userId, oldPassword, newPassword);
+    return {
+      status: 'Success',
+      message: 'Password updated successfully',
+      user: updatedUser,
+    };
   }
 }
