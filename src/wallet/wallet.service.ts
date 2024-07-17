@@ -26,7 +26,7 @@ export class WalletService {
       const country = 'NG';
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { dateOfBirth, BVN, homeAddress, ...rest } = data;
+      const {  BVN, ...rest } = data;
       const requestData = {
         email,
         account_name: `${data.firstname} ${data.lastname}`,
@@ -55,7 +55,6 @@ export class WalletService {
         bankName: bank_name,
         bankCode: bank_code,
         accountReference: account_reference,
-        homeAddress: data.homeAddress,
         user: user._id,
       };
 

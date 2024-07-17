@@ -11,17 +11,9 @@ export class CreateWalletDto {
 
   @IsNotEmpty()
   @IsString()
-  dateOfBirth: string;
-
-  @IsNotEmpty()
-  @IsString()
   BVN: string;
 
   @IsNotEmpty()
   @IsString()
   mobilenumber: string;
-
-  @IsNotEmpty()
-  @IsString()
-  homeAddress: string;
 }
