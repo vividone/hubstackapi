@@ -22,12 +22,6 @@ class Wallet {
   @Prop()
   bankCode: string;
 
-  @Prop()
-  dateOfBirth: Date;
-
-  @Prop()
-  homeAddress: string;
-
   @Prop({ default: 'NG' })
   country: string;
 

@@ -11,6 +11,92 @@ export class WalletService {
     private readonly userRepo: UserRepository,
   ) {}
 
+  // async createVirtualAccount(data: CreateWalletDto, id: string) {
+  //   const baseUrl: string = process.env.FLW_BASE_URL;
+  //   const secretKey: string = process.env.FLW_SECRET_KEY;
+  //   try {
+  //     const user = await this.userRepo.findOne({ _id: id });
+
+  //     if (!user) {
+  //       throw new NotFoundException('User not found');
+  //     }
+  //     // "email": "user@eexample.com",
+  //     // "is_permanent": true,
+  //     // "bvn": "12345678901",
+  //     // "tx_ref": "YOUR_REFERENCE",
+  //     // "phonenumber": "0800000000",
+  //     // "firstname": "Example",
+  //     // "lastname": "User",
+  //     // "narration": "Example User"
+
+  //     const email: string = user.email;
+  //     const tx_ref: string = this.generateAccountReference();
+  //     const country = 'NG';
+  //     const is_permanent: boolean = true;
+  //     const bvn: string = data.BVN;
+  //     const phonenumber: string = data.mobilenumber;
+  //     const narration: string = `Hubstack Customer ${data.firstname} ${data.lastname}`;
+
+  //     const { ...rest } = data;
+  //     const requestData = {
+  //       email,
+  //       is_permanent,
+  //       bvn,
+  //       phonenumber,
+  //       tx_ref,
+  //       country,
+  //       narration,
+  //       ...rest,
+  //     };
+
+  //     const response = await axios.post(
+  //       `${baseUrl}/virtual-account-numbers`,
+  //       requestData,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${secretKey}`,
+  //           'Content-Type': 'application/json',
+  //         },
+  //       },
+  //     );
+
+  //     const { account_number, order_ref, flw_ref, bank_name } =
+  //       response.data.data;
+
+  //     const createVirtualAccount = {
+  //       email: email,
+  //       accountName: `${user.firstname} ${user.lastname}`,
+  //       accountNumber: account_number,
+  //       bankName: bank_name,
+  //       orderRef: order_ref,
+  //       accountReference: flw_ref,
+  //       user: user._id,
+  //     };
+
+  //     const savedVirtualAccount =
+  //       await this.walletRepo.create(createVirtualAccount);
+
+  //     return {
+  //       message: 'Account created successfully',
+  //       data: savedVirtualAccount,
+  //     };
+  //   } catch (error) {
+  //     if (error.response) {
+  //       console.error('Error response data:', error.response.data);
+  //       throw new Error(
+  //         error.response.data.message ||
+  //           'An error occurred while creating subaccount',
+  //       );
+  //     } else if (error.request) {
+  //       console.error('Error request:', error.request);
+  //       throw new Error('No response received from the server');
+  //     } else {
+  //       console.error('Error message:', error.message);
+  //       throw new Error('An error occurred while creating subaccount');
+  //     }
+  //   }
+  // }
+
   async createSubaccount(data: CreateWalletDto, id: string) {
     const baseUrl: string = process.env.FLW_BASE_URL;
     const secretKey: string = process.env.FLW_SECRET_KEY;
@@ -25,15 +111,13 @@ export class WalletService {
       const account_reference: string = this.generateAccountReference();
       const country = 'NG';
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { dateOfBirth, BVN, homeAddress, ...rest } = data;
       const requestData = {
         email,
         account_name: `${data.firstname} ${data.lastname}`,
         account_reference,
         country,
-        ...rest,
       };
+      console.log('DATA TO FLW', requestData);
 
       const response = await axios.post(
         `${baseUrl}/payout-subaccounts`,
@@ -46,6 +130,8 @@ export class WalletService {
         },
       );
 
+      console.log('RESPONSE FROM FLW', response);
+
       const { nuban, account_name, bank_code, bank_name } = response.data.data;
 
       const createdSubaccount = {
@@ -55,7 +141,6 @@ export class WalletService {
         bankName: bank_name,
         bankCode: bank_code,
         accountReference: account_reference,
-        homeAddress: data.homeAddress,
         user: user._id,
       };
 
