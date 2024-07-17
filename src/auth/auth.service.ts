@@ -228,7 +228,11 @@ export class AuthService {
     }
   }
 
-  async updatePassword(userId: string, oldPassword: string, newPassword: string) {
+  async updatePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ) {
     return this.userService.updatePassword(userId, oldPassword, newPassword);
   }
 }

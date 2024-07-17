@@ -21,5 +21,4 @@ export class CreateWalletDto {
   @IsString()
   @ApiProperty()
   mobilenumber: string;
-
 }
