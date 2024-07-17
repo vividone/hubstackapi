@@ -31,34 +31,34 @@ export class SuperAgentProfileService {
     return superAgent;
   }
 
-  async updateSuperAgentProfile(
-    id: string,
-    updateSuperAgentDto: CreateSuperAgentProfileDto,
-  ) {
-    const { email, password, ...otherFields } = updateSuperAgentDto;
+  async updateSuperAgentProfile(e_mail: string, updateAgentDto: CreateSuperAgentProfileDto) {
+    const { email, password, firstname, lastname, referal_username, role, ...otherFields } = updateAgentDto;
+    const superAgentProfile = await this.superAgentRepo.findOne({email: e_mail})
+    if (!superAgentProfile) {
+      throw new NotFoundException('Super Agent profile not found');
+    }
 
     if (email) {
       const existingUser = await this.superAgentRepo.findOne({ email });
-      if (existingUser && existingUser._id.toString() !== id) {
+      if (existingUser && existingUser._id.toString() !== superAgentProfile._id.toString()) {
         throw new BadRequestException('Email already exists');
       }
     }
 
+    const updateData = { ...otherFields };
+
     const updatedAgent = await this.superAgentRepo.findOneAndUpdate(
-      { _id: id, role: 'SuperAgent' },
-      { $set: otherFields },
+      { _id: superAgentProfile._id, role: 'SuperAgent' },
+      { $set: updateData },
     );
 
     if (!updatedAgent) {
-      throw new NotFoundException('SuperAgent not found');
+      throw new NotFoundException('Super Agent not found');
     }
-
-    const user = await this.userRepo.findOne({ email: updatedAgent.email });
-
+    
+    const user = await this.userRepo.findOne({ email: e_mail });
     if (user) {
       Object.assign(user, {
-        firstname: updatedAgent.firstname,
-        lastName: updatedAgent.lastName,
         phoneNumber: updatedAgent.phoneNumber,
         username: updatedAgent.username,
       });
@@ -69,7 +69,7 @@ export class SuperAgentProfileService {
 
     return {
       status: 'Success',
-      message: 'SuperAgent profile updated successfully',
+      message: 'Super Agent profile updated successfully',
       user: updatedAgent,
     };
   }
