@@ -163,15 +163,22 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('SuperAgent', 'Agent', 'Individual')
   @Put('update-password')
-  async updatePassword(@Req() request: CustomRequest, @Body() body: { oldPassword: string, newPassword: string }) {
+  async updatePassword(
+    @Req() request: CustomRequest,
+    @Body() body: { oldPassword: string; newPassword: string },
+  ) {
     const { oldPassword, newPassword } = body;
-    const userId = request.user.id; 
+    const userId = request.user.id;
 
     if (!oldPassword || !newPassword) {
       throw new BadRequestException('Both old and new passwords are required');
     }
 
-    const updatedUser = await this.authService.updatePassword(userId, oldPassword, newPassword);
+    const updatedUser = await this.authService.updatePassword(
+      userId,
+      oldPassword,
+      newPassword,
+    );
     return {
       status: 'Success',
       message: 'Password updated successfully',
