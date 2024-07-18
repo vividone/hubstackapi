@@ -15,7 +15,10 @@ export class AgentController {
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Agent')
   @Put('update-profile')
-  async updateAgentProfile(@Body() updateAgentDto: CreateAgentProfileDto, @Req() request : CustomRequest) {
+  async updateAgentProfile(
+    @Body() updateAgentDto: CreateAgentProfileDto,
+    @Req() request: CustomRequest,
+  ) {
     const email = request.user.email;
     return await this.agentService.updateAgentProfile(email, updateAgentDto);
   }

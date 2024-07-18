@@ -97,6 +97,87 @@ export class WalletService {
   //   }
   // }
 
+  // Paystack Implementation
+
+  async createDVAccount(data: CreateWalletDto, id: string) {
+    const baseUrl: string = process.env.PSTK_BASE_URL;
+    const secretKey: string = process.env.PSTK_SECRET_KEY;
+    try {
+      const user = await this.userRepo.findOne({ _id: id });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const email: string = user.email;
+      const phone = user.phonenumber;
+      // const account_reference: string = this.generateAccountReference();
+      const country = 'NG';
+      const split_code = 'ACCT_8yzxls2jhsuxirv';
+      const preferred_bank = 'wema-bank';
+
+      const requestData = {
+        email,
+        first_name: `${data.firstname}`,
+        last_name: `${data.lastname}`,
+        preferred_bank,
+        phone,
+        split_code,
+        country,
+        bvn: `${data.bvn}`,
+      };
+      console.log('DATA TO PAYSTACK', requestData);
+
+      const response = await axios.post(
+        `${baseUrl}/dedicated_account/assign`,
+        requestData,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      console.log('RESPONSE FROM FLW', response.data.data);
+
+      // const { nuban, account_name, bank_code, bank_name } = response.data.data;
+
+      // const createdSubaccount = {
+      //   email: email,
+      //   accountName: account_name,
+      //   accountNumber: nuban,
+      //   bankName: bank_name,
+      //   bankCode: bank_code,
+      //   accountReference: account_reference,
+      //   user: user._id,
+      // };
+
+      // const savedSubaccount = await this.walletRepo.create(createdSubaccount);
+
+      // return {
+      //   message: 'Subaccount created successfully',
+      //   data: savedSubaccount,
+      // };
+    } catch (error) {
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        throw new Error(
+          error.response.data.message ||
+            'An error occurred while creating subaccount',
+        );
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        throw new Error('No response received from the server');
+      } else {
+        console.error('Error message:', error.message);
+        throw new Error('An error occurred while creating subaccount');
+      }
+    }
+  }
+
+  // Flutterwave Implementation
+
   async createSubaccount(data: CreateWalletDto, id: string) {
     const baseUrl: string = process.env.FLW_BASE_URL;
     const secretKey: string = process.env.FLW_SECRET_KEY;

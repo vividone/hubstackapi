@@ -53,7 +53,11 @@ export class UsersService {
     await user.save();
   }
 
-  async updatePassword(userId: string, oldPassword: string, newPassword: string) {
+  async updatePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ) {
     const user = await this.findOne(userId);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -69,7 +73,8 @@ export class UsersService {
   }
 
   async updateUserProfile(id: string, updateUserDto: CreateUserDto) {
-    const { email,firstname, lastname, password, role, ...otherFields } = updateUserDto;
+    const { email, firstname, lastname, password, role, ...otherFields } =
+      updateUserDto;
 
     if (email) {
       const existingUser = await this.userRepo.findOne({ email });
@@ -92,7 +97,7 @@ export class UsersService {
     };
   }
 
-  private async updateUser(user: UserRepository){
+  private async updateUser(user: UserRepository) {
     return await this.userRepo.create(user);
   }
 }
