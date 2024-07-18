@@ -3,6 +3,7 @@ import axios from 'axios';
 import { CreateWalletDto } from './create.wallet.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { UserRepository } from 'src/entity/repositories/user.repo';
+import { first } from 'rxjs';
 
 @Injectable()
 export class WalletService {
@@ -97,84 +98,95 @@ export class WalletService {
   //   }
   // }
 
-  // Paystack Implementation
 
-  async createDVAccount(data: CreateWalletDto, id: string) {
+  //create customer
+
+  async createCustomerWallet(data: CreateWalletDto, id: string) {
     const baseUrl: string = process.env.PSTK_BASE_URL;
     const secretKey: string = process.env.PSTK_SECRET_KEY;
+
     try {
-      const user = await this.userRepo.findOne({ _id: id });
+        const user = await this.userRepo.findOne({ _id: id });
 
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
 
-      const email: string = user.email;
-      const phone = user.phonenumber;
-      // const account_reference: string = this.generateAccountReference();
-      const country = 'NG';
-      const split_code = 'ACCT_8yzxls2jhsuxirv';
-      const preferred_bank = 'wema-bank';
+        const email: string = user.email;
 
-      const requestData = {
-        email,
-        first_name: `${data.firstname}`,
-        last_name: `${data.lastname}`,
-        preferred_bank,
-        phone,
-        split_code,
-        country,
-        bvn: `${data.bvn}`,
-      };
-      console.log('DATA TO PAYSTACK', requestData);
+        const { bvn, ...rest } = data;
+        const payLoad = {
+            email,
+            ...rest,
+        };
 
-      const response = await axios.post(
-        `${baseUrl}/dedicated_account/assign`,
-        requestData,
-        {
-          headers: {
-            Authorization: `Bearer ${secretKey}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      console.log('RESPONSE FROM FLW', response.data.data);
-
-      // const { nuban, account_name, bank_code, bank_name } = response.data.data;
-
-      // const createdSubaccount = {
-      //   email: email,
-      //   accountName: account_name,
-      //   accountNumber: nuban,
-      //   bankName: bank_name,
-      //   bankCode: bank_code,
-      //   accountReference: account_reference,
-      //   user: user._id,
-      // };
-
-      // const savedSubaccount = await this.walletRepo.create(createdSubaccount);
-
-      // return {
-      //   message: 'Subaccount created successfully',
-      //   data: savedSubaccount,
-      // };
-    } catch (error) {
-      if (error.response) {
-        console.error('Error response data:', error.response.data);
-        throw new Error(
-          error.response.data.message ||
-            'An error occurred while creating subaccount',
+        // Create customer
+        const customerResponse = await axios.post(
+            `${baseUrl}/customer`,
+            payLoad,
+            {
+                headers: {
+                    Authorization: `Bearer ${secretKey}`,
+                    'Content-Type': 'application/json',
+                },
+            },
         );
-      } else if (error.request) {
-        console.error('Error request:', error.request);
-        throw new Error('No response received from the server');
-      } else {
-        console.error('Error message:', error.message);
-        throw new Error('An error occurred while creating subaccount');
-      }
+
+        const { id: customerId, customer_code: customerCode, integration } = customerResponse.data.data;
+
+        const createdCustomer = {
+            email: email,
+            customer_code: customerCode,
+            customer_id: customerId,
+            integration: integration,
+            user: user._id,
+        };
+
+        const savedCustomer = createdCustomer;
+
+        const dvaPayload = {
+            customer: customerId,
+            preferred_bank: "wema-bank", 
+        };
+
+        const dvaResponse = await axios.post(
+            `${baseUrl}/dedicated_account`,
+            dvaPayload,
+            {
+                headers: {
+                    Authorization: `Bearer ${secretKey}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        const dvaData = dvaResponse.data.data;
+
+        return {
+            message: 'Customer and DVA created successfully',
+            customer: savedCustomer,
+            dva: dvaData,
+        };
+    } catch (error) {
+        if (error.response) {
+            console.error('Error response data:', error.response.data);
+            throw new Error(
+                error.response.data.message || 'An error occurred while creating customer and DVA',
+            );
+        } else if (error.request) {
+            console.error('Error request:', error.request);
+            throw new Error('No response received from the server');
+        } else {
+            console.error('Error message:', error.message);
+            throw new Error('An error occurred while creating customer and DVA');
+        }
     }
-  }
+}
+
+
+  // Paystack Implementation
+
+  
 
   // Flutterwave Implementation
 
@@ -192,6 +204,8 @@ export class WalletService {
       const account_reference: string = this.generateAccountReference();
       const country = 'NG';
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const {  bvn, ...rest } = data;
       const requestData = {
         email,
         account_name: `${data.firstname} ${data.lastname}`,

@@ -32,6 +32,9 @@ class Users {
   @Prop()
   otp: string;
 
+  @Prop({ default : false })
+  kyc: boolean;
+
   @Prop({ default: false })
   isVerified: boolean;
 
