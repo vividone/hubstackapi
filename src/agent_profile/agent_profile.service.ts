@@ -13,17 +13,30 @@ export class AgentService {
     private readonly userRepo: UserRepository,
   ) {}
 
-
-  async updateAgentProfile(e_mail: string, updateAgentDto: CreateAgentProfileDto) {
-    const { email, password, firstname, lastname, referal_username, role, ...otherFields } = updateAgentDto;
-    const agentProfile = await this.agentRepo.findOne({email: e_mail})
+  async updateAgentProfile(
+    e_mail: string,
+    updateAgentDto: CreateAgentProfileDto,
+  ) {
+    const {
+      email,
+      password,
+      firstname,
+      lastname,
+      referal_username,
+      role,
+      ...otherFields
+    } = updateAgentDto;
+    const agentProfile = await this.agentRepo.findOne({ email: e_mail });
     if (!agentProfile) {
       throw new NotFoundException('Agent profile not found');
     }
 
     if (email) {
       const existingUser = await this.agentRepo.findOne({ email });
-      if (existingUser && existingUser._id.toString() !== agentProfile._id.toString()) {
+      if (
+        existingUser &&
+        existingUser._id.toString() !== agentProfile._id.toString()
+      ) {
         throw new BadRequestException('Email already exists');
       }
     }
@@ -38,7 +51,7 @@ export class AgentService {
     if (!updatedAgent) {
       throw new NotFoundException('Agent not found');
     }
-    
+
     const user = await this.userRepo.findOne({ email: e_mail });
     if (user) {
       Object.assign(user, {

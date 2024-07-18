@@ -23,6 +23,31 @@ import { Wallet } from 'src/entity';
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
+  // Paystack Implementation
+  @Roles('SuperAgent', 'Agent', 'Individual')
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Create wallet for a new user' })
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Post('create-paystack-account')
+  async createDedicatedVirtualAcccount(
+    @Body() createWalletDto: CreateWalletDto,
+    @Req() request: CustomRequest,
+  ) {
+    try {
+      const userId = request.user.id;
+      const result = await this.walletService.createDVAccount(
+        createWalletDto,
+        userId,
+      );
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // Flutterwave Implementation
+
   @Roles('SuperAgent', 'Agent', 'Individual')
   @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   @ApiOperation({ summary: 'Create wallet for a new user' })

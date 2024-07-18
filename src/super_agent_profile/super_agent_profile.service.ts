@@ -31,16 +31,32 @@ export class SuperAgentProfileService {
     return superAgent;
   }
 
-  async updateSuperAgentProfile(e_mail: string, updateAgentDto: CreateSuperAgentProfileDto) {
-    const { email, password, firstname, lastname, referal_username, role, ...otherFields } = updateAgentDto;
-    const superAgentProfile = await this.superAgentRepo.findOne({email: e_mail})
+  async updateSuperAgentProfile(
+    e_mail: string,
+    updateAgentDto: CreateSuperAgentProfileDto,
+  ) {
+    const {
+      email,
+      password,
+      firstname,
+      lastname,
+      referal_username,
+      role,
+      ...otherFields
+    } = updateAgentDto;
+    const superAgentProfile = await this.superAgentRepo.findOne({
+      email: e_mail,
+    });
     if (!superAgentProfile) {
       throw new NotFoundException('Super Agent profile not found');
     }
 
     if (email) {
       const existingUser = await this.superAgentRepo.findOne({ email });
-      if (existingUser && existingUser._id.toString() !== superAgentProfile._id.toString()) {
+      if (
+        existingUser &&
+        existingUser._id.toString() !== superAgentProfile._id.toString()
+      ) {
         throw new BadRequestException('Email already exists');
       }
     }
@@ -55,7 +71,7 @@ export class SuperAgentProfileService {
     if (!updatedAgent) {
       throw new NotFoundException('Super Agent not found');
     }
-    
+
     const user = await this.userRepo.findOne({ email: e_mail });
     if (user) {
       Object.assign(user, {

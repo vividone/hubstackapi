@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { SuperAgentProfileService } from './super_agent_profile.service';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
@@ -20,8 +28,14 @@ export class SuperAgentProfileController {
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('SuperAgent')
   @Put('update-profile')
-  async updateAgentProfile(@Body() updateSuperAgentDto: CreateSuperAgentProfileDto, @Req() request : CustomRequest) {
+  async updateAgentProfile(
+    @Body() updateSuperAgentDto: CreateSuperAgentProfileDto,
+    @Req() request: CustomRequest,
+  ) {
     const email = request.user.email;
-    return await this.superAgentService.updateSuperAgentProfile(email, updateSuperAgentDto);
+    return await this.superAgentService.updateSuperAgentProfile(
+      email,
+      updateSuperAgentDto,
+    );
   }
 }
