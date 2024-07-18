@@ -67,10 +67,7 @@ export class WalletController {
       return result;
     } catch (error) {
       console.error(error);
-      throw new HttpException(
-        error.message,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
   @Roles('SuperAgent', 'Agent', 'Individual')

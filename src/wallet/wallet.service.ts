@@ -3,7 +3,7 @@ import axios from 'axios';
 import { CreateWalletDto } from './create.wallet.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { UserRepository } from 'src/entity/repositories/user.repo';
-import { first } from 'rxjs';
+// import { first } from 'rxjs';
 
 @Injectable()
 export class WalletService {
@@ -97,8 +97,6 @@ export class WalletService {
   //     }
   //   }
   // }
-
-
   //create customer
 
   async createCustomerWallet(data: CreateWalletDto, id: string) {
@@ -106,87 +104,90 @@ export class WalletService {
     const secretKey: string = process.env.PSTK_SECRET_KEY;
 
     try {
-        const user = await this.userRepo.findOne({ _id: id });
+      const user = await this.userRepo.findOne({ _id: id });
 
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
 
-        const email: string = user.email;
+      const email: string = user.email;
 
-        const { bvn, ...rest } = data;
-        const payLoad = {
-            email,
-            ...rest,
-        };
+      const { bvn, ...rest } = data;
+      const payLoad = {
+        email,
+        bvn,
+        ...rest,
+      };
 
-        // Create customer
-        const customerResponse = await axios.post(
-            `${baseUrl}/customer`,
-            payLoad,
-            {
-                headers: {
-                    Authorization: `Bearer ${secretKey}`,
-                    'Content-Type': 'application/json',
-                },
-            },
-        );
+      // Create customer
+      const customerResponse = await axios.post(
+        `${baseUrl}/customer`,
+        payLoad,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
-        const { id: customerId, customer_code: customerCode, integration } = customerResponse.data.data;
+      const {
+        id: customerId,
+        customer_code: customerCode,
+        integration,
+      } = customerResponse.data.data;
 
-        const createdCustomer = {
-            email: email,
-            customer_code: customerCode,
-            customer_id: customerId,
-            integration: integration,
-            user: user._id,
-        };
+      const createdCustomer = {
+        email: email,
+        customer_code: customerCode,
+        customer_id: customerId,
+        integration: integration,
+        user: user._id,
+      };
 
-        const savedCustomer = createdCustomer;
+      const savedCustomer = createdCustomer;
 
-        const dvaPayload = {
-            customer: customerId,
-            preferred_bank: "wema-bank", 
-        };
+      const dvaPayload = {
+        customer: customerId,
+        preferred_bank: 'wema-bank',
+      };
 
-        const dvaResponse = await axios.post(
-            `${baseUrl}/dedicated_account`,
-            dvaPayload,
-            {
-                headers: {
-                    Authorization: `Bearer ${secretKey}`,
-                    'Content-Type': 'application/json',
-                },
-            },
-        );
+      const dvaResponse = await axios.post(
+        `${baseUrl}/dedicated_account`,
+        dvaPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
-        const dvaData = dvaResponse.data.data;
+      const dvaData = dvaResponse.data.data;
 
-        return {
-            message: 'Customer and DVA created successfully',
-            customer: savedCustomer,
-            dva: dvaData,
-        };
+      return {
+        message: 'Customer and DVA created successfully',
+        customer: savedCustomer,
+        dva: dvaData,
+      };
     } catch (error) {
-        if (error.response) {
-            console.error('Error response data:', error.response.data);
-            throw new Error(
-                error.response.data.message || 'An error occurred while creating customer and DVA',
-            );
-        } else if (error.request) {
-            console.error('Error request:', error.request);
-            throw new Error('No response received from the server');
-        } else {
-            console.error('Error message:', error.message);
-            throw new Error('An error occurred while creating customer and DVA');
-        }
+      if (error.response) {
+        console.error('Error response data:', error.response.data);
+        throw new Error(
+          error.response.data.message ||
+            'An error occurred while creating customer and DVA',
+        );
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        throw new Error('No response received from the server');
+      } else {
+        console.error('Error message:', error.message);
+        throw new Error('An error occurred while creating customer and DVA');
+      }
     }
-}
-
+  }
 
   // Paystack Implementation
-
-  
 
   // Flutterwave Implementation
 
@@ -205,7 +206,7 @@ export class WalletService {
       const country = 'NG';
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const {  bvn, ...rest } = data;
+      const { bvn, ...rest } = data;
       const requestData = {
         email,
         account_name: `${data.firstname} ${data.lastname}`,
