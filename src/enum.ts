@@ -9,3 +9,7 @@ export enum Role {
   AGENT = 'Agent',
   INDIVIDUAL = 'Individual',
 }
+export enum CostType {
+  UNITS = 'Unit',
+  AMOUNT = 'Amount'
+}
