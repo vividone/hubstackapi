@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import axios from 'axios';
 import { UserRepository } from 'src/entity/repositories/user.repo';
-import { CreateMockWalletDto } from './create.mock.wallet.dto';
+import { CreateMockWalletDto } from './mock.wallet.dto';
 import { MockWalletRepository } from 'src/entity/repositories/mock.wallet.repo';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class MockWalletService {
   async createCustomerWallet(data: CreateMockWalletDto, id: string) {
     const baseUrl: string = process.env.PSTK_BASE_URL;
     const secretKey: string = process.env.PSTK_SECRET_KEY;
-    const { bvn, existingAccountNumber, bankName, ...rest } = data;
+    const { bvn, existingAccountNumber, existingBankName, ...rest } = data;
 
     try {
       const user = await this.userRepo.findOne({ _id: id });
@@ -37,7 +37,7 @@ export class MockWalletService {
         email,
         rest,
       );
-      const bankCode = await this.getBankCode(bankName);
+      const bankCode = await this.getBankCode(existingBankName);
 
       // Validate customer
       const validatePayload = {
