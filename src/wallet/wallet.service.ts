@@ -114,7 +114,6 @@ export class WalletService {
       const { bvn, ...rest } = data;
       const payLoad = {
         email,
-        bvn,
         ...rest,
       };
 
@@ -146,28 +145,28 @@ export class WalletService {
 
       const savedCustomer = createdCustomer;
 
-      const dvaPayload = {
-        customer: customerId,
-        preferred_bank: 'wema-bank',
-      };
+      // const dvaPayload = {
+      //   customer: customerId,
+      //   preferred_bank: 'wema-bank',
+      // };
 
-      const dvaResponse = await axios.post(
-        `${baseUrl}/dedicated_account`,
-        dvaPayload,
-        {
-          headers: {
-            Authorization: `Bearer ${secretKey}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
+      // const dvaResponse = await axios.post(
+      //   `${baseUrl}/dedicated_account`,
+      //   dvaPayload,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${secretKey}`,
+      //       'Content-Type': 'application/json',
+      //     },
+      //   },
+      // );
 
-      const dvaData = dvaResponse.data.data;
+      // const dvaData = dvaResponse.data.data;
 
       return {
         message: 'Customer and DVA created successfully',
         customer: savedCustomer,
-        dva: dvaData,
+        //dva: dvaData,
       };
     } catch (error) {
       if (error.response) {

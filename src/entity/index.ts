@@ -6,3 +6,4 @@ export * from './schema/invitation.schema';
 export * from './schema/wallet.schema';
 export * from './schema/category.schema';
 export * from './schema/product.schema';
+export * from './schema/mock.wallet.schema';
