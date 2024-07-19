@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { InvitationsModule } from './invitations/invitations.module';
 import { WalletModule } from './wallet/wallet.module';
+import { CategoryModule } from './category/category.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { WalletModule } from './wallet/wallet.module';
     AuthModule,
     InvitationsModule,
     WalletModule,
+    ProductModule,
+    CategoryModule,
   ],
 })
 export class AppModule {}
