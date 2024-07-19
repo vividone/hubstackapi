@@ -12,6 +12,7 @@ import { InvitationsModule } from './invitations/invitations.module';
 import { WalletModule } from './wallet/wallet.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
+import { MockWalletModule } from './mock-wallet/mock-wallet.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ProductModule } from './product/product.module';
     WalletModule,
     ProductModule,
     CategoryModule,
+    MockWalletModule,
   ],
 })
 export class AppModule {}
