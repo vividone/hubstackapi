@@ -11,5 +11,5 @@ export enum Role {
 }
 export enum CostType {
   UNITS = 'Unit',
-  AMOUNT = 'Amount'
+  AMOUNT = 'Amount',
 }

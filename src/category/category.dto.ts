@@ -6,5 +6,4 @@ export class CategoryDto {
   @IsString()
   @ApiProperty()
   name: string;
-
 }

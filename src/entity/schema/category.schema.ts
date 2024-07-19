@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { ApiProperty } from '@nestjs/swagger';
+import { HydratedDocument } from 'mongoose';
 
 export type CategoryDocument = HydratedDocument<Category>;
 
@@ -7,6 +8,7 @@ export
 @Schema({ timestamps: true })
 class Category {
   @Prop()
+  @ApiProperty()
   name: string;
 }
 

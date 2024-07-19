@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { Role } from 'src/enum';
+import { ApiProperty } from '@nestjs/swagger';
 
 export type UserDocument = HydratedDocument<Users>;
 
@@ -9,27 +10,34 @@ export
 @Schema({ timestamps: true, discriminatorKey: 'role' })
 class Users {
   @Prop()
+  @ApiProperty()
   firstname: string;
 
   @Prop()
+  @ApiProperty()
   lastname: string;
 
   @Prop()
+  @ApiProperty()
   username: string;
 
   @Prop({ unique: true })
   email: string;
 
   @Prop()
+  @ApiProperty()
   password: string;
 
   @Prop()
+  @ApiProperty()
   phone_number: string;
 
   @Prop()
+  @ApiProperty()
   role: Role;
 
   @Prop()
+  @ApiProperty()
   otp: string;
 
   @Prop({ default: false })
@@ -39,9 +47,11 @@ class Users {
   isVerified: boolean;
 
   @Prop()
+  @ApiProperty()
   unitBalance: number;
 
   @Prop()
+  @ApiProperty()
   is_active: boolean;
 }
 
