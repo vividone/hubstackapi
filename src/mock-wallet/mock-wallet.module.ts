@@ -13,7 +13,9 @@ import { UsersModule } from 'src/users/users.module';
   controllers: [MockWalletController],
   exports: [MockWalletRepository, MockWalletService],
   imports: [
-    MongooseModule.forFeature([{ name: MockWallet.name, schema: MockWalletSchema }]),
+    MongooseModule.forFeature([
+      { name: MockWallet.name, schema: MockWalletSchema },
+    ]),
     HttpModule.register({
       timeout: 5000,
       maxRedirects: 5,

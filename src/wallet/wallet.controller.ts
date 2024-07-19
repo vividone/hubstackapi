@@ -10,7 +10,7 @@ import {
   Get,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { CreateWalletDto } from './create.wallet.dto';
+import { Banks, CreateWalletDto } from './wallet.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
@@ -46,13 +46,27 @@ export class WalletController {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @ApiCreatedResponse({ type: Banks, description: 'expected response' })
+  @ApiOperation({ summary: 'Get lists of banks' })
+  @Get('banks')
+  async getBankList() {
+    try {
+      const result = await this.walletService.getBankCode();
+      return result;
+    } catch (error) {
+      // console.error(error);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   // Flutterwave Implementation
 
   @Roles('SuperAgent', 'Agent', 'Individual')
   @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   @ApiOperation({ summary: 'Create wallet for a new user' })
   @UseGuards(JwtAuthGuard, RolesAuth)
-  @Post('create-account')
+  // @Post('create-account')
   @Post('create-customer-wallet')
   async createCustomerWallet(
     @Body() createWalletDto: CreateWalletDto,

@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import axios from 'axios';
-import { CreateWalletDto } from './create.wallet.dto';
+import { CreateWalletDto } from './wallet.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 
@@ -114,6 +119,7 @@ export class WalletService {
       const { bvn, ...rest } = data;
       const payLoad = {
         email,
+        bvn,
         ...rest,
       };
 
@@ -186,6 +192,29 @@ export class WalletService {
   }
 
   // Paystack Implementation
+
+  // Get list of Nigerian Banks
+
+  async getBankCode() {
+    const baseUrl: string = process.env.PSTK_BASE_URL;
+    const secretKey: string = process.env.PSTK_SECRET_KEY;
+    try {
+      const response = await axios.get(`${baseUrl}/bank`, {
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+        },
+      });
+
+      const banks = { data: response.data.data, message: 'Sucessfull' };
+
+      return banks;
+    } catch (error) {
+      this.handleAxiosError(
+        error,
+        'An error occurred while retrieving the bank code',
+      );
+    }
+  }
 
   // Flutterwave Implementation
 
@@ -541,5 +570,20 @@ export class WalletService {
 
   async getUserWallet(userId: string) {
     return this.walletRepo.findOne({ user: userId });
+  }
+
+  private handleAxiosError(error: any, defaultMessage: string) {
+    if (error.response) {
+      console.error('HTTP Error:', defaultMessage);
+      throw new BadRequestException(defaultMessage);
+    } else if (error.request) {
+      console.error('No response received from the server');
+      throw new InternalServerErrorException(
+        'No response received from the server',
+      );
+    } else {
+      console.error('Error message:', 'An unexpected error occurred');
+      throw new InternalServerErrorException(defaultMessage);
+    }
   }
 }

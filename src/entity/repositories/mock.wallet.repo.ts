@@ -7,7 +7,9 @@ import { MockWallet, MockWalletDocument } from '../schema/mock.wallet.schema';
 @Global()
 @Injectable()
 export class MockWalletRepository extends EntityRepository<MockWalletDocument> {
-  constructor(@InjectModel(MockWallet.name) MockWalletModel: Model<MockWalletDocument>) {
+  constructor(
+    @InjectModel(MockWallet.name) MockWalletModel: Model<MockWalletDocument>,
+  ) {
     super(MockWalletModel);
   }
 }
