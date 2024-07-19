@@ -39,6 +39,9 @@ class Users {
   isVerified: boolean;
 
   @Prop()
+  unitBalance: number;
+
+  @Prop()
   is_active: boolean;
 }
 
