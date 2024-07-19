@@ -3,7 +3,6 @@ import axios from 'axios';
 import { CreateWalletDto } from './create.wallet.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { UserRepository } from 'src/entity/repositories/user.repo';
-// import { first } from 'rxjs';
 
 @Injectable()
 export class WalletService {
