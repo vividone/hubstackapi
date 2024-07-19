@@ -22,6 +22,7 @@ import { CustomRequest } from 'src/configs/custom_request';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
+import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
@@ -64,22 +65,35 @@ export class AuthController {
     return { message: 'Agent registered successfully.', Agent: createdAgent };
   }
 
-  // @Post('super-agent-referal-registration')
-  // async registerSuperAgentByInvitation(@Body() createSuperAgentDto: CreateSuperAgentProfileDto, @Req() req: any) {
-  //     const { referal_username } = createSuperAgentDto;
+  @Post('super-agent-referal-registration')
+  async registerSuperAgentByInvitation(
+    @Body() createSuperAgentDto: CreateSuperAgentProfileDto,
+    @Req() req: any,
+  ) {
+    const { referal_username } = createSuperAgentDto;
 
-  //     const invitation = await this.invitationService.findInvitationByUsername(referal_username);
-  //     if (!invitation || invitation.isUsed) {
-  //         throw new NotFoundException('Invalid invitation.');
-  //     }
+    const invitation =
+      await this.invitationService.findInvitationByUsername(referal_username);
+    if (!invitation || invitation.isUsed) {
+      throw new NotFoundException('Invalid invitation.');
+    }
 
-  //     createSuperAgentDto.role = 'SuperAgent'
+    createSuperAgentDto.role = 'SuperAgent';
 
-  //     const createdSuperAgent = await this.authService.createUser(createSuperAgentDto, req);
-  //     await this.invitationService.markInvitationAsUsed(invitation._id, invitation);
+    const createdSuperAgent = await this.authService.createUser(
+      createSuperAgentDto,
+      req,
+    );
+    await this.invitationService.markInvitationAsUsed(
+      invitation._id,
+      invitation,
+    );
 
-  //     return { message: 'SuperAgent registered successfully.', superAgent: createdSuperAgent };
-  // }
+    return {
+      message: 'SuperAgent registered successfully.',
+      superAgent: createdSuperAgent,
+    };
+  }
 
   @Post('register-agent')
   registerAgent(
