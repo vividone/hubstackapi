@@ -19,7 +19,7 @@ export class MockWalletService {
   async createCustomerWallet(data: CreateMockWalletDto, id: string) {
     const baseUrl: string = process.env.PSTK_BASE_URL;
     const secretKey: string = process.env.PSTK_SECRET_KEY;
-    const { bvn, existingAccountNumber, existingBankName, ...rest } = data;
+    const { bvn, existingAccountNumber, existingBankName } = data;
 
     try {
       const user = await this.userRepo.findOne({ _id: id });
@@ -29,16 +29,21 @@ export class MockWalletService {
       }
 
       const email: string = user.email;
+      const first_name: string = user.firstname;
+      const last_name: string = user.lastname;
+      const phone: string = user.mobilenumber;
 
       const customer = await this.createCustomer(
         user._id,
         baseUrl,
         secretKey,
         email,
-        rest,
+        first_name,
+        last_name,
+        phone,
       );
       const bankCode = await this.getBankCode(existingBankName);
-
+      // console.log('Bank Code', bankCode);
       // Validate customer
       const validatePayload = {
         country: 'NG',
@@ -66,7 +71,7 @@ export class MockWalletService {
         customer_id: customer.customer_id,
         customerCode: customer.customer_code,
         accountNumber: dvaData.accountNumber,
-        bankName: 'Wema Bank',
+        bankName: dvaData.preferred_bank,
         country: validatePayload.country,
         user: user,
       });
@@ -90,12 +95,14 @@ export class MockWalletService {
     baseUrl: string,
     secretKey: string,
     email: string,
-    data: any,
+    first_name: string,
+    last_name: string,
+    phone: string,
   ) {
     try {
       const response = await axios.post(
         `${baseUrl}/customer`,
-        { email, ...data },
+        { email, first_name, last_name, phone },
         {
           headers: {
             Authorization: `Bearer ${secretKey}`,
