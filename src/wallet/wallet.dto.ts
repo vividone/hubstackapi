@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsObject, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsObject,
+  IsString,
+} from 'class-validator';
 
 export class CreateWalletDto {
   @IsNotEmpty()
@@ -28,7 +34,7 @@ export class CreateWalletDto {
   bvn: string;
 }
 
-export class Bank {
+class Bank {
   @IsNotEmpty()
   @IsString()
   @ApiProperty()
@@ -94,4 +100,40 @@ export class Banks {
   @ApiProperty({ type: [Bank] })
   @IsObject({ each: true })
   Banks: Bank[];
+}
+
+export class ValidateCustomerDto {
+  @ApiProperty()
+  @IsString()
+  bankName: string;
+
+  @ApiProperty()
+  @IsString()
+  accountNumber: string;
+}
+
+export class ValidateCustomerResponse {
+  @ApiProperty()
+  @IsBoolean()
+  status: boolean;
+
+  @ApiProperty()
+  @IsString()
+  message: string;
+
+  @ApiProperty()
+  @IsObject()
+  data: dataObjectResp;
+}
+
+class dataObjectResp {
+  @ApiProperty()
+  @IsString()
+  account_number: string;
+  @ApiProperty()
+  @IsString()
+  account_name: string;
+  @ApiProperty()
+  @IsNumber()
+  bank_id: number;
 }

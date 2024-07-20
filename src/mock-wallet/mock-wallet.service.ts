@@ -52,7 +52,7 @@ export class MockWalletService {
         account_number: existingAccountNumber,
       };
 
-      const validateCustomer = validatePayload; // Mock Validation
+      const validateCustomer = this.validateCustomer(validatePayload); // Mock Validation
 
       if (!validateCustomer) {
         throw new BadRequestException('Could not validate Customer');
@@ -174,6 +174,39 @@ export class MockWalletService {
     } else {
       console.error('Error message:', 'An unexpected error occurred');
       throw new InternalServerErrorException(defaultMessage);
+    }
+  }
+
+  private async validateCustomer(validatePayload: any) {
+    const baseUrl: string = process.env.PSTK_BASE_URL;
+    const secretKey: string = process.env.PSTK_SECRET_KEY;
+
+    console.log('Validaate Payload: ', validatePayload);
+
+    const { account_number, bank_code } = validatePayload;
+
+    try {
+      const response = await axios.get(
+        `${baseUrl}/resolve?account_number=${account_number}&bank_code=${bank_code}`,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+          },
+        },
+      );
+
+      const resolves = response.data.data;
+      if (!resolves) {
+        throw new NotFoundException('Not found');
+      }
+      console.log(response);
+
+      return resolves;
+    } catch (error) {
+      this.handleAxiosError(
+        error,
+        'An error occurred while retrieving the bank details',
+      );
     }
   }
 }

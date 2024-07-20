@@ -10,7 +10,7 @@ import {
   Get,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { Banks, CreateWalletDto } from './wallet.dto';
+import { Banks, CreateWalletDto, ValidateCustomerDto } from './wallet.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
@@ -52,7 +52,7 @@ export class WalletController {
   @Get('banks')
   async getBankList() {
     try {
-      const result = await this.walletService.getBankCode();
+      const result = await this.walletService.getBanks();
       return result;
     } catch (error) {
       // console.error(error);
@@ -95,6 +95,17 @@ export class WalletController {
     @Req() request: CustomRequest,
   ) {
     return this.walletService.getUserWallet(userid);
+  }
+
+  @Roles('SuperAgent', 'Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Get wallet details of a user' })
+  @Post('validate-customer-account')
+  async validateCustomerAccount(
+    @Body() validateCustomerDto: ValidateCustomerDto,
+  ) {
+    return this.walletService.validateCustomer(validateCustomerDto);
   }
 
   @Roles('SuperAgent', 'Agent', 'Individual')

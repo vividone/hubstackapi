@@ -195,7 +195,7 @@ export class WalletService {
 
   // Get list of Nigerian Banks
 
-  async getBankCode() {
+  async getBanks() {
     const baseUrl: string = process.env.PSTK_BASE_URL;
     const secretKey: string = process.env.PSTK_SECRET_KEY;
     try {
@@ -212,6 +212,63 @@ export class WalletService {
       this.handleAxiosError(
         error,
         'An error occurred while retrieving the bank code',
+      );
+    }
+  }
+
+  // Get code for the bank name
+
+  private async getBankCode(bankName: string) {
+    const baseUrl: string = process.env.PSTK_BASE_URL;
+    const secretKey: string = process.env.PSTK_SECRET_KEY;
+    try {
+      const response = await axios.get(`${baseUrl}/bank`, {
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+        },
+      });
+
+      const bank = response.data.data.find((bank) => bank.name === bankName);
+      if (!bank) {
+        throw new NotFoundException('Bank not found');
+      }
+
+      return bank.code;
+    } catch (error) {
+      this.handleAxiosError(
+        error,
+        'An error occurred while retrieving the bank code',
+      );
+    }
+  }
+
+  // Validate customer
+
+  async validateCustomer(validatePayload: any) {
+    const baseUrl: string = process.env.PSTK_BASE_URL;
+    const secretKey: string = process.env.PSTK_SECRET_KEY;
+    const { accountNumber, bankName } = validatePayload;
+    const bank_code = await this.getBankCode(bankName);
+    const url = `${baseUrl}/bank/resolve?account_number=${accountNumber}&bank_code=${bank_code}`;
+    console.log(url);
+    try {
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+        },
+      });
+
+      const resolves = response.data;
+      if (!resolves) {
+        throw new NotFoundException('Not found');
+      }
+      console.log(response);
+
+      return resolves;
+    } catch (error) {
+      this.handleAxiosError(
+        error,
+        'An error occurred while retrieving the bank details',
       );
     }
   }
