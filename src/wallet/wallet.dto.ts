@@ -123,10 +123,10 @@ export class ValidateCustomerResponse {
 
   @ApiProperty()
   @IsObject()
-  data: dataObjectResp;
+  data: any;
 }
 
-class dataObjectResp {
+export class dataObjectResp {
   @ApiProperty()
   @IsString()
   account_number: string;
