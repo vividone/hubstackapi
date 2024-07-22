@@ -130,9 +130,11 @@ export class dataObjectResp {
   @ApiProperty()
   @IsString()
   account_number: string;
+
   @ApiProperty()
   @IsString()
   account_name: string;
+
   @ApiProperty()
   @IsNumber()
   bank_id: number;

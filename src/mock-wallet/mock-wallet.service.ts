@@ -52,7 +52,7 @@ export class MockWalletService {
         account_number: existingAccountNumber,
       };
 
-      const validateCustomer = this.validateCustomer(validatePayload); // Mock Validation
+      const validateCustomer = validatePayload; // Mock Validation
 
       if (!validateCustomer) {
         throw new BadRequestException('Could not validate Customer');
