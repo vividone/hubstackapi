@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { InvitationsController } from './invitations.controller';
-import { InvitationsService } from './invitations.service';
-import { SuperAgentProfileModule } from 'src/super_agent_profile/super_agent_profile.module';
+import { InvitationsController } from './referal.controller';
+import { InvitationsService } from './referal.service';
 import { InvitationsRepository } from 'src/entity/repositories/invitations.repo';
 import { MongooseModule } from '@nestjs/mongoose';
 import { InvitationSchema, Invitations } from 'src/entity';
@@ -15,7 +14,6 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
     MongooseModule.forFeature([
       { name: Invitations.name, schema: InvitationSchema },
     ]),
-    SuperAgentProfileModule,
     UsersModule,
     JwtModule,
   ],

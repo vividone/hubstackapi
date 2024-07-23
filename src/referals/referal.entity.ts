@@ -1,3 +1,3 @@
 export class Invitation {
-  invitersUsername: string;
+  referalCode: string;
 }

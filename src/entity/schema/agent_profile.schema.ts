@@ -24,10 +24,6 @@ class Agent extends Users {
   @ApiProperty()
   is_verified: boolean;
 
-  @Prop()
-  @ApiProperty()
-  super_agent_username: string;
-
   @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
   @ApiProperty()
   user: Users | Types.ObjectId;

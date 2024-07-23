@@ -3,10 +3,6 @@ import { CreateUserDto } from 'src/users/users.dto';
 export class CreateAgentProfileDto extends CreateUserDto {
   @IsNotEmpty()
   @IsString()
-  referal_username: string;
-
-  @IsNotEmpty()
-  @IsString()
   business_name: string;
 
   @IsNotEmpty()

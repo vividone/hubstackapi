@@ -15,14 +15,13 @@ import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { CreateUserDto } from 'src/users/users.dto';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
-import { InvitationsService } from 'src/invitations/invitations.service';
+import { InvitationsService } from 'src/referals/referal.service';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto, LoginDtoResponse } from './dto/login.dto';
 import { CustomRequest } from 'src/configs/custom_request';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
-import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
@@ -40,60 +39,30 @@ export class AuthController {
     return this.authService.createUser(createUserDto, req);
   }
 
-  @Post('agent-referral-registration')
-  async registerAgentByInvitation(
-    @Body() createAgentDto: CreateAgentProfileDto,
-    @Req() req: any,
-  ) {
-    const { referal_username } = createAgentDto;
+  // @Post('agent-referral-registration')
+  // async registerAgentByInvitation(
+  //   @Body() createAgentDto: CreateAgentProfileDto,
+  //   @Req() req: any,
+  // ) {
+  //   const { referal_username } = createAgentDto;
 
-    const invitation =
-      await this.invitationService.findInvitationByUsername(referal_username);
-    console.log(invitation._id);
-    if (!invitation || invitation.isUsed) {
-      throw new NotFoundException('Invalid invitation.');
-    }
+  //   const invitation =
+  //     await this.invitationService.findInvitationByUsername(referal_username);
+  //   console.log(invitation._id);
+  //   if (!invitation || invitation.isUsed) {
+  //     throw new NotFoundException('Invalid invitation.');
+  //   }
 
-    createAgentDto.role = 'Agent';
+  //   createAgentDto.role = 'Agent';
 
-    const createdAgent = await this.authService.createUser(createAgentDto, req);
-    await this.invitationService.markInvitationAsUsed(
-      invitation._id,
-      invitation,
-    );
+  //   const createdAgent = await this.authService.createUser(createAgentDto, req);
+  //   await this.invitationService.markInvitationAsUsed(
+  //     invitation._id,
+  //     invitation,
+  //   );
 
-    return { message: 'Agent registered successfully.', Agent: createdAgent };
-  }
-
-  @Post('super-agent-referal-registration')
-  async registerSuperAgentByInvitation(
-    @Body() createSuperAgentDto: CreateSuperAgentProfileDto,
-    @Req() req: any,
-  ) {
-    const { referal_username } = createSuperAgentDto;
-
-    const invitation =
-      await this.invitationService.findInvitationByUsername(referal_username);
-    if (!invitation || invitation.isUsed) {
-      throw new NotFoundException('Invalid invitation.');
-    }
-
-    createSuperAgentDto.role = 'SuperAgent';
-
-    const createdSuperAgent = await this.authService.createUser(
-      createSuperAgentDto,
-      req,
-    );
-    await this.invitationService.markInvitationAsUsed(
-      invitation._id,
-      invitation,
-    );
-
-    return {
-      message: 'SuperAgent registered successfully.',
-      superAgent: createdSuperAgent,
-    };
-  }
+  //   return { message: 'Agent registered successfully.', Agent: createdAgent };
+  // }
 
   @Post('register-agent')
   registerAgent(

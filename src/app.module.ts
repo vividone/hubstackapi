@@ -4,11 +4,10 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AdminProfileModule } from './admin_profile/admin_profile.module';
-import { SuperAgentProfileModule } from './super_agent_profile/super_agent_profile.module';
 import { AgentProfileModule } from './agent_profile/agent_profile.module';
 import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
-import { InvitationsModule } from './invitations/invitations.module';
+import { InvitationsModule } from './referals/referal.module';
 import { WalletModule } from './wallet/wallet.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
@@ -27,7 +26,6 @@ import { MockWalletModule } from './mock-wallet/mock-wallet.module';
     MongooseModule.forRoot(process.env.MONGODB_URL),
     UsersModule,
     AdminProfileModule,
-    SuperAgentProfileModule,
     AgentProfileModule,
     AuthModule,
     InvitationsModule,

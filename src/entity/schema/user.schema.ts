@@ -53,6 +53,10 @@ class Users {
   @Prop()
   @ApiProperty()
   is_active: boolean;
+
+  @Prop()
+  @ApiProperty()
+  refCode: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);
