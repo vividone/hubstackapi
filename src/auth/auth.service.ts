@@ -15,6 +15,7 @@ import { CreateUserDto } from 'src/users/users.dto';
 import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletService } from 'src/wallet/wallet.service';
+import { ReferralService } from 'src/referals/referral.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
     private readonly resetPasswordService: ResetPasswordService,
+    private readonly referralService: ReferralService
   ) {}
 
   async createUser(
@@ -35,13 +37,17 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req: any,
   ) {
-    const { email, role } = createUserDto;
+    const { email, role, referralCode} = createUserDto;
     const existingUser = await this.userRepo.findOne({ email });
     if (existingUser) {
       throw new BadRequestException('Email already exists');
     }
 
-    createUserDto.refCode = `${this.generateReferalCode()}-${createUserDto.firstname}`
+    createUserDto.referralCode = `${this.generateReferalCode()}-${createUserDto.firstname}`
+
+    if (referralCode) {
+      await this.referralService.processReferral(referralCode);
+    }
 
     let user: any;
     if (role === 'Agent') {

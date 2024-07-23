@@ -31,7 +31,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   @ApiProperty()
-  refCode: string;
+  referralCode: string;
 
   @IsNotEmpty()
   @IsString()

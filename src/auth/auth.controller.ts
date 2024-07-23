@@ -6,6 +6,7 @@ import {
   BadRequestException,
   NotFoundException,
   HttpStatus,
+  Query,
   Param,
   Put,
   UseGuards,
@@ -15,7 +16,6 @@ import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { CreateUserDto } from 'src/users/users.dto';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
-import { InvitationsService } from 'src/referals/referal.service';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto, LoginDtoResponse } from './dto/login.dto';
 import { CustomRequest } from 'src/configs/custom_request';
@@ -28,15 +28,14 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly invitationService: InvitationsService,
   ) {}
 
   @Post('register-individual')
-  registerUser(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
+  registerUser(@Body() createUserDto: CreateUserDto, @Query('referralCode') referralCode: string) {
     if (!createUserDto.role) {
       throw new BadRequestException('Role is required');
     }
-    return this.authService.createUser(createUserDto, req);
+    return this.authService.createUser(createUserDto, referralCode);
   }
 
   // @Post('agent-referral-registration')
@@ -66,7 +65,7 @@ export class AuthController {
 
   @Post('register-agent')
   registerAgent(
-    @Body() createAgentDto: CreateAgentProfileDto,
+    @Body() createAgentDto: CreateAgentProfileDto, @Query('referralCode') referralCode: string,
     @Req() req: Request,
   ) {
     if (createAgentDto.role !== 'Agent') {

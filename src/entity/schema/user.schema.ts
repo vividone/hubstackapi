@@ -56,7 +56,15 @@ class Users {
 
   @Prop()
   @ApiProperty()
-  refCode: string;
+  referralCode: string;
+
+  @Prop({ default: 0 })
+  @ApiProperty()
+  referralCount: Number;
+
+  @Prop({ default: 'Steel' })
+  @ApiProperty()
+  referralLevel: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);

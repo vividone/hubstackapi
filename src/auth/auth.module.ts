@@ -7,11 +7,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from 'src/users/users.module';
 import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
-import { InvitationsModule } from 'src/referals/referal.module';
+import { InvitationsModule } from 'src/referals/referral.module';
 import { OtpService } from 'src/mailing/otp.mail';
 import { EmailService } from 'src/configs/email.helper';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
-import { WalletService } from 'src/wallet/wallet.service';
 import { WalletModule } from 'src/wallet/wallet.module';
 @Module({
   controllers: [AuthController],
