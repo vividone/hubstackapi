@@ -6,17 +6,16 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
-import { SuperAgentProfileRepository } from 'src/entity/repositories/super_agent_profile.repo';
 import { OtpService } from '../mailing/otp.mail';
 import { JwtPayload } from './jwt-payload';
 import * as bcrypt from 'bcryptjs';
 import { LoginUser } from 'src/users/users.entity';
 import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
 import { CreateUserDto } from 'src/users/users.dto';
-import { CreateSuperAgentProfileDto } from 'src/super_agent_profile/super_agent_profile.dto';
 import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletService } from 'src/wallet/wallet.service';
+import { ReferralService } from 'src/referals/referral.service';
 
 @Injectable()
 export class AuthService {
@@ -24,38 +23,39 @@ export class AuthService {
     private readonly userRepo: UserRepository,
     private readonly userService: UsersService,
     private readonly agentRepo: AgentProfileRepository,
-    private readonly superAgentRepo: SuperAgentProfileRepository,
     private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
     private readonly resetPasswordService: ResetPasswordService,
+    private readonly referralService: ReferralService
   ) {}
 
   async createUser(
     createUserDto:
       | CreateUserDto
-      | CreateAgentProfileDto
-      | CreateSuperAgentProfileDto,
+      | CreateAgentProfileDto,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req: any,
   ) {
-    const { email, role } = createUserDto;
+    const { email, role, referralCode} = createUserDto;
     const existingUser = await this.userRepo.findOne({ email });
     if (existingUser) {
       throw new BadRequestException('Email already exists');
     }
 
+    createUserDto.referralCode = `${this.generateReferalCode()}-${createUserDto.firstname}`
+
+    if (referralCode) {
+      await this.referralService.processReferral(referralCode);
+    }
+
     let user: any;
     if (role === 'Agent') {
       user = await this.createAgent(createUserDto as CreateAgentProfileDto);
-    } else if (role === 'SuperAgent') {
-      user = await this.createSuperAgent(
-        createUserDto as CreateSuperAgentProfileDto,
-      );
     } else {
       user = await this.userRepo.create(createUserDto);
     }
-
+    
     const otp = this.otpService.generateOTP();
     await this.otpService.sendOtpEmail(
       email,
@@ -78,17 +78,6 @@ export class AuthService {
     return { agentUser, agentProfile };
   }
 
-  private async createSuperAgent(
-    createSuperAgentDto: CreateSuperAgentProfileDto,
-  ) {
-    const superAgentUser = await this.userRepo.create(createSuperAgentDto);
-    const superAgentProfile = await this.superAgentRepo.create({
-      ...createSuperAgentDto,
-      user: superAgentUser._id,
-    });
-
-    return { superAgentUser, superAgentProfile };
-  }
 
   async validateUser(email: string, password: string) {
     const user = await this.userRepo.findOne({ email });
@@ -234,5 +223,19 @@ export class AuthService {
     newPassword: string,
   ) {
     return this.userService.updatePassword(userId, oldPassword, newPassword);
+  }
+
+
+  private generateReferalCode() {
+    const length = 10;
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+  
+    for (let i = 0; i < length; i++) {
+      const generatedCode = Math.floor(Math.random() * characters.length);
+      result += characters[generatedCode];
+    }
+  
+    return result;
   }
 }

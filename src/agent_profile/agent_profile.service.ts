@@ -22,7 +22,6 @@ export class AgentService {
       password,
       firstname,
       lastname,
-      referal_username,
       role,
       ...otherFields
     } = updateAgentDto;

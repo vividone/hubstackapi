@@ -53,6 +53,18 @@ class Users {
   @Prop()
   @ApiProperty()
   is_active: boolean;
+
+  @Prop()
+  @ApiProperty()
+  referralCode: string;
+
+  @Prop({ default: 0 })
+  @ApiProperty()
+  referralCount: Number;
+
+  @Prop({ default: 'Steel' })
+  @ApiProperty()
+  referralLevel: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);
