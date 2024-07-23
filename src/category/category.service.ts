@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CategoryDto } from './category.dto';
 import { CategoryRepository } from 'src/entity/repositories/category.repo';
+import qs from 'qs';
 import axios from 'axios';
 
 @Injectable()
@@ -23,22 +24,20 @@ export class CategoryService {
     return categories;
   }
 
-  private async genISWAuthToken() {
+  async genISWAuthToken() {
     const baseUrl: string = process.env.ISW_PASSAUTH_URL;
     const secKey: string = process.env.ISW_SECRET_KEY;
-
-    const url = `${baseUrl}`;
+    const data = { grant_type: 'client_credentials', scope: 'profile' };
+    console.log('RESPONSE    ', secKey);
 
     try {
-      const request = axios.post(url, {
+      const response = await axios.post(`${baseUrl}`, {
         headers: {
           Authorization: `Basic ${secKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        grant_type: 'client_credentials',
-        scope: 'profile',
+        data,
       });
-
-      const response = await request;
 
       return response;
     } catch (error) {
@@ -52,7 +51,6 @@ export class CategoryService {
     const response = await this.genISWAuthToken();
     const { token } = response.data;
     const url = `${baseUrl}/services?categoryId=${categoryId}`;
-    console.log('URL: ', url);
 
     try {
       const response = await axios.get(url, {
