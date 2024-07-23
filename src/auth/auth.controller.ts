@@ -6,7 +6,6 @@ import {
   BadRequestException,
   NotFoundException,
   HttpStatus,
-  Query,
   Param,
   Put,
   UseGuards,
@@ -29,14 +28,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register-individual')
-  registerUser(
-    @Body() createUserDto: CreateUserDto,
-    @Query('referralCode') referralCode: string,
-  ) {
+  registerUser(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
     if (!createUserDto.role) {
       throw new BadRequestException('Role is required');
     }
-    return this.authService.createUser(createUserDto, referralCode);
+    return this.authService.createUser(createUserDto, req);
   }
 
   // @Post('agent-referral-registration')
@@ -67,7 +63,6 @@ export class AuthController {
   @Post('register-agent')
   registerAgent(
     @Body() createAgentDto: CreateAgentProfileDto,
-    @Query('referralCode') referralCode: string,
     @Req() req: Request,
   ) {
     if (createAgentDto.role !== 'Agent') {
