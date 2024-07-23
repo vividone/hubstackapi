@@ -4,11 +4,8 @@ import { referralLevels } from './referral.entity';
 
 @Injectable()
 export class ReferralService {
-  constructor(
-    private readonly userRepo: UserRepository
-  ) { }
+  constructor(private readonly userRepo: UserRepository) {}
   async processReferral(referralCode: string) {
-
     const referrer = await this.userRepo.findOne({ referralCode });
 
     if (referrer) {
@@ -16,7 +13,6 @@ export class ReferralService {
       await referrer.save();
       await this.updateReferralLevel(referrer);
     }
-
   }
   private async updateReferralLevel(referrer: any) {
     for (const level of referralLevels) {

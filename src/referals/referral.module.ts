@@ -6,11 +6,8 @@ import { ReferralController } from './referral.controller';
 
 @Module({
   providers: [ReferralService],
-  controllers:[ReferralController],
-  imports: [
-    UsersModule,
-    JwtModule,
-  ],
+  controllers: [ReferralController],
+  imports: [UsersModule, JwtModule],
   exports: [ReferralService],
 })
 export class InvitationsModule {}

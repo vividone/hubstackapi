@@ -27,23 +27,21 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
     private readonly resetPasswordService: ResetPasswordService,
-    private readonly referralService: ReferralService
+    private readonly referralService: ReferralService,
   ) {}
 
   async createUser(
-    createUserDto:
-      | CreateUserDto
-      | CreateAgentProfileDto,
+    createUserDto: CreateUserDto | CreateAgentProfileDto,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req: any,
   ) {
-    const { email, role, referralCode} = createUserDto;
+    const { email, role, referralCode } = createUserDto;
     const existingUser = await this.userRepo.findOne({ email });
     if (existingUser) {
       throw new BadRequestException('Email already exists');
     }
 
-    createUserDto.referralCode = `${this.generateReferalCode()}-${createUserDto.firstname}`
+    createUserDto.referralCode = `${this.generateReferalCode()}-${createUserDto.firstname}`;
 
     if (referralCode) {
       await this.referralService.processReferral(referralCode);
@@ -55,7 +53,7 @@ export class AuthService {
     } else {
       user = await this.userRepo.create(createUserDto);
     }
-    
+
     const otp = this.otpService.generateOTP();
     await this.otpService.sendOtpEmail(
       email,
@@ -77,7 +75,6 @@ export class AuthService {
 
     return { agentUser, agentProfile };
   }
-
 
   async validateUser(email: string, password: string) {
     const user = await this.userRepo.findOne({ email });
@@ -225,17 +222,17 @@ export class AuthService {
     return this.userService.updatePassword(userId, oldPassword, newPassword);
   }
 
-
   private generateReferalCode() {
     const length = 10;
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
-  
+
     for (let i = 0; i < length; i++) {
       const generatedCode = Math.floor(Math.random() * characters.length);
       result += characters[generatedCode];
     }
-  
+
     return result;
   }
 }

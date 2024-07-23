@@ -26,12 +26,13 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 @ApiTags('Authentication Operations')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register-individual')
-  registerUser(@Body() createUserDto: CreateUserDto, @Query('referralCode') referralCode: string) {
+  registerUser(
+    @Body() createUserDto: CreateUserDto,
+    @Query('referralCode') referralCode: string,
+  ) {
     if (!createUserDto.role) {
       throw new BadRequestException('Role is required');
     }
@@ -65,7 +66,8 @@ export class AuthController {
 
   @Post('register-agent')
   registerAgent(
-    @Body() createAgentDto: CreateAgentProfileDto, @Query('referralCode') referralCode: string,
+    @Body() createAgentDto: CreateAgentProfileDto,
+    @Query('referralCode') referralCode: string,
     @Req() req: Request,
   ) {
     if (createAgentDto.role !== 'Agent') {

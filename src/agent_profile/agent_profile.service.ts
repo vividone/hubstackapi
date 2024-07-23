@@ -17,14 +17,8 @@ export class AgentService {
     e_mail: string,
     updateAgentDto: CreateAgentProfileDto,
   ) {
-    const {
-      email,
-      password,
-      firstname,
-      lastname,
-      role,
-      ...otherFields
-    } = updateAgentDto;
+    const { email, password, firstname, lastname, role, ...otherFields } =
+      updateAgentDto;
     const agentProfile = await this.agentRepo.findOne({ email: e_mail });
     if (!agentProfile) {
       throw new NotFoundException('Agent profile not found');
