@@ -16,6 +16,10 @@ class Category {
   @ApiProperty()
   name: string;
 
+  @Prop()
+  @ApiProperty()
+  description: string;
+
   @ApiProperty()
   @Prop()
   categoryType: CategoryType;

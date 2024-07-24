@@ -1,9 +1,13 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { BillerCategoriesDto, CategoryDto } from './category.dto';
+import {
+  BillerCategoriesDto,
+  CategoryDto,
+  InterswitchCategoryBillers,
+} from './category.dto';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Service Categories')
+@ApiTags('Services')
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
@@ -30,8 +34,20 @@ export class CategoryController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'List of Interswitch billers by category' })
-  @Get('billers/:id')
-  async interswitchBillerServices(@Param('id') categoryId: number) {
-    return this.categoryService.getBillers(categoryId);
+  @Get('billers/:billerCategoryId')
+  async interswitchBillerCategories(
+    @Param('billerCategoryId') billerCategoryId: number,
+  ) {
+    return this.categoryService.getBillers(billerCategoryId);
+  }
+
+  @ApiCreatedResponse({
+    type: InterswitchCategoryBillers,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'List of services by biller' })
+  @Get('billers/services/:billerId')
+  async interswitchBillerServices(@Param('billerId') billerId: number) {
+    return this.categoryService.getBillerServices(billerId);
   }
 }

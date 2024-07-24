@@ -53,9 +53,7 @@ export class MockWalletController {
   @ApiCreatedResponse({ type: MockWallet, description: 'expected response' })
   @ApiOperation({ summary: 'Get wallet details of a user' })
   @Get('/:userid')
-  async getUserWallet(
-    @Param('userid') userid: string
-  ) {
+  async getUserWallet(@Param('userid') userid: string) {
     try {
       const wallet = await this.mockWalletService.getUserWallet(userid);
       return wallet;
