@@ -8,6 +8,7 @@ import axios from 'axios';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { CreateMockWalletDto } from './mock.wallet.dto';
 import { MockWalletRepository } from 'src/entity/repositories/mock.wallet.repo';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class MockWalletService {
@@ -91,8 +92,13 @@ export class MockWalletService {
   }
 
   async getUserWallet(userId: string) {
+
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    const convertedUserId = new Types.ObjectId(userId);
     try {
-      const wallet = await this.mockWalletRepo.findOne({ user: userId });
+      const wallet = await this.mockWalletRepo.findOne({ user: convertedUserId });
       if (!wallet) {
         throw new NotFoundException('Wallet not found');
       }

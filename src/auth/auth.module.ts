@@ -12,6 +12,7 @@ import { OtpService } from 'src/mailing/otp.mail';
 import { EmailService } from 'src/configs/email.helper';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { MockWalletModule } from 'src/mock-wallet/mock-wallet.module';
 @Module({
   controllers: [AuthController],
   providers: [
@@ -36,6 +37,7 @@ import { WalletModule } from 'src/wallet/wallet.module';
     UsersModule,
     PassportModule,
     WalletModule,
+    MockWalletModule,
   ],
   exports: [AuthService],
 })
