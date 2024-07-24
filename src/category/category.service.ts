@@ -27,19 +27,18 @@ export class CategoryService {
   async genISWAuthToken() {
     const baseUrl: string = process.env.ISW_PASSAUTH_URL;
     const secKey: string = process.env.ISW_SECRET_KEY;
-    const data = { grant_type: 'client_credentials', scope: 'profile' };
-    console.log('RESPONSE    ', secKey);
+    const clientId: string = process.env.ISW_CLIENT_ID;
+    const data = 'grant_type=client_credentials&scope=profile';
 
     try {
-      const response = await axios.post(`${baseUrl}`, {
+      const response = await axios.post(`${baseUrl}`, data, {
         headers: {
-          Authorization: `Basic ${secKey}`,
+          Authorization: `Basic ${Buffer.from(`${clientId}:${secKey}`).toString('base64')}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        data,
       });
 
-      return response;
+      return response.data;
     } catch (error) {
       this.handleAxiosError(error, 'An error occurred authenticating!');
     }
@@ -48,20 +47,28 @@ export class CategoryService {
   async getBillers(categoryId: number) {
     const baseUrl: string = process.env.ISW_BASE_URL;
     const TerminalID: string = process.env.ISW_TERMINAL_ID;
-    const response = await this.genISWAuthToken();
-    const { token } = response.data;
+    let token: string;
     const url = `${baseUrl}/services?categoryId=${categoryId}`;
+
+    try {
+      const authResponse = await this.genISWAuthToken();
+      token = authResponse.access_token;
+    } catch (error) {
+      console.error('Error fetching auth token:', error.message);
+      throw new Error('Failed to authenticate');
+    }
 
     try {
       const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
-          TerminalID: `${TerminalID}`,
+          TerminalID,
           'Content-Type': 'application/json',
         },
       });
-      console.log('Response: ', response);
-      return response;
+
+      console.log('Response:', response.data);
+      return response.data;
     } catch (error) {
       this.handleAxiosError(
         error,
@@ -70,18 +77,29 @@ export class CategoryService {
     }
   }
 
-  private handleAxiosError(error: any, defaultMessage: string) {
+  private handleAxiosError(error: any, customMessage: string) {
     if (error.response) {
-      console.error('HTTP Error:', defaultMessage);
-      throw new BadRequestException(defaultMessage);
+      console.error(`${customMessage} - Response Status: ${error.response.status}`);
+      console.error('Response Data:', error.response.data);
     } else if (error.request) {
-      console.error('No response received from the server');
-      throw new InternalServerErrorException(
-        'No response received from the server',
-      );
+      console.error(`${customMessage} - No response received:`, error.request);
     } else {
-      console.error('Error message:', 'An unexpected error occurred');
-      throw new InternalServerErrorException(defaultMessage);
+      console.error(`${customMessage} - Error setting up request:`, error.message);
     }
+    throw new Error(customMessage);
   }
+  // private handleAxiosError(error: any, defaultMessage: string) {
+  //   if (error.response) {
+  //     console.error('HTTP Error:', defaultMessage);
+  //     throw new BadRequestException(defaultMessage);
+  //   } else if (error.request) {
+  //     console.error('No response received from the server');
+  //     throw new InternalServerErrorException(
+  //       'No response received from the server',
+  //     );
+  //   } else {
+  //     console.error('Error message:', 'An unexpected error occurred');
+  //     throw new InternalServerErrorException(defaultMessage);
+  //   }
+  // }
 }
