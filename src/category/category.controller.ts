@@ -34,10 +34,4 @@ export class CategoryController {
   async interswitchBillerServices(@Param('id') categoryId: number) {
     return this.categoryService.getBillers(categoryId);
   }
-
-  @ApiOperation({ summary: 'Authenticate Interswith' })
-  @Get('auth')
-  async authInterswith() {
-    return this.categoryService.genISWAuthToken();
-  }
 }

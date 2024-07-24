@@ -90,6 +90,22 @@ export class MockWalletService {
     }
   }
 
+  async getUserWallet(userId: string) {
+    try {
+      const wallet = await this.mockWalletRepo.findOne({ user: userId });
+      if (!wallet) {
+        throw new NotFoundException('Wallet not found');
+      }
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new Error('An error occurred while fetching the wallet');
+      }
+    }
+  }
+
   private async createCustomer(
     userId: string,
     baseUrl: string,
