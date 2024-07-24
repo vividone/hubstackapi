@@ -24,26 +24,6 @@ export class CategoryService {
     return categories;
   }
 
-  async genISWAuthToken() {
-    const baseUrl: string = process.env.ISW_PASSAUTH_URL;
-    const secKey: string = process.env.ISW_SECRET_KEY;
-    const clientId: string = process.env.ISW_CLIENT_ID;
-    const data = 'grant_type=client_credentials&scope=profile';
-
-    try {
-      const response = await axios.post(`${baseUrl}`, data, {
-        headers: {
-          Authorization: `Basic ${Buffer.from(`${clientId}:${secKey}`).toString('base64')}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-
-      return response.data;
-    } catch (error) {
-      this.handleAxiosError(error, 'An error occurred authenticating!');
-    }
-  }
-
   async getBillers(categoryId: number) {
     const baseUrl: string = process.env.ISW_BASE_URL;
     const TerminalID: string = process.env.ISW_TERMINAL_ID;
@@ -74,6 +54,26 @@ export class CategoryService {
         error,
         'An error occurred while retrieving billers',
       );
+    }
+  }
+
+  private async genISWAuthToken() {
+    const baseUrl: string = process.env.ISW_PASSAUTH_URL;
+    const secKey: string = process.env.ISW_SECRET_KEY;
+    const clientId: string = process.env.ISW_CLIENT_ID;
+    const data = 'grant_type=client_credentials&scope=profile';
+
+    try {
+      const response = await axios.post(`${baseUrl}`, data, {
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${clientId}:${secKey}`).toString('base64')}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      this.handleAxiosError(error, 'An error occurred authenticating!');
     }
   }
 
