@@ -7,7 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from 'src/users/users.module';
 import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
-import { InvitationsModule } from 'src/referals/referral.module';
+import { ReferralModule } from 'src/referrals/referral.module';
 import { OtpService } from 'src/mailing/otp.mail';
 import { EmailService } from 'src/configs/email.helper';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
@@ -32,7 +32,7 @@ import { MockWalletModule } from 'src/mock-wallet/mock-wallet.module';
         signOptions: { expiresIn: '1h' },
       }),
     }),
-    InvitationsModule,
+    ReferralModule,
     AgentProfileModule,
     UsersModule,
     PassportModule,

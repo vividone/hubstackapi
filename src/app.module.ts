@@ -7,11 +7,11 @@ import { AdminProfileModule } from './admin_profile/admin_profile.module';
 import { AgentProfileModule } from './agent_profile/agent_profile.module';
 import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
-import { InvitationsModule } from './referals/referral.module';
 import { WalletModule } from './wallet/wallet.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
 import { MockWalletModule } from './mock-wallet/mock-wallet.module';
+import { ReferralModule } from './referrals/referral.module';
 
 @Module({
   imports: [
@@ -28,7 +28,7 @@ import { MockWalletModule } from './mock-wallet/mock-wallet.module';
     AdminProfileModule,
     AgentProfileModule,
     AuthModule,
-    InvitationsModule,
+    ReferralModule,
     WalletModule,
     ProductModule,
     CategoryModule,

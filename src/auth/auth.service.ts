@@ -15,7 +15,7 @@ import { CreateUserDto } from 'src/users/users.dto';
 import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletService } from 'src/wallet/wallet.service';
-import { ReferralService } from 'src/referals/referral.service';
+import { ReferralService } from 'src/referrals/referral.service';
 import { MockWalletService } from 'src/mock-wallet/mock-wallet.service';
 
 @Injectable()
@@ -43,7 +43,7 @@ export class AuthService {
       throw new BadRequestException('Email already exists');
     }
 
-    createUserDto.referralCode = `${this.generateReferalCode()}-${createUserDto.firstname}`;
+    createUserDto.referralCode = `${this.generateReferralCode()}-${createUserDto.firstname}`;
 
     if (referralCode) {
       await this.referralService.processReferral(referralCode);
@@ -224,7 +224,7 @@ export class AuthService {
     return this.userService.updatePassword(userId, oldPassword, newPassword);
   }
 
-  private generateReferalCode() {
+  private generateReferralCode() {
     const length = 10;
     const characters =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
