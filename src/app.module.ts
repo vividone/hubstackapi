@@ -11,6 +11,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
 import { MockWalletModule } from './mock-wallet/mock-wallet.module';
+import { TransactionModule } from './transactions/transaction.module';
 import { ReferralModule } from './referrals/referral.module';
 
 @Module({
@@ -33,6 +34,7 @@ import { ReferralModule } from './referrals/referral.module';
     ProductModule,
     CategoryModule,
     MockWalletModule,
+    TransactionModule,
   ],
 })
 export class AppModule {}
