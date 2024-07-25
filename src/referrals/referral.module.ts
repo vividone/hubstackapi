@@ -10,4 +10,4 @@ import { ReferralController } from './referral.controller';
   imports: [UsersModule, JwtModule],
   exports: [ReferralService],
 })
-export class InvitationsModule {}
+export class ReferralModule {}
