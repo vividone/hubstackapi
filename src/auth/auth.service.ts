@@ -180,7 +180,7 @@ export class AuthService {
     const payload = { email: user.email, userId: user._id };
     const resetToken = this.jwtService.sign(payload, { expiresIn: '10m' });
 
-    const resetPasswordUrl = `${process.env.APP_DOMAIN}?token=${resetToken}`;
+    const resetPasswordUrl = `${process.env.APP_DOMAIN}/auth/reset-password/?token=${resetToken}`;
     console.log(resetPasswordUrl);
 
     await this.resetPasswordService.sendResetPasswordEmail(
