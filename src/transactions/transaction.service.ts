@@ -30,10 +30,10 @@ export class TransactionService {
   }
 
   async payBills(billPaymentDto: BillPaymentTransaction) {
-    const { customerCode, paymentCode } = billPaymentDto;
+    const { paymentCode, customerCode } = billPaymentDto;
     const validateCustomer = await this.validateCustomer(
-      customerCode,
-      paymentCode,
+     paymentCode,
+     customerCode,
     );
     return validateCustomer;
   }
@@ -86,12 +86,11 @@ export class TransactionService {
 
     console.log('VALIDATE', validatePayload);
     let token: string;
-    const url = `${baseUrl}/Transactions/validatecustomer`;
+    const url = `${baseUrl}/Transactions/validatecustomers`;
 
     try {
       const authResponse = await this.genISWAuthToken();
       token = authResponse.access_token;
-
     } catch (error) {
       console.error('Error fetching auth token:', error.message);
       throw new Error('Failed to authenticate');

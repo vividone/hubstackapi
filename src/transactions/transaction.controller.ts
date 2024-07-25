@@ -140,8 +140,8 @@ export class TransactionController {
     }
   }
 
-  @Roles('Agent', 'Individual')
-  @UseGuards(JwtAuthGuard)
+  // @Roles('Agent', 'Individual')
+  // @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
     type: BillPaymentTransaction,
     description: 'expected response',
