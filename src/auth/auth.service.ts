@@ -136,7 +136,7 @@ export class AuthService {
     this.setRefreshTokenCookie(res, refreshToken.refresh_token);
 
     let hasWallet = false;
-    let balance = null;
+    const balance = null;
 
     try {
       const wallet = await this.mockWalletService.getUserWallet(user._id);

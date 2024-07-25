@@ -92,13 +92,14 @@ export class MockWalletService {
   }
 
   async getUserWallet(userId: string) {
-
     if (!Types.ObjectId.isValid(userId)) {
       throw new BadRequestException('Invalid user ID format');
     }
     const convertedUserId = new Types.ObjectId(userId);
     try {
-      const wallet = await this.mockWalletRepo.findOne({ user: convertedUserId });
+      const wallet = await this.mockWalletRepo.findOne({
+        user: convertedUserId,
+      });
       if (!wallet) {
         throw new NotFoundException('Wallet not found');
       }
