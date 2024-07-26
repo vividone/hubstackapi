@@ -16,7 +16,6 @@ import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletService } from 'src/wallet/wallet.service';
 import { ReferralService } from 'src/referrals/referral.service';
-import { MockWalletService } from 'src/mock-wallet/mock-wallet.service';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +24,6 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly agentRepo: AgentProfileRepository,
     private readonly walletService: WalletService,
-    private readonly mockWalletService: MockWalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
     private readonly resetPasswordService: ResetPasswordService,
@@ -139,7 +137,7 @@ export class AuthService {
     const balance = null;
 
     try {
-      const wallet = await this.mockWalletService.getUserWallet(user._id);
+      const wallet = await this.walletService.getUserWallet(user._id);
       hasWallet = !!wallet;
 
       // if (hasWallet) {

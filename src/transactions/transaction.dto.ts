@@ -117,9 +117,9 @@ export class NINTransaction {
 }
 
 export class FundWalletTransaction {
-  @IsString()
+  @IsEnum(paymentMode)
   @ApiProperty()
-  service: string;
+  paymentMode: paymentMode;
 
   @IsString()
   @ApiProperty()
