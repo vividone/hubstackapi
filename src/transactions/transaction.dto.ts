@@ -98,7 +98,7 @@ export class BuyUnitTransaction {
   paymentStatus: paymentStatus.Pending;
 }
 
-export class DebitUnitTransaction {
+export class NINTransaction {
   @IsString()
   @ApiProperty()
   service: string;
@@ -106,10 +106,6 @@ export class DebitUnitTransaction {
   @IsString()
   @ApiProperty()
   units: number;
-
-  @IsString()
-  @ApiProperty()
-  amount: string;
 
   @IsString()
   @ApiProperty()

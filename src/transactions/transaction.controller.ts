@@ -125,7 +125,7 @@ export class TransactionController {
   @ApiOperation({ summary: 'NIN Search' })
   @Post('/nin-search')
   async debitUnit(
-    @Body() debitUnitDto: DebitUnitTransaction,
+    @Body() ninTransaction: NINTransaction,
     @Req() request: CustomRequest,
   ) {
     try {
@@ -147,10 +147,13 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Pay Bill' })
-  @Post('/pay-bill')
-  async payBill(@Body() billPaymentDto: BillPaymentTransaction) {
+  @Post('/:userId/pay-bill/')
+  async payBill(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
     try {
-      const bill = await this.transactService.payBills(billPaymentDto);
+      const bill = await this.transactService.payBills(billPaymentDto, userId);
       return bill;
     } catch (error) {
       if (error instanceof NotFoundException) {

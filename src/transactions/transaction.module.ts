@@ -10,6 +10,7 @@ import {
 } from 'src/entity/schema/transaction.schema';
 import { TransactionService } from './transaction.service';
 import { TransactionController } from './transaction.controller';
+import { WalletModule } from 'src/wallet/wallet.module';
 
 @Module({
   providers: [TransactionService, TransactionRepository],
@@ -25,6 +26,7 @@ import { TransactionController } from './transaction.controller';
     }),
     JwtModule,
     UsersModule,
+    WalletModule,
   ],
 })
 export class TransactionModule {}

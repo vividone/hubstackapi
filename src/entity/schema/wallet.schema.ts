@@ -14,6 +14,14 @@ class Wallet {
 
   @Prop()
   @ApiProperty()
+  customer_id: number;
+
+  @Prop()
+  @ApiProperty()
+  customerCode: string;
+
+  @Prop()
+  @ApiProperty()
   accountNumber: string;
 
   @Prop()

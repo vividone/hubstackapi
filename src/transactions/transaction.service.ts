@@ -2,18 +2,19 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import axios from 'axios';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
 import { BillPaymentTransaction } from './transaction.dto';
+import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 
 @Injectable()
 export class TransactionService {
   constructor(
     private readonly userRepo: UserRepository,
     private readonly transactionRepo: TransactionRepository,
+    private readonly walletRepo: WalletRepository,
   ) {}
 
   async getAllTransactions() {
@@ -29,13 +30,53 @@ export class TransactionService {
     return transactions;
   }
 
-  async payBills(billPaymentDto: BillPaymentTransaction) {
+  async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     const { paymentCode, customerCode } = billPaymentDto;
+    //Validate Customer
     const validateCustomer = await this.validateCustomer(
-     paymentCode,
-     customerCode,
+      paymentCode,
+      customerCode,
     );
-    return validateCustomer;
+
+    if (!validateCustomer) {
+      return 'Customer data is invalid';
+    } else {
+      const paid = await this.processPayment(billPaymentDto, userId);
+      if (paid === true) {
+        // Send Bill Payment advice to Interswitch
+        return 'Transaction sucessfull';
+      } else {
+        return 'Transaction not sucessfull';
+      }
+    }
+  }
+
+  async airtimeRecharge(
+    billPaymentDto: BillPaymentTransaction,
+    userId: string,
+  ) {
+    const paid = await this.processPayment(billPaymentDto, userId);
+    // Send Bill Payment Advice to Interswitch
+    if (paid === true) {
+      return 'Transaction sucessfull';
+    } else {
+      return 'Transaction not sucessfull';
+    }
+  }
+
+  private async processPayment(
+    billPaymentDto: BillPaymentTransaction,
+    userId: string,
+  ) {
+    const { amount } = billPaymentDto;
+    let paid: boolean = false;
+    // Debit Wallet
+    if (billPaymentDto.paymentMode === 'wallet') {
+      const payment = await this.debitWallet(userId, amount);
+      paid = payment;
+    }
+    // Send Bill Payment Advice to Interswitch
+    return paid;
   }
   private handleAxiosError(error: any, defaultMessage: string) {
     if (error.response) {
@@ -84,7 +125,6 @@ export class TransactionService {
       TerminalId: TerminalId,
     };
 
-    console.log('VALIDATE', validatePayload);
     let token: string;
     const url = `${baseUrl}/Transactions/validatecustomers`;
 
@@ -105,7 +145,6 @@ export class TransactionService {
         },
       });
 
-      console.log('Response:', response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(
@@ -113,5 +152,26 @@ export class TransactionService {
         'An error occurred while retrieving billers',
       );
     }
+  }
+
+  private async debitWallet(userId: string, chargeAmount: number) {
+    const walletBalance = await this.getWalletBalance(userId);
+    const { balance, _id } = walletBalance;
+    if (walletBalance > chargeAmount) {
+      const newBalance = balance - chargeAmount;
+      // update wallet balance
+      await this.walletRepo.findOneAndUpdate(
+        { _id: _id },
+        { balance: newBalance },
+      );
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private async getWalletBalance(userId: string) {
+    const wallet = await this.walletRepo.findOne({ user: userId });
+    return wallet;
   }
 }
