@@ -13,6 +13,7 @@ import {
   NINTransaction,
 } from './transaction.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
+import { WalletService } from 'src/wallet/wallet.service';
 
 @Injectable()
 export class TransactionService {
@@ -20,6 +21,7 @@ export class TransactionService {
     private readonly userRepo: UserRepository,
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
+    private readonly walletService: WalletService,
   ) {}
 
   async getAllTransactions() {
@@ -176,7 +178,7 @@ export class TransactionService {
   }
 
   private async debitWallet(userId: string, chargeAmount: number) {
-    const walletBalance = await this.getWalletBalance(userId);
+    const walletBalance = await this.walletService.getUserWallet(userId);
     const { balance, _id } = walletBalance;
     if (walletBalance > chargeAmount) {
       const newBalance = balance - chargeAmount;
@@ -189,10 +191,5 @@ export class TransactionService {
     } else {
       return false;
     }
-  }
-
-  private async getWalletBalance(userId: string) {
-    const wallet = await this.walletRepo.findOne({ user: userId });
-    return wallet;
   }
 }

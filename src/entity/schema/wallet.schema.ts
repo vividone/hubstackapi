@@ -14,6 +14,10 @@ class Wallet {
 
   @Prop()
   @ApiProperty()
+  balance: number;
+
+  @Prop()
+  @ApiProperty()
   customer_id: number;
 
   @Prop()

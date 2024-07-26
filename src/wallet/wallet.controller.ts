@@ -84,7 +84,7 @@ export class WalletController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  @Roles('SuperAgent', 'Agent', 'Individual')
+  @Roles('Admin', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   @ApiOperation({ summary: 'Get wallet details of a user' })
