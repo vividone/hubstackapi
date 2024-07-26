@@ -12,7 +12,7 @@ class Wallet {
   @ApiProperty()
   accountName: string;
 
-  @Prop()
+  @Prop({ default: 0 })
   @ApiProperty()
   balance: number;
 

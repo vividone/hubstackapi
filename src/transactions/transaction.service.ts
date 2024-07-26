@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import axios from 'axios';
 import { UserRepository } from 'src/entity/repositories/user.repo';
@@ -11,9 +12,11 @@ import {
   BuyUnitTransaction,
   FundWalletTransaction,
   NINTransaction,
+  transactionStatus,
+  transactionType,
 } from './transaction.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
-import { WalletService } from 'src/wallet/wallet.service';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class TransactionService {
@@ -21,7 +24,6 @@ export class TransactionService {
     private readonly userRepo: UserRepository,
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
-    private readonly walletService: WalletService,
   ) {}
 
   async getAllTransactions() {
@@ -81,9 +83,29 @@ export class TransactionService {
     return 'Unit Buying in development';
   }
 
-  async fundWalletSample(fundWalletDto: FundWalletTransaction, userId: string) {
-    console.log(fundWalletDto, userId);
-    return 'Unit Buying in development';
+  async fundWalletProcess(
+    fundWalletDto: FundWalletTransaction,
+    userId: string,
+  ) {
+    try {
+      const { amount } = fundWalletDto;
+      const update = await this.fundWallet(userId, amount);
+      if (update) {
+        const transactionData = {
+          transactionType: transactionType.WalletFunding,
+          transactionStatus: transactionStatus.Successful,
+        };
+        const createTransaction = this.createTransaction(
+          amount,
+          fundWalletDto,
+          transactionData,
+          userId,
+        );
+        return createTransaction;
+      }
+    } catch (error) {
+      this.handleAxiosError(error, 'Error creating transaction!');
+    }
   }
 
   private async processPayment(
@@ -112,6 +134,35 @@ export class TransactionService {
     } else {
       console.error('Error message:', 'An unexpected error occurred');
       throw new InternalServerErrorException(defaultMessage);
+    }
+  }
+
+  private async createTransaction(
+    amount: number,
+    transactionDetails:
+      | BillPaymentTransaction
+      | BuyUnitTransaction
+      | NINTransaction
+      | FundWalletTransaction,
+    transactionData: any,
+    user: string,
+  ) {
+    const createTransactionData = {
+      amount,
+      transactionType: transactionData.transactionType,
+      transactionStatus: transactionData.transactionStatus,
+      transactionDetail: transactionDetails,
+      user,
+    };
+
+    try {
+      const createTransaction = await this.transactionRepo.create(
+        createTransactionData,
+      );
+
+      return createTransaction;
+    } catch (error) {
+      this.handleAxiosError(error, 'Error creating transaction!');
     }
   }
   private async genISWAuthToken() {
@@ -178,7 +229,7 @@ export class TransactionService {
   }
 
   private async debitWallet(userId: string, chargeAmount: number) {
-    const walletBalance = await this.walletService.getUserWallet(userId);
+    const walletBalance = await this.getUserWallet(userId);
     const { balance, _id } = walletBalance;
     if (walletBalance > chargeAmount) {
       const newBalance = balance - chargeAmount;
@@ -190,6 +241,54 @@ export class TransactionService {
       return true;
     } else {
       return false;
+    }
+  }
+
+  private async fundWallet(userId: string, amount: number) {
+    try {
+      const walletBalance = await this.getUserWallet(userId);
+
+      const { balance, _id } = walletBalance;
+      const newBalance = balance + amount;
+      // update wallet balance
+      const response = await this.walletRepo.findOneAndUpdate(
+        { _id: _id },
+        { balance: newBalance },
+      );
+      if (response) {
+        // create transaction
+      }
+
+      return response;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new Error('An error occurred while fetching the wallet');
+      }
+    }
+  }
+
+  private async getUserWallet(userId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    const convertedUserId = new Types.ObjectId(userId);
+    console.log('convertedUserId', convertedUserId);
+    try {
+      const wallet = await this.walletRepo.findOne({
+        user: convertedUserId,
+      });
+      if (!wallet) {
+        throw new NotFoundException('Wallet not found');
+      }
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new Error('An error occurred while fetching the wallet');
+      }
     }
   }
 }

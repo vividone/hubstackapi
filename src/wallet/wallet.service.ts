@@ -349,6 +349,7 @@ export class WalletService {
       throw new BadRequestException('Invalid user ID format');
     }
     const convertedUserId = new Types.ObjectId(userId);
+    console.log('convertedUserId', convertedUserId);
     try {
       const wallet = await this.walletRepo.findOne({
         user: convertedUserId,

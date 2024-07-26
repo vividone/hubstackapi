@@ -76,10 +76,10 @@ export class TransactionController {
   @Post('/:userId/fund-wallet')
   async fundWallet(
     @Body() fundWalletDto: FundWalletTransaction,
-    @Param() userId: string,
+    @Param('userId') userId: string,
   ) {
     try {
-      const wallet = await this.transactService.fundWalletSample(
+      const wallet = await this.transactService.fundWalletProcess(
         fundWalletDto,
         userId,
       );
