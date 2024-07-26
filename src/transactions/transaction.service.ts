@@ -6,7 +6,12 @@ import {
 import axios from 'axios';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
-import { BillPaymentTransaction } from './transaction.dto';
+import {
+  BillPaymentTransaction,
+  BuyUnitTransaction,
+  FundWalletTransaction,
+  NINTransaction,
+} from './transaction.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 
 @Injectable()
@@ -64,6 +69,21 @@ export class TransactionService {
     }
   }
 
+  async ninSearch(ninTransaction: NINTransaction, userId: string) {
+    console.log(ninTransaction, userId);
+    return 'NIN in development';
+  }
+
+  async buyUnits(buyUnitsDto: BuyUnitTransaction, userId: string) {
+    console.log(buyUnitsDto, userId);
+    return 'Unit Buying in development';
+  }
+
+  async fundWalletSample(fundWalletDto: FundWalletTransaction, userId: string) {
+    console.log(fundWalletDto, userId);
+    return 'Unit Buying in development';
+  }
+
   private async processPayment(
     billPaymentDto: BillPaymentTransaction,
     userId: string,
@@ -111,6 +131,7 @@ export class TransactionService {
       this.handleAxiosError(error, 'An error occurred authenticating!');
     }
   }
+
   private async validateCustomer(paymentCode: string, customerId: string) {
     const TerminalId = process.env.ISW_TERMINAL_ID;
     const baseUrl: string = process.env.ISW_BASE_URL;

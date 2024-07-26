@@ -5,7 +5,6 @@ import {
   NotFoundException,
   Param,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -14,12 +13,11 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import {
   BillPaymentTransaction,
   BuyUnitTransaction,
-  DebitUnitTransaction,
   FundWalletTransaction,
+  NINTransaction,
   Transaction,
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
-import { CustomRequest } from 'src/configs/custom_request';
 
 @ApiTags('Transactions')
 @Controller('transact')
@@ -75,13 +73,16 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Fund user wallet' })
-  @Post('/fund-wallet')
+  @Post('/:userId/fund-wallet')
   async fundWallet(
     @Body() fundWalletDto: FundWalletTransaction,
-    @Req() request: CustomRequest,
+    @Param() userId: string,
   ) {
     try {
-      const wallet = await this.transactService.getAllTransactions();
+      const wallet = await this.transactService.fundWalletSample(
+        fundWalletDto,
+        userId,
+      );
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -99,13 +100,13 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Buy Units' })
-  @Post('/buy-units')
+  @Post('/:userId/buy-units')
   async buyUnit(
-    @Body() debitUnitDto: BuyUnitTransaction,
-    @Req() request: CustomRequest,
+    @Body() buyUnitsDto: BuyUnitTransaction,
+    @Param('userId') userId: string,
   ) {
     try {
-      const wallet = await this.transactService.getAllTransactions();
+      const wallet = await this.transactService.buyUnits(buyUnitsDto, userId);
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -119,17 +120,20 @@ export class TransactionController {
   @Roles('Agent')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    type: DebitUnitTransaction,
+    type: NINTransaction,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'NIN Search' })
-  @Post('/nin-search')
+  @Post('/:userId/nin-search')
   async debitUnit(
     @Body() ninTransaction: NINTransaction,
-    @Req() request: CustomRequest,
+    @Param('userId') userId: string,
   ) {
     try {
-      const wallet = await this.transactService.getAllTransactions();
+      const wallet = await this.transactService.ninSearch(
+        ninTransaction,
+        userId,
+      );
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {

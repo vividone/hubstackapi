@@ -147,7 +147,7 @@ export class Transaction {
   transactionDetail:
     | BillPaymentTransaction
     | BuyUnitTransaction
-    | DebitUnitTransaction
+    | NINTransaction
     | FundWalletTransaction;
 
   @IsString()
