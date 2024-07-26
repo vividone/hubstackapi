@@ -10,7 +10,6 @@ import { PassportModule } from '@nestjs/passport';
 import { WalletModule } from './wallet/wallet.module';
 import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
-import { MockWalletModule } from './mock-wallet/mock-wallet.module';
 import { TransactionModule } from './transactions/transaction.module';
 import { ReferralModule } from './referrals/referral.module';
 
@@ -33,7 +32,6 @@ import { ReferralModule } from './referrals/referral.module';
     WalletModule,
     ProductModule,
     CategoryModule,
-    MockWalletModule,
     TransactionModule,
   ],
 })

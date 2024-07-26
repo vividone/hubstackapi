@@ -2,7 +2,7 @@ import { Global, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EntityRepository } from '../entity.repositories';
-import { TransactionDocument, Transaction } from '../schema/Transaction.schema';
+import { TransactionDocument, Transaction } from '../schema/transaction.schema';
 
 @Global()
 @Injectable()

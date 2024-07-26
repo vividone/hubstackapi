@@ -2,18 +2,26 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
 } from '@nestjs/common';
 import axios from 'axios';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
-import { BillPaymentTransaction } from './transaction.dto';
+import {
+  BillPaymentTransaction,
+  BuyUnitTransaction,
+  FundWalletTransaction,
+  NINTransaction,
+} from './transaction.dto';
+import { WalletRepository } from 'src/entity/repositories/wallet.repo';
+import { WalletService } from 'src/wallet/wallet.service';
 
 @Injectable()
 export class TransactionService {
   constructor(
     private readonly userRepo: UserRepository,
     private readonly transactionRepo: TransactionRepository,
+    private readonly walletRepo: WalletRepository,
+    private readonly walletService: WalletService,
   ) {}
 
   async getAllTransactions() {
@@ -29,13 +37,68 @@ export class TransactionService {
     return transactions;
   }
 
-  async payBills(billPaymentDto: BillPaymentTransaction) {
+  async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     const { paymentCode, customerCode } = billPaymentDto;
+    //Validate Customer
     const validateCustomer = await this.validateCustomer(
-     paymentCode,
-     customerCode,
+      paymentCode,
+      customerCode,
     );
-    return validateCustomer;
+
+    if (!validateCustomer) {
+      return 'Customer data is invalid';
+    } else {
+      const paid = await this.processPayment(billPaymentDto, userId);
+      if (paid === true) {
+        // Send Bill Payment advice to Interswitch
+        return 'Transaction sucessfull';
+      } else {
+        return 'Transaction not sucessfull';
+      }
+    }
+  }
+
+  async airtimeRecharge(
+    billPaymentDto: BillPaymentTransaction,
+    userId: string,
+  ) {
+    const paid = await this.processPayment(billPaymentDto, userId);
+    // Send Bill Payment Advice to Interswitch
+    if (paid === true) {
+      return 'Transaction sucessfull';
+    } else {
+      return 'Transaction not sucessfull';
+    }
+  }
+
+  async ninSearch(ninTransaction: NINTransaction, userId: string) {
+    console.log(ninTransaction, userId);
+    return 'NIN in development';
+  }
+
+  async buyUnits(buyUnitsDto: BuyUnitTransaction, userId: string) {
+    console.log(buyUnitsDto, userId);
+    return 'Unit Buying in development';
+  }
+
+  async fundWalletSample(fundWalletDto: FundWalletTransaction, userId: string) {
+    console.log(fundWalletDto, userId);
+    return 'Unit Buying in development';
+  }
+
+  private async processPayment(
+    billPaymentDto: BillPaymentTransaction,
+    userId: string,
+  ) {
+    const { amount } = billPaymentDto;
+    let paid: boolean = false;
+    // Debit Wallet
+    if (billPaymentDto.paymentMode === 'wallet') {
+      const payment = await this.debitWallet(userId, amount);
+      paid = payment;
+    }
+    // Send Bill Payment Advice to Interswitch
+    return paid;
   }
   private handleAxiosError(error: any, defaultMessage: string) {
     if (error.response) {
@@ -70,6 +133,7 @@ export class TransactionService {
       this.handleAxiosError(error, 'An error occurred authenticating!');
     }
   }
+
   private async validateCustomer(paymentCode: string, customerId: string) {
     const TerminalId = process.env.ISW_TERMINAL_ID;
     const baseUrl: string = process.env.ISW_BASE_URL;
@@ -84,7 +148,6 @@ export class TransactionService {
       TerminalId: TerminalId,
     };
 
-    console.log('VALIDATE', validatePayload);
     let token: string;
     const url = `${baseUrl}/Transactions/validatecustomers`;
 
@@ -105,13 +168,28 @@ export class TransactionService {
         },
       });
 
-      console.log('Response:', response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(
         error,
         'An error occurred while retrieving billers',
       );
+    }
+  }
+
+  private async debitWallet(userId: string, chargeAmount: number) {
+    const walletBalance = await this.walletService.getUserWallet(userId);
+    const { balance, _id } = walletBalance;
+    if (walletBalance > chargeAmount) {
+      const newBalance = balance - chargeAmount;
+      // update wallet balance
+      await this.walletRepo.findOneAndUpdate(
+        { _id: _id },
+        { balance: newBalance },
+      );
+      return true;
+    } else {
+      return false;
     }
   }
 }
