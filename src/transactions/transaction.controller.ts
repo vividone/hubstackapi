@@ -14,6 +14,7 @@ import {
   BillPaymentTransaction,
   BuyUnitTransaction,
   FundWalletTransaction,
+  InitializeWalletFunding,
   NINTransaction,
   Transaction,
 } from './transaction.dto';
@@ -31,13 +32,13 @@ export class TransactionController {
   @Get('/all')
   async getAllTransactions() {
     try {
-      const wallet = await this.transactService.getAllTransactions();
-      return wallet;
+      const allTransactions = await this.transactService.getAllTransactions();
+      return allTransactions;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        throw new Error('An error occurred while retrieving the wallet');
+        throw new Error('An error occurred while retrieving all transactions');
       }
     }
   }
@@ -52,16 +53,16 @@ export class TransactionController {
     @Param('transactionType') transactionType: string,
   ) {
     try {
-      const wallet = await this.transactService.getTransactions(
+      const getTransaction = await this.transactService.getTransactions(
         userId,
         transactionType,
       );
-      return wallet;
+      return getTransaction;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        throw new Error('An error occurred while retrieving the wallet');
+        throw new Error('An error occurred while retrieving transaction');
       }
     }
   }
@@ -72,9 +73,9 @@ export class TransactionController {
     type: FundWalletTransaction,
     description: 'expected response',
   })
-  @ApiOperation({ summary: 'Fund user wallet' })
-  @Post('/:userId/fund-wallet')
-  async fundWallet(
+  @ApiOperation({ summary: 'Verify wallet funding' })
+  @Post('/:userId/fund-wallet/verify')
+  async verifyFunding(
     @Body() fundWalletDto: FundWalletTransaction,
     @Param('userId') userId: string,
   ) {
@@ -93,6 +94,32 @@ export class TransactionController {
     }
   }
 
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: FundWalletTransaction,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Fund user wallet' })
+  @Post('/fund-wallet/initialize')
+  async fundWallet(
+    @Body() fundWalletDto: InitializeWalletFunding,
+  ) {
+    try {
+      const wallet = await this.transactService.initializePaystackWalletFunding(
+        fundWalletDto,
+      );
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding wallet');
+      }
+    }
+  }
+
+
   @Roles('Agent')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
@@ -106,13 +133,13 @@ export class TransactionController {
     @Param('userId') userId: string,
   ) {
     try {
-      const wallet = await this.transactService.buyUnits(buyUnitsDto, userId);
-      return wallet;
+      const units = await this.transactService.buyUnits(buyUnitsDto, userId);
+      return units;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        throw new Error('An error occurred while retrieving the wallet');
+        throw new Error('An error occurred in the process of buying units');
       }
     }
   }
@@ -144,8 +171,22 @@ export class TransactionController {
     }
   }
 
-  // @Roles('Agent', 'Individual')
-  // @UseGuards(JwtAuthGuard)
+  // @Post('fund')
+  // async fundPaystackWallet(
+  //   @Body('email') email: string,
+  //   @Body('amount') amount: number,
+  //   @Body('reference') reference: string,
+  // ) {
+  //   try {
+  //     const result = await this.transactService.initializeWalletFunding(email, amount, reference);
+  //     return { success: true, data: result };
+  //   } catch (error) {
+  //     return { success: false, message: error.message };
+  //   }
+  // }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
     type: BillPaymentTransaction,
     description: 'expected response',
