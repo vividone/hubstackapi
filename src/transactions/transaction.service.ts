@@ -185,8 +185,23 @@ export class TransactionService {
   private async sendPaymentAdvice (transactionDetails: any, userId: string){
     const baseUrl = process.env.ISW_BASE_URL;
     const TerminalId = process.env.ISW_TERMINAL_ID;
-    const data = null;
+    const user = await this.userRepo.findOne({userId});
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
     try {
+      const customerEmail = user.email;
+      const {
+        paymentCode,
+        customerId,
+        customerMobile,
+        amount,
+        requestReference,
+      } = transactionDetails;
+      const data = {
+        customerEmail,
+        transactionDetails
+      };
       const authResponse = await this.genISWAuthToken()
       const token = authResponse.access_token;
       const response = await axios.post( 
@@ -201,7 +216,7 @@ export class TransactionService {
       });
      return response.data.data;
     } catch (error) {
-      this.handleAxiosError(error, 'Error funding wallet ');
+      this.handleAxiosError(error, 'Error sending payment advice');
     }
   }
 
