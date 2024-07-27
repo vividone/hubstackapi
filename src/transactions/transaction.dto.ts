@@ -117,6 +117,34 @@ export class NINTransaction {
   paymentStatus: paymentStatus.Pending;
 }
 
+
+export class InitializeWalletFunding {
+  @IsString()
+  @ApiProperty()
+  email: string;
+
+  @IsString()
+  @ApiProperty()
+  amount: number;
+
+  @IsString()
+  @ApiProperty()
+  reference: string;
+}
+
+export class QueryDVA {
+  @IsString()
+  @ApiProperty()
+  accountNumber: string;
+
+  @IsString()
+  @ApiProperty()
+  preferred_bank: string;
+
+  @IsString()
+  @ApiProperty()
+  date: string;
+}
 export class FundWalletTransaction {
   @IsEnum(paymentMode)
   @ApiProperty()
@@ -128,10 +156,18 @@ export class FundWalletTransaction {
 
   @IsString()
   @ApiProperty()
+  reference: string;
+
+  @IsString()
+  @ApiProperty()
   paymentStatus: paymentStatus.Pending;
 }
 
 export class Transaction {
+  @IsString()
+  @ApiProperty()
+  transactionReference: string;
+
   @ApiProperty()
   amount: number;
 

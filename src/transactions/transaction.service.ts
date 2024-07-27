@@ -11,7 +11,9 @@ import {
   BillPaymentTransaction,
   BuyUnitTransaction,
   FundWalletTransaction,
+  InitializeWalletFunding,
   NINTransaction,
+  QueryDVA,
   transactionStatus,
   transactionType,
 } from './transaction.dto';
@@ -24,7 +26,7 @@ export class TransactionService {
     private readonly userRepo: UserRepository,
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
-  ) {}
+  ) { }
 
   async getAllTransactions() {
     const transactions = await this.transactionRepo.find();
@@ -50,7 +52,7 @@ export class TransactionService {
     if (!validateCustomer) {
       return 'Customer data is invalid';
     } else {
-      const paid = await this.processPayment(billPaymentDto, userId);
+      const paid = await this.processBillPayment(billPaymentDto, userId);
       if (paid === true) {
         // Send Bill Payment advice to Interswitch
         return 'Transaction sucessfull';
@@ -60,11 +62,13 @@ export class TransactionService {
     }
   }
 
+  
+
   async airtimeRecharge(
     billPaymentDto: BillPaymentTransaction,
     userId: string,
   ) {
-    const paid = await this.processPayment(billPaymentDto, userId);
+    const paid = await this.processBillPayment(billPaymentDto, userId);
     // Send Bill Payment Advice to Interswitch
     if (paid === true) {
       return 'Transaction sucessfull';
@@ -88,7 +92,11 @@ export class TransactionService {
     userId: string,
   ) {
     try {
-      const { amount } = fundWalletDto;
+      const { amount, reference } = fundWalletDto;
+      const verifyPayment = await this.verifyPayment(reference);
+      if (!verifyPayment){
+        return BadRequestException;
+      }
       const update = await this.fundWallet(userId, amount);
       if (update) {
         const transactionData = {
@@ -96,6 +104,7 @@ export class TransactionService {
           transactionStatus: transactionStatus.Successful,
         };
         const createTransaction = this.createTransaction(
+          reference,
           amount,
           fundWalletDto,
           transactionData,
@@ -108,7 +117,7 @@ export class TransactionService {
     }
   }
 
-  private async processPayment(
+  private async processBillPayment(
     billPaymentDto: BillPaymentTransaction,
     userId: string,
   ) {
@@ -122,6 +131,115 @@ export class TransactionService {
     // Send Bill Payment Advice to Interswitch
     return paid;
   }
+
+  async initializePaystackWalletFunding(
+    initializeWalletFunding: InitializeWalletFunding
+  ) {
+    const baseUrl = process.env.PSTK_BASE_URL;
+    const secretKey = process.env.PSTK_SECRET_KEY;
+    initializeWalletFunding.reference = this.generateTransactionReference();
+    const data = initializeWalletFunding;
+    console.log("data sent to paystack", data);
+    try {
+      const response = await axios.post(
+        `${baseUrl}/transaction/initialize`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );  
+     return response.data.data;
+    } catch (error) {
+      this.handleAxiosError(error, 'Error funding wallet ');
+    }
+  };
+
+  async queryDVA(
+    queryDva: QueryDVA
+  ) {
+    const baseUrl = process.env.PSTK_BASE_URL;
+    const secretKey = process.env.PSTK_SECRET_KEY;
+    const {accountNumber, preferred_bank, date} = queryDva;
+    
+    try {
+      const response = await axios.get(
+        `${baseUrl}/dedicated_account/requery?account_number=${accountNumber}&provider_slug=${preferred_bank}&date=${date}`,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );  
+     return response.data.data;
+    } catch (error) {
+      this.handleAxiosError(error, 'Error funding wallet ');
+    }
+  };
+
+
+  //TOD: COMPLETE THIS AND INTEGRATE IN PAYBILLS
+  private async sendPaymentAdvice (transactionDetails: any, userId: string){
+    const baseUrl = process.env.ISW_BASE_URL;
+    const TerminalId = process.env.ISW_TERMINAL_ID;
+    const user = await this.userRepo.findOne({userId});
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    try {
+      const customerEmail = user.email;
+      const {
+        paymentCode,
+        customerId,
+        customerMobile,
+        amount,
+        requestReference,
+      } = transactionDetails;
+      const data = {
+        customerEmail,
+        transactionDetails
+      };
+      const authResponse = await this.genISWAuthToken()
+      const token = authResponse.access_token;
+      const response = await axios.post( 
+        baseUrl, 
+        {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          TerminalId,
+        },
+        data,
+      });
+     return response.data.data;
+    } catch (error) {
+      this.handleAxiosError(error, 'Error sending payment advice');
+    }
+  }
+
+  private async verifyPayment (reference: string){
+    const baseUrl = process.env.PSTK_BASE_URL;
+    const secretKey = process.env.PSTK_SECRET_KEY;
+    try {
+      const verifyResponse = await axios.get(
+        `${baseUrl}/transaction/verify/${reference}`,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      return verifyResponse.data;
+    } catch (error) {
+      this.handleAxiosError(error, 'error verifying payment')
+    }
+  }
+
+
   private handleAxiosError(error: any, defaultMessage: string) {
     if (error.response) {
       console.error('HTTP Error:', defaultMessage);
@@ -137,7 +255,9 @@ export class TransactionService {
     }
   }
 
+
   private async createTransaction(
+    reference: string,
     amount: number,
     transactionDetails:
       | BillPaymentTransaction
@@ -148,6 +268,7 @@ export class TransactionService {
     user: string,
   ) {
     const createTransactionData = {
+      transactionReference: reference,
       amount,
       transactionType: transactionData.transactionType,
       transactionStatus: transactionData.transactionStatus,
@@ -231,7 +352,7 @@ export class TransactionService {
   private async debitWallet(userId: string, chargeAmount: number) {
     const walletBalance = await this.getUserWallet(userId);
     const { balance, _id } = walletBalance;
-    if (walletBalance > chargeAmount) {
+    if (balance > chargeAmount) {
       const newBalance = balance - chargeAmount;
       // update wallet balance
       await this.walletRepo.findOneAndUpdate(
@@ -264,7 +385,7 @@ export class TransactionService {
       if (error instanceof NotFoundException) {
         throw error;
       } else {
-        throw new Error('An error occurred while fetching the wallet');
+        throw new Error('An error occurred while funding wallet');
       }
     }
   }
@@ -290,5 +411,18 @@ export class TransactionService {
         throw new Error('An error occurred while fetching the wallet');
       }
     }
+  }
+
+  private generateTransactionReference(): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const prefix = 'HUBSTK';
+    let result = prefix;
+    const randomLength = 20 - prefix.length;
+    for (let i = 0; i < randomLength; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters[randomIndex];
+    }
+
+    return result;
   }
 }
