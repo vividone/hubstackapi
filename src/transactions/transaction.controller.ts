@@ -88,7 +88,7 @@ export class TransactionController {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        throw new Error('An error occurred while retrieving the wallet');
+        throw new Error('An error occurred while funding wallet');
       }
     }
   }

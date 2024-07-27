@@ -147,7 +147,9 @@ export class TransactionService {
     transactionData: any,
     user: string,
   ) {
+    const transactionRef = this.generateTransactionReference;
     const createTransactionData = {
+      transactionReference: transactionRef,
       amount,
       transactionType: transactionData.transactionType,
       transactionStatus: transactionData.transactionStatus,
@@ -231,7 +233,7 @@ export class TransactionService {
   private async debitWallet(userId: string, chargeAmount: number) {
     const walletBalance = await this.getUserWallet(userId);
     const { balance, _id } = walletBalance;
-    if (walletBalance > chargeAmount) {
+    if (balance > chargeAmount) {
       const newBalance = balance - chargeAmount;
       // update wallet balance
       await this.walletRepo.findOneAndUpdate(
@@ -264,7 +266,7 @@ export class TransactionService {
       if (error instanceof NotFoundException) {
         throw error;
       } else {
-        throw new Error('An error occurred while fetching the wallet');
+        throw new Error('An error occurred while funding wallet');
       }
     }
   }
@@ -290,5 +292,18 @@ export class TransactionService {
         throw new Error('An error occurred while fetching the wallet');
       }
     }
+  }
+
+  private generateTransactionReference(): string {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const prefix = 'HUBSTK';
+    let result = prefix;
+    const randomLength = 20 - prefix.length;
+    for (let i = 0; i < randomLength; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters[randomIndex];
+    }
+
+    return result;
   }
 }

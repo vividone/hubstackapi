@@ -12,6 +12,10 @@ class Transaction {
   @ApiProperty()
   amount: number;
 
+  @ApiProperty()
+  @Prop()
+  transactionReference: string;
+
   @Prop()
   @ApiProperty()
   transactionType: string;

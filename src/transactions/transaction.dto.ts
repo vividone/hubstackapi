@@ -132,6 +132,10 @@ export class FundWalletTransaction {
 }
 
 export class Transaction {
+  @IsString()
+  @ApiProperty()
+  transactionReference: string;
+
   @ApiProperty()
   amount: number;
 
