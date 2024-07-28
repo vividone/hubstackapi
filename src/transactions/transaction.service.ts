@@ -128,7 +128,7 @@ export class TransactionService {
       const payment = await this.debitWallet(userId, amount);
       paid = payment;
     }
-    // Send Bill Payment Advice to Interswitch
+    const sendAdvice = await this.sendPaymentAdvice(billPaymentDto, userId);
     return paid;
   }
 
