@@ -55,7 +55,12 @@ export class TransactionService {
       const paid = await this.processBillPayment(billPaymentDto, userId);
       if (paid === true) {
         // Send Bill Payment advice to Interswitch
-        return 'Transaction sucessfull';
+
+        const sendPaymentAdvice = await this.sendPaymentAdvice(
+          billPaymentDto,
+          userId,
+        );
+        return sendPaymentAdvice;
       } else {
         return 'Transaction not sucessfull';
       }
@@ -135,7 +140,6 @@ export class TransactionService {
       const payment = await this.debitWallet(userId, amount);
       paid = payment;
     }
-    const sendAdvice = await this.sendPaymentAdvice(billPaymentDto, userId);
     return paid;
   }
 
