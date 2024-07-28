@@ -102,13 +102,12 @@ export class TransactionController {
   })
   @ApiOperation({ summary: 'Fund user wallet' })
   @Post('/fund-wallet/initialize')
-  async fundWallet(
-    @Body() fundWalletDto: InitializeWalletFunding,
-  ) {
+  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
     try {
-      const wallet = await this.transactService.initializePaystackWalletFunding(
-        fundWalletDto,
-      );
+      const wallet =
+        await this.transactService.initializePaystackWalletFunding(
+          fundWalletDto,
+        );
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -118,7 +117,6 @@ export class TransactionController {
       }
     }
   }
-
 
   @Roles('Agent')
   @UseGuards(JwtAuthGuard)

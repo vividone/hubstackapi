@@ -117,7 +117,6 @@ export class NINTransaction {
   paymentStatus: paymentStatus.Pending;
 }
 
-
 export class InitializeWalletFunding {
   @IsString()
   @ApiProperty()

@@ -26,7 +26,7 @@ export class TransactionService {
     private readonly userRepo: UserRepository,
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
-  ) { }
+  ) {}
 
   async getAllTransactions() {
     const transactions = await this.transactionRepo.find();
@@ -62,8 +62,6 @@ export class TransactionService {
     }
   }
 
-  
-
   async airtimeRecharge(
     billPaymentDto: BillPaymentTransaction,
     userId: string,
@@ -71,6 +69,15 @@ export class TransactionService {
     const paid = await this.processBillPayment(billPaymentDto, userId);
     // Send Bill Payment Advice to Interswitch
     if (paid === true) {
+      try {
+        const sendPayment = await this.sendPaymentAdvice(
+          billPaymentDto,
+          userId,
+        );
+        return sendPayment;
+      } catch (error) {
+        this.handleAxiosError(error, 'Error funding wallet ');
+      }
       return 'Transaction sucessfull';
     } else {
       return 'Transaction not sucessfull';
@@ -94,7 +101,7 @@ export class TransactionService {
     try {
       const { amount, reference } = fundWalletDto;
       const verifyPayment = await this.verifyPayment(reference);
-      if (!verifyPayment){
+      if (!verifyPayment) {
         return BadRequestException;
       }
       const update = await this.fundWallet(userId, amount);
@@ -133,13 +140,13 @@ export class TransactionService {
   }
 
   async initializePaystackWalletFunding(
-    initializeWalletFunding: InitializeWalletFunding
+    initializeWalletFunding: InitializeWalletFunding,
   ) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
     initializeWalletFunding.reference = this.generateTransactionReference();
     const data = initializeWalletFunding;
-    console.log("data sent to paystack", data);
+    console.log('data sent to paystack', data);
     try {
       const response = await axios.post(
         `${baseUrl}/transaction/initialize`,
@@ -150,20 +157,18 @@ export class TransactionService {
             'Content-Type': 'application/json',
           },
         },
-      );  
-     return response.data.data;
+      );
+      return response.data.data;
     } catch (error) {
       this.handleAxiosError(error, 'Error funding wallet ');
     }
-  };
+  }
 
-  async queryDVA(
-    queryDva: QueryDVA
-  ) {
+  async queryDVA(queryDva: QueryDVA) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
-    const {accountNumber, preferred_bank, date} = queryDva;
-    
+    const { accountNumber, preferred_bank, date } = queryDva;
+
     try {
       const response = await axios.get(
         `${baseUrl}/dedicated_account/requery?account_number=${accountNumber}&provider_slug=${preferred_bank}&date=${date}`,
@@ -173,19 +178,18 @@ export class TransactionService {
             'Content-Type': 'application/json',
           },
         },
-      );  
-     return response.data.data;
+      );
+      return response.data.data;
     } catch (error) {
       this.handleAxiosError(error, 'Error funding wallet ');
     }
-  };
-
+  }
 
   //TOD: COMPLETE THIS AND INTEGRATE IN PAYBILLS
-  private async sendPaymentAdvice (transactionDetails: any, userId: string){
+  private async sendPaymentAdvice(transactionDetails: any, userId: string) {
     const baseUrl = process.env.ISW_BASE_URL;
     const TerminalId = process.env.ISW_TERMINAL_ID;
-    const user = await this.userRepo.findOne({userId});
+    const user = await this.userRepo.findOne({ userId });
     if (!user) {
       throw new BadRequestException('User not found');
     }
@@ -200,13 +204,11 @@ export class TransactionService {
       } = transactionDetails;
       const data = {
         customerEmail,
-        transactionDetails
+        transactionDetails,
       };
-      const authResponse = await this.genISWAuthToken()
+      const authResponse = await this.genISWAuthToken();
       const token = authResponse.access_token;
-      const response = await axios.post( 
-        baseUrl, 
-        {
+      const response = await axios.post(baseUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -214,13 +216,13 @@ export class TransactionService {
         },
         data,
       });
-     return response.data.data;
+      return response.data.data;
     } catch (error) {
       this.handleAxiosError(error, 'Error sending payment advice');
     }
   }
 
-  private async verifyPayment (reference: string){
+  private async verifyPayment(reference: string) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
     try {
@@ -235,10 +237,9 @@ export class TransactionService {
       );
       return verifyResponse.data;
     } catch (error) {
-      this.handleAxiosError(error, 'error verifying payment')
+      this.handleAxiosError(error, 'error verifying payment');
     }
   }
-
 
   private handleAxiosError(error: any, defaultMessage: string) {
     if (error.response) {
@@ -254,7 +255,6 @@ export class TransactionService {
       throw new InternalServerErrorException(defaultMessage);
     }
   }
-
 
   private async createTransaction(
     reference: string,
