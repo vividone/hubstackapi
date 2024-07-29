@@ -54,13 +54,16 @@ export class TransactionService {
     } else {
       const paid = await this.processBillPayment(billPaymentDto, userId);
       if (paid === true) {
-        // Send Bill Payment advice to Interswitch
-
-        const sendPaymentAdvice = await this.sendPaymentAdvice(
-          billPaymentDto,
-          userId,
-        );
-        return sendPaymentAdvice;
+        try {
+          const sendPayment = await this.sendPaymentAdvice(
+            billPaymentDto,
+            userId,
+          );
+          return sendPayment;
+        } catch (error) {
+          this.handleAxiosError(error, 'Error making buy recharge ');
+        }
+        return 'Transaction sucessfull';
       } else {
         return 'Transaction not sucessfull';
       }
@@ -81,7 +84,7 @@ export class TransactionService {
         );
         return sendPayment;
       } catch (error) {
-        this.handleAxiosError(error, 'Error funding wallet ');
+        this.handleAxiosError(error, 'Error making buy recharge ');
       }
       return 'Transaction sucessfull';
     } else {
@@ -148,8 +151,12 @@ export class TransactionService {
   ) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
-    initializeWalletFunding.reference = this.generateTransactionReference();
-    const data = initializeWalletFunding;
+    const reference = this.generateTransactionReference();
+    const data = {
+      email: initializeWalletFunding.email,
+      amount: initializeWalletFunding.amount,
+      reference,
+    };
     console.log('data sent to paystack', data);
     try {
       const response = await axios.post(
