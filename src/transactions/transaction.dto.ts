@@ -16,7 +16,7 @@ export enum paymentStatus {
 
 export enum transactionStatus {
   Pending = 'pending',
-  Completed = 'completed',
+  Successful = 'successful',
   Failed = 'failed',
 }
 
@@ -25,12 +25,13 @@ export enum transactionType {
   DebitWallet = 'debitwallet',
   BillPayment = 'billpayment',
   BuyUnit = 'buyunit',
-  DebitUnit = 'debitunit',
+  NINSearch = 'ninsearch',
 }
 
 export enum paymentMode {
   wallet = 'wallet',
   paystack = 'paystack',
+  account_transfer = 'account_transfer',
 }
 
 export class BillPaymentTransaction {
@@ -87,7 +88,7 @@ export class BuyUnitTransaction {
 
   @IsString()
   @ApiProperty()
-  amount: string;
+  amount: number;
 
   @IsEnum(paymentMode)
   @ApiProperty()
@@ -116,6 +117,33 @@ export class NINTransaction {
   paymentStatus: paymentStatus.Pending;
 }
 
+export class InitializeWalletFunding {
+  @IsString()
+  @ApiProperty()
+  email: string;
+
+  @IsString()
+  @ApiProperty()
+  amount: number;
+
+  @IsString()
+  @ApiProperty()
+  reference: string;
+}
+
+export class QueryDVA {
+  @IsString()
+  @ApiProperty()
+  accountNumber: string;
+
+  @IsString()
+  @ApiProperty()
+  preferred_bank: string;
+
+  @IsString()
+  @ApiProperty()
+  date: string;
+}
 export class FundWalletTransaction {
   @IsEnum(paymentMode)
   @ApiProperty()
@@ -123,7 +151,11 @@ export class FundWalletTransaction {
 
   @IsString()
   @ApiProperty()
-  amount: string;
+  amount: number;
+
+  @IsString()
+  @ApiProperty()
+  reference: string;
 
   @IsString()
   @ApiProperty()
@@ -131,6 +163,10 @@ export class FundWalletTransaction {
 }
 
 export class Transaction {
+  @IsString()
+  @ApiProperty()
+  transactionReference: string;
+
   @ApiProperty()
   amount: number;
 
