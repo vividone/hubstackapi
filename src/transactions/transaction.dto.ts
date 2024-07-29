@@ -125,10 +125,6 @@ export class InitializeWalletFunding {
   @IsString()
   @ApiProperty()
   amount: number;
-
-  @IsString()
-  @ApiProperty()
-  reference: string;
 }
 
 export class QueryDVA {
