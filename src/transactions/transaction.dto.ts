@@ -29,6 +29,16 @@ export enum paymentMode {
   account_transfer = 'account_transfer',
 }
 
+export class VerifyFundingDto {
+  @IsString()
+  @ApiProperty()
+  userId: string;
+
+  @IsString()
+  @ApiProperty()
+  transactionId: string;
+}
+
 export class BillPaymentTransaction {
   @IsString()
   @ApiProperty()
@@ -111,15 +121,23 @@ export class NINTransaction {
 export class InitializeWalletFunding {
   @IsString()
   @ApiProperty()
+  @IsNotEmpty()
   email: string;
 
   @IsString()
   @ApiProperty()
+  @IsNotEmpty()
   amount: number;
 
   @IsString()
   @ApiProperty()
+  @IsNotEmpty()
   paymentMode: paymentMode;
+
+  @IsString()
+  @ApiProperty()
+  @IsNotEmpty()
+  userId: string;
 }
 
 export class QueryDVA {

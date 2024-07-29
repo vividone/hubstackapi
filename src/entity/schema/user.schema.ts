@@ -17,7 +17,7 @@ class Users {
   @ApiProperty()
   lastname: string;
 
-  @Prop()
+  @Prop({ unique: true })
   @ApiProperty()
   username: string;
 
@@ -60,7 +60,7 @@ class Users {
 
   @Prop({ default: 0 })
   @ApiProperty()
-  referralCount: Number;
+  referralCount: number;
 
   @Prop({ default: 'Steel' })
   @ApiProperty()

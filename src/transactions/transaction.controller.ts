@@ -13,10 +13,10 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import {
   BillPaymentTransaction,
   BuyUnitTransaction,
-  FundWalletTransaction,
   InitializeWalletFunding,
   NINTransaction,
   TransactionDto,
+  VerifyFundingDto,
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 
@@ -103,16 +103,14 @@ export class TransactionController {
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    type: FundWalletTransaction,
+    type: TransactionDto,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Verify wallet funding' })
-  @Get('/:userId/fund-wallet/verify')
-  async verifyFunding(
-    @Param('userId') userId: string,
-    @Param('transactionId') transactionId: string,
-  ) {
+  @Post('/fund-wallet/verify/')
+  async verifyFunding(@Body() verifyFundingDto: VerifyFundingDto) {
     try {
+      const { userId, transactionId } = verifyFundingDto;
       const wallet = await this.transactService.fundWalletProcess(
         userId,
         transactionId,
@@ -130,20 +128,17 @@ export class TransactionController {
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    type: FundWalletTransaction,
+    type: TransactionDto,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Fund user wallet' })
-  @Post('/fund-wallet/:userId/initialize')
-  async fundWallet(
-    @Body() fundWalletDto: InitializeWalletFunding,
-    @Param('userId') userId: string,
-  ) {
+  @Post('/fund-wallet/initialize')
+  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
     try {
-      const wallet = await this.transactService.initializePaystackWalletFunding(
-        fundWalletDto,
-        userId,
-      );
+      const wallet =
+        await this.transactService.initializePaystackWalletFunding(
+          fundWalletDto,
+        );
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -157,7 +152,7 @@ export class TransactionController {
   @Roles('Agent')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    type: BuyUnitTransaction,
+    type: TransactionDto,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Buy Units' })
@@ -181,7 +176,7 @@ export class TransactionController {
   @Roles('Agent')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    type: NINTransaction,
+    type: TransactionDto,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'NIN Search' })
@@ -222,7 +217,7 @@ export class TransactionController {
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    type: BillPaymentTransaction,
+    type: TransactionDto,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Pay Bill' })

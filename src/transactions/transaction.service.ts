@@ -157,7 +157,6 @@ export class TransactionService {
 
   async initializePaystackWalletFunding(
     initializeWalletFunding: InitializeWalletFunding,
-    userId: string,
   ) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
@@ -165,9 +164,8 @@ export class TransactionService {
     const data = {
       email: initializeWalletFunding.email,
       amount: initializeWalletFunding.amount,
-      // reference,
     };
-    console.log('data sent to paystack', data);
+    console.log('data sent to paystack', initializeWalletFunding);
     try {
       const response = await axios.post(
         `${baseUrl}/transaction/initialize`,
@@ -180,7 +178,8 @@ export class TransactionService {
         },
       );
 
-      const { reference, status } = response.data.data;
+      const { reference } = response.data.data;
+      const { status } = response.data;
 
       if (status === true) {
         const transactionData = {
@@ -190,14 +189,14 @@ export class TransactionService {
           transactionStatus: transactionStatus.Pending,
           paymentMode: initializeWalletFunding.paymentMode,
           transactionDetails: initializeWalletFunding,
-          user: userId,
+          user: initializeWalletFunding.userId,
         };
 
         const startTransaction = await this.createTransaction(transactionData);
         return startTransaction;
       }
     } catch (error) {
-      this.handleAxiosError(error, 'Error funding wallet ');
+      this.handleAxiosError(error, 'Error with trnsaction creation ');
     }
   }
 
@@ -390,7 +389,6 @@ export class TransactionService {
     try {
       const createTransaction =
         await this.transactionRepo.create(transactionDto);
-
       return createTransaction;
     } catch (error) {
       this.handleAxiosError(error, 'Error creating transaction!');
@@ -478,11 +476,12 @@ export class TransactionService {
     if (balance > chargeAmount) {
       const newBalance = balance - chargeAmount;
 
+      // Update Wallet
       const updateWallet = await this.walletRepo.findOneAndUpdate(
         { _id: _id },
         { balance: newBalance },
       );
-
+      // Create Wallet Debit Transaction
       if (updateWallet) {
         const ref = this.generateTransactionReference();
         const transactionData = {
@@ -499,8 +498,6 @@ export class TransactionService {
       } else {
         return false;
       }
-
-      // update wallet balance
 
       return true;
     } else {
