@@ -16,7 +16,7 @@ import {
   FundWalletTransaction,
   InitializeWalletFunding,
   NINTransaction,
-  Transaction,
+  TransactionDto,
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 
@@ -27,7 +27,10 @@ export class TransactionController {
 
   @Roles('Admin')
   @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({ type: Transaction, description: 'expected response' })
+  @ApiCreatedResponse({
+    type: [TransactionDto],
+    description: 'expected response',
+  })
   @ApiOperation({ summary: 'Get all transactions' })
   @Get('/all')
   async getAllTransactions() {
@@ -45,7 +48,10 @@ export class TransactionController {
 
   @Roles('Agent', 'Admin', 'Individual')
   @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({ type: Transaction, description: 'expected response' })
+  @ApiCreatedResponse({
+    type: [TransactionDto],
+    description: 'expected response',
+  })
   @ApiOperation({ summary: 'Get all transactions' })
   @Get('/all/:userId/:transactionType')
   async getTransactions(
@@ -67,6 +73,33 @@ export class TransactionController {
     }
   }
 
+  @Roles('Agent', 'Admin', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Get all transactions' })
+  @Get('/transaction/:userId/:transactionId')
+  async getTransaction(
+    @Param('userid') userId: string,
+    @Param('transactionId') transactionId: string,
+  ) {
+    try {
+      const getTransaction = await this.transactService.getTransaction(
+        userId,
+        transactionId,
+      );
+      return getTransaction;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while retrieving transaction');
+      }
+    }
+  }
+
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
@@ -74,15 +107,15 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Verify wallet funding' })
-  @Post('/:userId/fund-wallet/verify')
+  @Get('/:userId/fund-wallet/verify')
   async verifyFunding(
-    @Body() fundWalletDto: FundWalletTransaction,
     @Param('userId') userId: string,
+    @Param('transactionId') transactionId: string,
   ) {
     try {
       const wallet = await this.transactService.fundWalletProcess(
-        fundWalletDto,
         userId,
+        transactionId,
       );
       return wallet;
     } catch (error) {
@@ -101,13 +134,16 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Fund user wallet' })
-  @Post('/fund-wallet/initialize')
-  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
+  @Post('/fund-wallet/:userId/initialize')
+  async fundWallet(
+    @Body() fundWalletDto: InitializeWalletFunding,
+    @Param('userId') userId: string,
+  ) {
     try {
-      const wallet =
-        await this.transactService.initializePaystackWalletFunding(
-          fundWalletDto,
-        );
+      const wallet = await this.transactService.initializePaystackWalletFunding(
+        fundWalletDto,
+        userId,
+      );
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
