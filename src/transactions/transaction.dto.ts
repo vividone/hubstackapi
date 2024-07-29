@@ -1,10 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsNotEmptyObject,
-  IsString,
-} from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export enum paymentStatus {
   Processing = 'processing',
@@ -16,7 +11,7 @@ export enum paymentStatus {
 
 export enum transactionStatus {
   Pending = 'pending',
-  Completed = 'completed',
+  Successful = 'successful',
   Failed = 'failed',
 }
 
@@ -25,12 +20,23 @@ export enum transactionType {
   DebitWallet = 'debitwallet',
   BillPayment = 'billpayment',
   BuyUnit = 'buyunit',
-  DebitUnit = 'debitunit',
+  NINSearch = 'ninsearch',
 }
 
 export enum paymentMode {
   wallet = 'wallet',
   paystack = 'paystack',
+  account_transfer = 'account_transfer',
+}
+
+export class VerifyFundingDto {
+  @IsString()
+  @ApiProperty()
+  userId: string;
+
+  @IsString()
+  @ApiProperty()
+  transactionId: string;
 }
 
 export class BillPaymentTransaction {
@@ -70,10 +76,6 @@ export class BillPaymentTransaction {
   @IsString()
   @ApiProperty()
   category: string;
-
-  @IsEnum(paymentStatus)
-  @ApiProperty()
-  paymentStatus: paymentStatus.Pending;
 }
 
 export class BuyUnitTransaction {
@@ -87,7 +89,7 @@ export class BuyUnitTransaction {
 
   @IsString()
   @ApiProperty()
-  amount: string;
+  amount: number;
 
   @IsEnum(paymentMode)
   @ApiProperty()
@@ -98,7 +100,7 @@ export class BuyUnitTransaction {
   paymentStatus: paymentStatus.Pending;
 }
 
-export class DebitUnitTransaction {
+export class NINTransaction {
   @IsString()
   @ApiProperty()
   service: string;
@@ -109,10 +111,6 @@ export class DebitUnitTransaction {
 
   @IsString()
   @ApiProperty()
-  amount: string;
-
-  @IsString()
-  @ApiProperty()
   searchItem: string;
 
   @IsString()
@@ -120,21 +118,60 @@ export class DebitUnitTransaction {
   paymentStatus: paymentStatus.Pending;
 }
 
-export class FundWalletTransaction {
+export class InitializeWalletFunding {
   @IsString()
   @ApiProperty()
-  service: string;
+  @IsNotEmpty()
+  email: string;
 
   @IsString()
   @ApiProperty()
-  amount: string;
+  @IsNotEmpty()
+  amount: number;
 
   @IsString()
   @ApiProperty()
-  paymentStatus: paymentStatus.Pending;
+  @IsNotEmpty()
+  paymentMode: paymentMode;
+
+  @IsString()
+  @ApiProperty()
+  @IsNotEmpty()
+  userId: string;
 }
 
-export class Transaction {
+export class QueryDVA {
+  @IsString()
+  @ApiProperty()
+  accountNumber: string;
+
+  @IsString()
+  @ApiProperty()
+  preferred_bank: string;
+
+  @IsString()
+  @ApiProperty()
+  date: string;
+}
+export class FundWalletTransaction {
+  @IsEnum(paymentMode)
+  @ApiProperty()
+  paymentMode: paymentMode;
+
+  @IsString()
+  @ApiProperty()
+  amount: number;
+
+  @IsString()
+  @ApiProperty()
+  reference: string;
+}
+
+export class TransactionDto {
+  @IsString()
+  @ApiProperty()
+  transactionReference: string;
+
   @ApiProperty()
   amount: number;
 
@@ -146,13 +183,14 @@ export class Transaction {
   @ApiProperty()
   transactionStatus: transactionStatus;
 
-  @IsNotEmptyObject()
+  @IsNotEmpty()
   @ApiProperty()
-  transactionDetail:
-    | BillPaymentTransaction
-    | BuyUnitTransaction
-    | DebitUnitTransaction
-    | FundWalletTransaction;
+  @IsEnum(paymentMode)
+  paymentMode: paymentMode;
+
+  @IsNotEmpty()
+  @ApiProperty()
+  transactionDetails: any;
 
   @IsString()
   @ApiProperty()

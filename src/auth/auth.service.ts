@@ -15,8 +15,7 @@ import { CreateUserDto } from 'src/users/users.dto';
 import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletService } from 'src/wallet/wallet.service';
-import { ReferralService } from 'src/referals/referral.service';
-import { MockWalletService } from 'src/mock-wallet/mock-wallet.service';
+import { ReferralService } from 'src/referrals/referral.service';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +24,6 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly agentRepo: AgentProfileRepository,
     private readonly walletService: WalletService,
-    private readonly mockWalletService: MockWalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
     private readonly resetPasswordService: ResetPasswordService,
@@ -43,7 +41,7 @@ export class AuthService {
       throw new BadRequestException('Email already exists');
     }
 
-    createUserDto.referralCode = `${this.generateReferalCode()}-${createUserDto.firstname}`;
+    createUserDto.referralCode = `${this.generateReferralCode()}-${createUserDto.firstname}`;
 
     if (referralCode) {
       await this.referralService.processReferral(referralCode);
@@ -139,7 +137,7 @@ export class AuthService {
     const balance = null;
 
     try {
-      const wallet = await this.mockWalletService.getUserWallet(user._id);
+      const wallet = await this.walletService.getUserWallet(user._id);
       hasWallet = !!wallet;
 
       // if (hasWallet) {
@@ -180,7 +178,7 @@ export class AuthService {
     const payload = { email: user.email, userId: user._id };
     const resetToken = this.jwtService.sign(payload, { expiresIn: '10m' });
 
-    const resetPasswordUrl = `${process.env.APP_DOMAIN}?token=${resetToken}`;
+    const resetPasswordUrl = `${process.env.APP_DOMAIN}/auth/reset-password/?token=${resetToken}`;
     console.log(resetPasswordUrl);
 
     await this.resetPasswordService.sendResetPasswordEmail(
@@ -224,7 +222,7 @@ export class AuthService {
     return this.userService.updatePassword(userId, oldPassword, newPassword);
   }
 
-  private generateReferalCode() {
+  private generateReferralCode() {
     const length = 10;
     const characters =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

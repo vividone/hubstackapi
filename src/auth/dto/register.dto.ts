@@ -25,5 +25,5 @@ export class individualRegisterDto {
 
   @ApiProperty()
   @IsOptional()
-  referalCode: string;
+  referralCode: string;
 }

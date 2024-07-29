@@ -25,7 +25,7 @@ class Category {
   categoryType: CategoryType;
 
   @ApiProperty()
-  @Prop()
+  @Prop({ unique: true })
   billerCategoryId: number;
 
   @ApiProperty()

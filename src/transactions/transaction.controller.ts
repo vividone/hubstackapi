@@ -5,7 +5,6 @@ import {
   NotFoundException,
   Param,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -14,12 +13,12 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import {
   BillPaymentTransaction,
   BuyUnitTransaction,
-  DebitUnitTransaction,
-  FundWalletTransaction,
-  Transaction,
+  InitializeWalletFunding,
+  NINTransaction,
+  TransactionDto,
+  VerifyFundingDto,
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
-import { CustomRequest } from 'src/configs/custom_request';
 
 @ApiTags('Transactions')
 @Controller('transact')
@@ -28,25 +27,31 @@ export class TransactionController {
 
   @Roles('Admin')
   @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({ type: Transaction, description: 'expected response' })
+  @ApiCreatedResponse({
+    type: [TransactionDto],
+    description: 'expected response',
+  })
   @ApiOperation({ summary: 'Get all transactions' })
   @Get('/all')
   async getAllTransactions() {
     try {
-      const wallet = await this.transactService.getAllTransactions();
-      return wallet;
+      const allTransactions = await this.transactService.getAllTransactions();
+      return allTransactions;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        throw new Error('An error occurred while retrieving the wallet');
+        throw new Error('An error occurred while retrieving all transactions');
       }
     }
   }
 
   @Roles('Agent', 'Admin', 'Individual')
   @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({ type: Transaction, description: 'expected response' })
+  @ApiCreatedResponse({
+    type: [TransactionDto],
+    description: 'expected response',
+  })
   @ApiOperation({ summary: 'Get all transactions' })
   @Get('/all/:userId/:transactionType')
   async getTransactions(
@@ -54,9 +59,136 @@ export class TransactionController {
     @Param('transactionType') transactionType: string,
   ) {
     try {
-      const wallet = await this.transactService.getTransactions(
+      const getTransaction = await this.transactService.getTransactions(
         userId,
         transactionType,
+      );
+      return getTransaction;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while retrieving transaction');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Admin', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Get all transactions' })
+  @Get('/transaction/:userId/:transactionId')
+  async getTransaction(
+    @Param('userid') userId: string,
+    @Param('transactionId') transactionId: string,
+  ) {
+    try {
+      const getTransaction = await this.transactService.getTransaction(
+        userId,
+        transactionId,
+      );
+      return getTransaction;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while retrieving transaction');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Verify wallet funding' })
+  @Post('/fund-wallet/verify/')
+  async verifyFunding(@Body() verifyFundingDto: VerifyFundingDto) {
+    try {
+      const { userId, transactionId } = verifyFundingDto;
+      const wallet = await this.transactService.fundWalletProcess(
+        userId,
+        transactionId,
+      );
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding wallet');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Fund user wallet' })
+  @Post('/fund-wallet/initialize')
+  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
+    try {
+      const wallet =
+        await this.transactService.initializePaystackWalletFunding(
+          fundWalletDto,
+        );
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding wallet');
+      }
+    }
+  }
+
+  @Roles('Agent')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Buy Units' })
+  @Post('/:userId/buy-units')
+  async buyUnit(
+    @Body() buyUnitsDto: BuyUnitTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const units = await this.transactService.buyUnits(buyUnitsDto, userId);
+      return units;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred in the process of buying units');
+      }
+    }
+  }
+
+  @Roles('Agent')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'NIN Search' })
+  @Post('/:userId/nin-search')
+  async debitUnit(
+    @Body() ninTransaction: NINTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const wallet = await this.transactService.ninSearch(
+        ninTransaction,
+        userId,
       );
       return wallet;
     } catch (error) {
@@ -68,89 +200,34 @@ export class TransactionController {
     }
   }
 
+  // @Post('fund')
+  // async fundPaystackWallet(
+  //   @Body('email') email: string,
+  //   @Body('amount') amount: number,
+  //   @Body('reference') reference: string,
+  // ) {
+  //   try {
+  //     const result = await this.transactService.initializeWalletFunding(email, amount, reference);
+  //     return { success: true, data: result };
+  //   } catch (error) {
+  //     return { success: false, message: error.message };
+  //   }
+  // }
+
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    type: FundWalletTransaction,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'Fund user wallet' })
-  @Post('/fund-wallet')
-  async fundWallet(
-    @Body() fundWalletDto: FundWalletTransaction,
-    @Req() request: CustomRequest,
-  ) {
-    try {
-      const wallet = await this.transactService.getAllTransactions();
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while retrieving the wallet');
-      }
-    }
-  }
-
-  @Roles('Agent')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: BuyUnitTransaction,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'Buy Units' })
-  @Post('/buy-units')
-  async buyUnit(
-    @Body() debitUnitDto: BuyUnitTransaction,
-    @Req() request: CustomRequest,
-  ) {
-    try {
-      const wallet = await this.transactService.getAllTransactions();
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while retrieving the wallet');
-      }
-    }
-  }
-
-  @Roles('Agent')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: DebitUnitTransaction,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'NIN Search' })
-  @Post('/nin-search')
-  async debitUnit(
-    @Body() debitUnitDto: DebitUnitTransaction,
-    @Req() request: CustomRequest,
-  ) {
-    try {
-      const wallet = await this.transactService.getAllTransactions();
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while retrieving the wallet');
-      }
-    }
-  }
-
-  // @Roles('Agent', 'Individual')
-  // @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: BillPaymentTransaction,
+    type: TransactionDto,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Pay Bill' })
-  @Post('/pay-bill')
-  async payBill(@Body() billPaymentDto: BillPaymentTransaction) {
+  @Post('/:userId/pay-bill/')
+  async payBill(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
     try {
-      const bill = await this.transactService.payBills(billPaymentDto);
+      const bill = await this.transactService.payBills(billPaymentDto, userId);
       return bill;
     } catch (error) {
       if (error instanceof NotFoundException) {

@@ -12,6 +12,18 @@ class Wallet {
   @ApiProperty()
   accountName: string;
 
+  @Prop({ default: 0 })
+  @ApiProperty()
+  balance: number;
+
+  @Prop()
+  @ApiProperty()
+  customer_id: number;
+
+  @Prop()
+  @ApiProperty()
+  customerCode: string;
+
   @Prop()
   @ApiProperty()
   accountNumber: string;
@@ -23,6 +35,10 @@ class Wallet {
   @Prop()
   @ApiProperty()
   bankName: string;
+
+  @Prop()
+  @ApiProperty()
+  preferred_bank: string;
 
   @Prop()
   @ApiProperty()
