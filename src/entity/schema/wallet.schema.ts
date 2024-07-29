@@ -38,6 +38,10 @@ class Wallet {
 
   @Prop()
   @ApiProperty()
+  preferred_bank: string;
+
+  @Prop()
+  @ApiProperty()
   bankCode: string;
 
   @Prop({ default: 'NG' })

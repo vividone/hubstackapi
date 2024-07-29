@@ -10,10 +10,11 @@ import { TransactionRepository } from 'src/entity/repositories/transaction.repo'
 import {
   BillPaymentTransaction,
   BuyUnitTransaction,
-  FundWalletTransaction,
   InitializeWalletFunding,
   NINTransaction,
+  paymentMode,
   QueryDVA,
+  TransactionDto,
   transactionStatus,
   transactionType,
 } from './transaction.dto';
@@ -39,6 +40,14 @@ export class TransactionService {
       transactionType: transactionType,
     });
     return transactions;
+  }
+
+  async getTransaction(userId: string, transactionId: string) {
+    const transaction = await this.transactionRepo.findOne({
+      user: userId,
+      transactionId: transactionId,
+    });
+    return transaction;
   }
 
   async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
@@ -102,12 +111,12 @@ export class TransactionService {
     return 'Unit Buying in development';
   }
 
-  async fundWalletProcess(
-    fundWalletDto: FundWalletTransaction,
-    userId: string,
-  ) {
+  async fundWalletProcess(userId: string, transactionId: string) {
     try {
-      const { amount, reference } = fundWalletDto;
+      const transaction = await this.transactionRepo.findOne({
+        _id: transactionId,
+      });
+      const { amount, reference } = transaction;
       const verifyPayment = await this.verifyPayment(reference);
       if (!verifyPayment) {
         return BadRequestException;
@@ -117,13 +126,13 @@ export class TransactionService {
         const transactionData = {
           transactionType: transactionType.WalletFunding,
           transactionStatus: transactionStatus.Successful,
+          transactionReference: reference,
+          transactionDetail: transaction,
+          user: userId,
         };
-        const createTransaction = this.createTransaction(
-          reference,
-          amount,
-          fundWalletDto,
+        const createTransaction = this.updateTransaction(
+          transactionId,
           transactionData,
-          userId,
         );
         return createTransaction;
       }
@@ -151,13 +160,12 @@ export class TransactionService {
   ) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
-    const reference = this.generateTransactionReference();
+    // const reference = this.generateTransactionReference();
     const data = {
       email: initializeWalletFunding.email,
       amount: initializeWalletFunding.amount,
-      reference,
     };
-    console.log('data sent to paystack', data);
+    console.log('data sent to paystack', initializeWalletFunding);
     try {
       const response = await axios.post(
         `${baseUrl}/transaction/initialize`,
@@ -169,9 +177,26 @@ export class TransactionService {
           },
         },
       );
-      return response.data.data;
+
+      const { reference } = response.data.data;
+      const { status } = response.data;
+
+      if (status === true) {
+        const transactionData = {
+          transactionReference: reference,
+          amount: initializeWalletFunding.amount,
+          transactionType: transactionType.WalletFunding,
+          transactionStatus: transactionStatus.Pending,
+          paymentMode: initializeWalletFunding.paymentMode,
+          transactionDetails: initializeWalletFunding,
+          user: initializeWalletFunding.userId,
+        };
+
+        const startTransaction = await this.createTransaction(transactionData);
+        return startTransaction;
+      }
     } catch (error) {
-      this.handleAxiosError(error, 'Error funding wallet ');
+      this.handleAxiosError(error, 'Error with trnsaction creation ');
     }
   }
 
@@ -215,11 +240,16 @@ export class TransactionService {
       } = transactionDetails;
       const data = {
         customerEmail,
-        transactionDetails,
+        paymentCode,
+        customerId,
+        customerMobile,
+        amount,
+        requestReference,
       };
       const authResponse = await this.genISWAuthToken();
       const token = authResponse.access_token;
-      const response = await axios.post(baseUrl, {
+      const url = `${baseUrl}/Transactions`;
+      const response = await axios.post(url, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -227,6 +257,8 @@ export class TransactionService {
         },
         data,
       });
+
+      // Update Transaction
       return response.data.data;
     } catch (error) {
       this.handleAxiosError(error, 'Error sending payment advice');
@@ -236,19 +268,105 @@ export class TransactionService {
   private async verifyPayment(reference: string) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
-    try {
-      const verifyResponse = await axios.get(
-        `${baseUrl}/transaction/verify/${reference}`,
-        {
-          headers: {
-            Authorization: `Bearer ${secretKey}`,
-            'Content-Type': 'application/json',
+    const ENV = process.env.ENV;
+
+    if (ENV !== 'development') {
+      try {
+        const verifyResponse = await axios.get(
+          `${baseUrl}/transaction/verify/${reference}`,
+          {
+            headers: {
+              Authorization: `Bearer ${secretKey}`,
+              'Content-Type': 'application/json',
+            },
           },
+        );
+        return verifyResponse.data;
+      } catch (error) {
+        this.handleAxiosError(error, 'error verifying payment');
+      }
+    } else {
+      const data = {
+        status: true,
+        message: 'Verification successful',
+        data: {
+          id: 2009945086,
+          domain: 'test',
+          status: 'success',
+          reference: 'rd0bz6z2wu',
+          amount: 20000,
+          message: null,
+          gateway_response: 'Successful',
+          paid_at: '2022-08-09T14:21:32.000Z',
+          created_at: '2022-08-09T14:20:57.000Z',
+          channel: 'card',
+          currency: 'NGN',
+          ip_address: '100.64.11.35',
+          metadata: '',
+          log: {
+            start_time: 1660054888,
+            time_spent: 4,
+            attempts: 1,
+            errors: 0,
+            success: true,
+            mobile: false,
+            input: [],
+            history: [
+              {
+                type: 'action',
+                message: 'Attempted to pay with card',
+                time: 3,
+              },
+              {
+                type: 'success',
+                message: 'Successfully paid with card',
+                time: 4,
+              },
+            ],
+          },
+          fees: 100,
+          fees_split: null,
+          authorization: {
+            authorization_code: 'AUTH_ahisucjkru',
+            bin: '408408',
+            last4: '4081',
+            exp_month: '12',
+            exp_year: '2030',
+            channel: 'card',
+            card_type: 'visa ',
+            bank: 'TEST BANK',
+            country_code: 'NG',
+            brand: 'visa',
+            reusable: true,
+            signature: 'SIG_yEXu7dLBeqG0kU7g95Ke',
+            account_name: null,
+          },
+          customer: {
+            id: 89929267,
+            first_name: null,
+            last_name: null,
+            email: 'hello@email.com',
+            customer_code: 'CUS_i5yosncbl8h2kvc',
+            phone: null,
+            metadata: null,
+            risk_action: 'default',
+            international_format_phone: null,
+          },
+          plan: null,
+          split: {},
+          order_id: null,
+          paidAt: '2022-08-09T14:21:32.000Z',
+          createdAt: '2022-08-09T14:20:57.000Z',
+          requested_amount: 20000,
+          pos_transaction_data: null,
+          source: null,
+          fees_breakdown: null,
+          transaction_date: '2022-08-09T14:20:57.000Z',
+          plan_object: {},
+          subaccount: {},
         },
-      );
-      return verifyResponse.data;
-    } catch (error) {
-      this.handleAxiosError(error, 'error verifying payment');
+      };
+      return data;
     }
   }
 
@@ -267,29 +385,21 @@ export class TransactionService {
     }
   }
 
-  private async createTransaction(
-    reference: string,
-    amount: number,
-    transactionDetails:
-      | BillPaymentTransaction
-      | BuyUnitTransaction
-      | NINTransaction
-      | FundWalletTransaction,
-    transactionData: any,
-    user: string,
-  ) {
-    const createTransactionData = {
-      transactionReference: reference,
-      amount,
-      transactionType: transactionData.transactionType,
-      transactionStatus: transactionData.transactionStatus,
-      transactionDetail: transactionDetails,
-      user,
-    };
-
+  private async createTransaction(transactionDto: TransactionDto) {
     try {
-      const createTransaction = await this.transactionRepo.create(
-        createTransactionData,
+      const createTransaction =
+        await this.transactionRepo.create(transactionDto);
+      return createTransaction;
+    } catch (error) {
+      this.handleAxiosError(error, 'Error creating transaction!');
+    }
+  }
+
+  private async updateTransaction(transactionId: string, updateData: any) {
+    try {
+      const createTransaction = await this.transactionRepo.findOneAndUpdate(
+        { _id: transactionId },
+        { $set: updateData },
       );
 
       return createTransaction;
@@ -365,11 +475,30 @@ export class TransactionService {
     const { balance, _id } = walletBalance;
     if (balance > chargeAmount) {
       const newBalance = balance - chargeAmount;
-      // update wallet balance
-      await this.walletRepo.findOneAndUpdate(
+
+      // Update Wallet
+      const updateWallet = await this.walletRepo.findOneAndUpdate(
         { _id: _id },
         { balance: newBalance },
       );
+      // Create Wallet Debit Transaction
+      if (updateWallet) {
+        const ref = this.generateTransactionReference();
+        const transactionData = {
+          transactionType: transactionType.DebitWallet,
+          transactionStatus: transactionStatus.Successful,
+          transactionReference: ref,
+          amount: chargeAmount,
+          user: userId,
+          transactionDetails: 'Wallet Debit',
+          paymentMode: paymentMode.wallet,
+        };
+
+        await this.createTransaction(transactionData);
+      } else {
+        return false;
+      }
+
       return true;
     } else {
       return false;
