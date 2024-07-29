@@ -61,7 +61,10 @@ export class TransactionService {
     if (!validateCustomer) {
       return 'Customer data is invalid';
     } else {
-      const paid = await this.processBillPayment(billPaymentDto, userId);
+      const paid = await this.processBillPaymentViaWallet(
+        billPaymentDto,
+        userId,
+      );
       if (paid === true) {
         try {
           const sendPayment = await this.sendPaymentAdvice(
@@ -83,7 +86,7 @@ export class TransactionService {
     billPaymentDto: BillPaymentTransaction,
     userId: string,
   ) {
-    const paid = await this.processBillPayment(billPaymentDto, userId);
+    const paid = await this.processBillPaymentViaWallet(billPaymentDto, userId);
     // Send Bill Payment Advice to Interswitch
     if (paid === true) {
       try {
@@ -137,22 +140,30 @@ export class TransactionService {
         return createTransaction;
       }
     } catch (error) {
-      this.handleAxiosError(error, 'Error creating transaction!');
+      this.handleAxiosError(error, 'Transaction Error!');
     }
   }
 
-  private async processBillPayment(
+  private async processBillPaymentViaWallet(
     billPaymentDto: BillPaymentTransaction,
     userId: string,
   ) {
     const { amount } = billPaymentDto;
-    let paid: boolean = false;
     // Debit Wallet
-    if (billPaymentDto.paymentMode === 'wallet') {
-      const payment = await this.debitWallet(userId, amount);
-      paid = payment;
-    }
-    return paid;
+    const payment = await this.debitWallet(userId, amount);
+
+    return payment;
+  }
+
+  private async processBillPaymentViaAccountTransfer(
+    billPaymentDto: BillPaymentTransaction,
+    userId: string,
+  ) {
+    const { amount } = billPaymentDto;
+    // Debit Wallet
+    const payment = await this.debitWallet(userId, amount);
+
+    return payment;
   }
 
   async initializePaystackWalletFunding(
