@@ -344,6 +344,24 @@ export class WalletService {
     }
   }
 
+  async getUserWalletBalance(userId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    const convertedUserId = new Types.ObjectId(userId);
+    try {
+      const user = await this.walletRepo.findOne({ user: convertedUserId });
+      const balance = user.balance;
+      return balance;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new Error('An error occurred while fetching the wallet');
+      }
+    }
+  }
+
   async getUserWallet(userId: string) {
     if (!Types.ObjectId.isValid(userId)) {
       throw new BadRequestException('Invalid user ID format');

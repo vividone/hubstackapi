@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export enum paymentStatus {
   Processing = 'processing',
@@ -76,6 +76,16 @@ export class BillPaymentTransaction {
   @IsString()
   @ApiProperty()
   category: string;
+
+  @IsString()
+  ISWTransactionRef: string;
+}
+
+export class PaymentValidation {
+  @IsString()
+  @ApiProperty()
+  @IsNotEmpty()
+  transactionDetails: BillPaymentTransaction;
 }
 
 export class BuyUnitTransaction {
@@ -188,9 +198,9 @@ export class TransactionDto {
   @IsEnum(paymentMode)
   paymentMode: paymentMode;
 
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  transactionDetails: any;
+  transactionDetails: BillPaymentTransaction | FundWalletTransaction | InitializeWalletFunding | string;
 
   @IsString()
   @ApiProperty()
