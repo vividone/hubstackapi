@@ -200,7 +200,11 @@ export class TransactionDto {
 
   @IsOptional()
   @ApiProperty()
-  transactionDetails: BillPaymentTransaction | FundWalletTransaction | InitializeWalletFunding | string;
+  transactionDetails:
+    | BillPaymentTransaction
+    | FundWalletTransaction
+    | InitializeWalletFunding
+    | string;
 
   @IsString()
   @ApiProperty()

@@ -134,28 +134,6 @@ export class TransactionController {
     type: TransactionDto,
     description: 'expected response',
   })
-  @ApiOperation({ summary: 'Verify transaction' })
-  @Post('/:transactionId/pay-bills/complete')
-  async billPaymentCompletion(@Body() validationDto: PaymentValidation, @Param('transactionId') transactionId: string, @Req() request: CustomRequest ){
-    try {
-      const userId = request.user.id;
-      const validatePayment = await this.transactService.sendPaymentAdvice(validationDto, userId, transactionId);
-      return validatePayment;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while completing payment');
-      }
-    }
-  }
-
-  @Roles('Agent', 'Individual')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: TransactionDto,
-    description: 'expected response',
-  })
   @ApiOperation({ summary: 'Fund user wallet' })
   @Post('/fund-wallet/initialize')
   async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
@@ -259,6 +237,36 @@ export class TransactionController {
         throw new NotFoundException(error.message);
       } else {
         throw new Error('An error occurred while paying the bill');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Verify transaction' })
+  @Post('/:transactionId/pay-bills/complete')
+  async billPaymentCompletion(
+    @Body() validationDto: PaymentValidation,
+    @Param('transactionId') transactionId: string,
+    @Req() request: CustomRequest,
+  ) {
+    try {
+      const userId = request.user.id;
+      const validatePayment = await this.transactService.sendPaymentAdvice(
+        validationDto,
+        userId,
+        transactionId,
+      );
+      return validatePayment;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while completing payment');
       }
     }
   }
