@@ -134,17 +134,15 @@ export class AuthService {
     this.setRefreshTokenCookie(res, refreshToken.refresh_token);
 
     let hasWallet = false;
-    const balance = null;
+    let balance = 0;
 
     try {
       const wallet = await this.walletService.getUserWallet(user._id);
       hasWallet = !!wallet;
 
-      // if (hasWallet) {
-      //   balance = await this.mockWalletService.getSubaccountBalanceOnLogin(
-      //     user._id,
-      //   );
-      // }
+      if (hasWallet) {
+        balance = await this.walletService.getUserWalletBalance(user._id);
+      }
     } catch (error) {
       console.error('Error fetching wallet or balance:', error.message);
     }
