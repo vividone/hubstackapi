@@ -5,6 +5,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -15,18 +16,20 @@ import {
   BuyUnitTransaction,
   InitializeWalletFunding,
   NINTransaction,
+  PaymentValidation,
   TransactionDto,
   VerifyFundingDto,
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
+import { CustomRequest } from 'src/configs/custom_request';
 
 @ApiTags('Transactions')
 @Controller('transact')
 export class TransactionController {
   constructor(private readonly transactService: TransactionService) {}
 
-  @Roles('Admin')
-  @UseGuards(JwtAuthGuard)
+  // @Roles('Admin')
+  // @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
     type: [TransactionDto],
     description: 'expected response',
@@ -234,6 +237,36 @@ export class TransactionController {
         throw new NotFoundException(error.message);
       } else {
         throw new Error('An error occurred while paying the bill');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Verify transaction' })
+  @Post('/:transactionId/pay-bills/complete')
+  async billPaymentCompletion(
+    @Body() validationDto: PaymentValidation,
+    @Param('transactionId') transactionId: string,
+    @Req() request: CustomRequest,
+  ) {
+    try {
+      const userId = request.user.id;
+      const validatePayment = await this.transactService.sendPaymentAdvice(
+        validationDto,
+        userId,
+        transactionId,
+      );
+      return validatePayment;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while completing payment');
       }
     }
   }

@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import axios from 'axios';
-import { UserRepository } from 'src/entity/repositories/user.repo';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
 import {
   BillPaymentTransaction,
@@ -20,11 +19,11 @@ import {
 } from './transaction.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { Types } from 'mongoose';
-
+import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class TransactionService {
   constructor(
-    private readonly userRepo: UserRepository,
+    private readonly userService: UsersService,
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
   ) {}
@@ -52,6 +51,7 @@ export class TransactionService {
 
   async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     const { paymentCode, customerCode } = billPaymentDto;
+
     //Validate Customer
     const validateCustomer = await this.validateCustomer(
       paymentCode,
@@ -61,43 +61,11 @@ export class TransactionService {
     if (!validateCustomer) {
       return 'Customer data is invalid';
     } else {
-      const paid = await this.processBillPayment(billPaymentDto, userId);
-      if (paid === true) {
-        try {
-          const sendPayment = await this.sendPaymentAdvice(
-            billPaymentDto,
-            userId,
-          );
-          return sendPayment;
-        } catch (error) {
-          this.handleAxiosError(error, 'Error making buy recharge ');
-        }
-        return 'Transaction sucessfull';
-      } else {
-        return 'Transaction not sucessfull';
-      }
-    }
-  }
-
-  async airtimeRecharge(
-    billPaymentDto: BillPaymentTransaction,
-    userId: string,
-  ) {
-    const paid = await this.processBillPayment(billPaymentDto, userId);
-    // Send Bill Payment Advice to Interswitch
-    if (paid === true) {
-      try {
-        const sendPayment = await this.sendPaymentAdvice(
-          billPaymentDto,
-          userId,
-        );
-        return sendPayment;
-      } catch (error) {
-        this.handleAxiosError(error, 'Error making buy recharge ');
-      }
-      return 'Transaction sucessfull';
-    } else {
-      return 'Transaction not sucessfull';
+      const payWithWallet = await this.processBillPaymentViaWallet(
+        billPaymentDto,
+        userId,
+      );
+      return payWithWallet;
     }
   }
 
@@ -127,7 +95,7 @@ export class TransactionService {
           transactionType: transactionType.WalletFunding,
           transactionStatus: transactionStatus.Successful,
           transactionReference: reference,
-          transactionDetail: transaction,
+          transactionDetails: transaction,
           user: userId,
         };
         const createTransaction = this.updateTransaction(
@@ -137,22 +105,20 @@ export class TransactionService {
         return createTransaction;
       }
     } catch (error) {
-      this.handleAxiosError(error, 'Error creating transaction!');
+      this.handleAxiosError(error, 'Transaction Error!');
     }
   }
 
-  private async processBillPayment(
+  private async processBillPaymentViaWallet(
     billPaymentDto: BillPaymentTransaction,
     userId: string,
   ) {
     const { amount } = billPaymentDto;
-    let paid: boolean = false;
     // Debit Wallet
     if (billPaymentDto.paymentMode === 'wallet') {
       const payment = await this.debitWallet(userId, amount);
-      paid = payment;
+      return payment;
     }
-    return paid;
   }
 
   async initializePaystackWalletFunding(
@@ -222,10 +188,14 @@ export class TransactionService {
   }
 
   //TOD: COMPLETE THIS AND INTEGRATE IN PAYBILLS
-  private async sendPaymentAdvice(transactionDetails: any, userId: string) {
+  async sendPaymentAdvice(
+    transactionDetails: any,
+    userId: string,
+    transactionId: string,
+  ) {
     const baseUrl = process.env.ISW_BASE_URL;
     const TerminalId = process.env.ISW_TERMINAL_ID;
-    const user = await this.userRepo.findOne({ userId });
+    const user = await this.userService.findOne(userId);
     if (!user) {
       throw new BadRequestException('User not found');
     }
@@ -246,20 +216,70 @@ export class TransactionService {
         amount,
         requestReference,
       };
-      const authResponse = await this.genISWAuthToken();
-      const token = authResponse.access_token;
-      const url = `${baseUrl}/Transactions`;
-      const response = await axios.post(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          TerminalId,
-        },
-        data,
-      });
+      if (process.env.ENV !== 'development') {
+        const authResponse = await this.genISWAuthToken();
+        const token = authResponse.access_token;
+        console.log(token);
+        const url = `${baseUrl}/Transactions`;
+        const response = await axios.post(url, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            TerminalId,
+          },
+          data,
+        });
+        if (response.data.data) {
+          const updateTransactionData = {
+            transactionStatus: transactionStatus.Successful,
+          };
+          // Update Transaction
+          const updatedTransaction = await this.updateTransaction(
+            transactionId,
+            updateTransactionData,
+          );
+          return updatedTransaction;
+        }
+      } else {
+        const data = {
+          billPayment: {
+            biller: 'MCN',
+            customerId1: '000000001',
+            customerId2: null,
+            paymentTypeName: 'Family',
+            paymentTypeCode: 'COFAMW4',
+            billerId: '104',
+          },
+          amount: '2000',
+          currencyCode: '566',
+          customer: '000000001',
+          customerEmail: 'test@interswitchng.com',
+          customerMobile: '08065186175',
+          paymentDate: '7/18/2016 8:53:39 AM',
+          requestReference: '119420151169',
+          serviceCode: 'COFAMW4',
+          serviceName: 'Family',
+          serviceProviderId: '104',
+          status: 'Completed',
+          surcharge: '100',
+          transactionRef: 'FTH|Web|3FTH0001|MCN|180716085339|00000002',
+          transactionResponseCode: '90000',
+          transactionSet: 'BillPayment',
+        };
 
-      // Update Transaction
-      return response.data.data;
+        if (data) {
+          const updateTransactionData = {
+            transactionStatus: transactionStatus.Successful,
+          };
+          // Update Transaction
+          const updatedTransaction = await this.updateTransaction(
+            transactionId,
+            updateTransactionData,
+          );
+          return updatedTransaction;
+        }
+      }
+      //return response.data.data;
     } catch (error) {
       this.handleAxiosError(error, 'Error sending payment advice');
     }
@@ -372,15 +392,25 @@ export class TransactionService {
 
   private handleAxiosError(error: any, defaultMessage: string) {
     if (error.response) {
-      console.error('HTTP Error:', defaultMessage);
-      throw new BadRequestException(defaultMessage);
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const { status, statusText, data } = error.response;
+      console.error('HTTP Error:', defaultMessage, status, statusText, data);
+      throw new BadRequestException({
+        message: defaultMessage,
+        statusCode: status,
+        statusText: statusText,
+        details: data,
+      });
     } else if (error.request) {
-      console.error('No response received from the server');
+      // The request was made but no response was received
+      console.error('No response received from the server', error.request);
       throw new InternalServerErrorException(
         'No response received from the server',
       );
     } else {
-      console.error('Error message:', 'An unexpected error occurred');
+      // Something happened in setting up the request that triggered an Error
+      console.error('Error message:', error.message);
       throw new InternalServerErrorException(defaultMessage);
     }
   }
@@ -404,7 +434,7 @@ export class TransactionService {
 
       return createTransaction;
     } catch (error) {
-      this.handleAxiosError(error, 'Error creating transaction!');
+      this.handleAxiosError(error, 'Error updating transaction!');
     }
   }
   private async genISWAuthToken() {
@@ -428,7 +458,7 @@ export class TransactionService {
   }
 
   private async validateCustomer(paymentCode: string, customerId: string) {
-    const TerminalId = process.env.ISW_TERMINAL_ID;
+    const TerminalId: string = process.env.ISW_TERMINAL_ID;
     const baseUrl: string = process.env.ISW_BASE_URL;
 
     const validatePayload = {
@@ -494,14 +524,12 @@ export class TransactionService {
           paymentMode: paymentMode.wallet,
         };
 
-        await this.createTransaction(transactionData);
-      } else {
-        return false;
+        const debitWalletResponse =
+          await this.createTransaction(transactionData);
+        return debitWalletResponse;
       }
-
-      return true;
     } else {
-      return false;
+      throw new Error('An error occurred while debitting wallet');
     }
   }
 
@@ -564,5 +592,15 @@ export class TransactionService {
     }
 
     return result;
+  }
+
+  private generateRequestReference(): string {
+    let referenceCode = Math.floor(
+      1000000000 + Math.random() * 900000000,
+    ).toString();
+    while (referenceCode.length > 10) {
+      referenceCode = '0' + referenceCode;
+    }
+    return referenceCode;
   }
 }

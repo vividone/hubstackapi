@@ -26,7 +26,7 @@ class Transaction {
 
   @ApiProperty()
   @Prop({ type: Object })
-  transactionDetail: object;
+  transactionDetails: object;
 
   @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
   @ApiProperty()
