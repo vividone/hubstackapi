@@ -248,7 +248,7 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Verify transaction' })
-  @Post('/:transactionId/pay-bills/complete')
+  @Post('/:transactionId/pay-bill/complete')
   async billPaymentCompletion(
     @Body() validationDto: PaymentValidation,
     @Param('transactionId') transactionId: string,

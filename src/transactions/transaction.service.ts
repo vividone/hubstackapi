@@ -12,6 +12,7 @@ import {
   InitializeWalletFunding,
   NINTransaction,
   paymentMode,
+  paymentStatus,
   QueryDVA,
   TransactionDto,
   transactionStatus,
@@ -61,22 +62,63 @@ export class TransactionService {
     if (!validateCustomer) {
       return 'Customer data is invalid';
     } else {
-      const payWithWallet = await this.processBillPaymentViaWallet(
-        billPaymentDto,
-        userId,
-      );
-      return payWithWallet;
+      //
+      if (paymentMode.wallet) {
+        const payWithWallet = await this.processBillPaymentViaWallet(
+          billPaymentDto,
+          userId,
+        );
+
+        if (payWithWallet.transactionStatus === transactionStatus.Successful) {
+          const reference = this.generateRequestReference();
+          const transactionData = {
+            transactionReference: reference,
+            amount: billPaymentDto.amount,
+            transactionType: transactionType.BillPayment,
+            transactionStatus: transactionStatus.Pending,
+            paymentMode: billPaymentDto.paymentMode,
+            transactionDetails: billPaymentDto,
+            user: userId,
+          };
+          const createTransaction =
+            await this.createTransaction(transactionData);
+          return createTransaction;
+        }
+      }
     }
   }
 
   async ninSearch(ninTransaction: NINTransaction, userId: string) {
-    console.log(ninTransaction, userId);
-    return 'NIN in development';
+    const reference = this.generateRequestReference();
+
+    const transactionData = {
+      transactionReference: reference,
+      amount: ninTransaction.amount,
+      transactionType: transactionType.NINSearch,
+      transactionStatus: transactionStatus.Pending,
+      paymentStatus: paymentStatus.Pending,
+      transactionDetails: ninTransaction,
+      paymentMode: paymentMode.units,
+      user: userId,
+    };
+    return transactionData;
+    // console.log(ninTransaction, userId);
   }
 
   async buyUnits(buyUnitsDto: BuyUnitTransaction, userId: string) {
-    console.log(buyUnitsDto, userId);
-    return 'Unit Buying in development';
+    const reference = this.generateRequestReference();
+
+    const transactionData = {
+      transactionReference: reference,
+      amount: buyUnitsDto.amount,
+      transactionType: transactionType.BuyUnit,
+      transactionStatus: transactionStatus.Pending,
+      paymentStatus: paymentStatus.Pending,
+      transactionDetails: buyUnitsDto,
+      paymentMode: paymentMode.wallet,
+      user: userId,
+    };
+    return transactionData;
   }
 
   async fundWalletProcess(userId: string, transactionId: string) {
@@ -115,10 +157,8 @@ export class TransactionService {
   ) {
     const { amount } = billPaymentDto;
     // Debit Wallet
-    if (billPaymentDto.paymentMode === 'wallet') {
-      const payment = await this.debitWallet(userId, amount);
-      return payment;
-    }
+    const payment = await this.debitWallet(userId, amount);
+    return payment;
   }
 
   async initializePaystackWalletFunding(
@@ -131,7 +171,7 @@ export class TransactionService {
       email: initializeWalletFunding.email,
       amount: initializeWalletFunding.amount,
     };
-    console.log('data sent to paystack', initializeWalletFunding);
+    // console.log('data sent to paystack', initializeWalletFunding);
     try {
       const response = await axios.post(
         `${baseUrl}/transaction/initialize`,
@@ -208,18 +248,20 @@ export class TransactionService {
         amount,
         requestReference,
       } = transactionDetails;
+
+      const amountInKobo = this.convertToKobo(amount);
       const data = {
         customerEmail,
         paymentCode,
         customerId,
         customerMobile,
-        amount,
+        amountInKobo,
         requestReference,
       };
       if (process.env.ENV !== 'development') {
         const authResponse = await this.genISWAuthToken();
         const token = authResponse.access_token;
-        console.log(token);
+        // console.log(token);
         const url = `${baseUrl}/Transactions`;
         const response = await axios.post(url, {
           headers: {
@@ -267,16 +309,21 @@ export class TransactionService {
           transactionSet: 'BillPayment',
         };
 
-        if (data) {
+        if (data.status === 'Completed') {
           const updateTransactionData = {
             transactionStatus: transactionStatus.Successful,
+            paymentStatus: paymentStatus.Completed,
           };
           // Update Transaction
           const updatedTransaction = await this.updateTransaction(
             transactionId,
             updateTransactionData,
           );
+          console.log(updatedTransaction);
+
           return updatedTransaction;
+        } else {
+          return 'Error with bill payment';
         }
       }
       //return response.data.data;
@@ -563,7 +610,7 @@ export class TransactionService {
       throw new BadRequestException('Invalid user ID format');
     }
     const convertedUserId = new Types.ObjectId(userId);
-    console.log('convertedUserId', convertedUserId);
+    // console.log('convertedUserId', convertedUserId);
     try {
       const wallet = await this.walletRepo.findOne({
         user: convertedUserId,
@@ -602,5 +649,15 @@ export class TransactionService {
       referenceCode = '0' + referenceCode;
     }
     return referenceCode;
+  }
+
+  private convertToKobo(amount: number) {
+    const converted = amount * 100;
+    return converted;
+  }
+
+  private convertToNaira(amount: number) {
+    const converted = amount * 100;
+    return converted;
   }
 }

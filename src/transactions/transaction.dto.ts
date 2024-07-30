@@ -27,6 +27,7 @@ export enum paymentMode {
   wallet = 'wallet',
   paystack = 'paystack',
   account_transfer = 'account_transfer',
+  units = 'units',
 }
 
 export class VerifyFundingDto {
@@ -117,7 +118,7 @@ export class NINTransaction {
 
   @IsString()
   @ApiProperty()
-  units: number;
+  amount: number;
 
   @IsString()
   @ApiProperty()
