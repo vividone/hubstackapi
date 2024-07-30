@@ -62,45 +62,7 @@ export class TransactionService {
     if (!validateCustomer) {
       return 'Customer data is invalid';
     } else {
-      const reference = this.generateRequestReference();
-      const transactionData = {
-        transactionType: transactionType.BillPayment,
-        transactionStatus: transactionStatus.Pending,
-        transactionReference: reference,
-        transactionDetails: billPaymentDto,
-        amount: billPaymentDto.amount,
-        paymentMode:billPaymentDto.paymentMode,
-        user: userId,
-      };
-      console.log(transactionData)
-      const createTransaction = await this.createTransaction(transactionData);
-      return createTransaction
-    }
-  }
 
-  
-
-  // async airtimeRecharge(
-  //   billPaymentDto: BillPaymentTransaction,
-  //   userId: string,
-  // ) {
-  //   const paid = await this.processBillPaymentViaWallet(billPaymentDto, userId);
-  //   // Send Bill Payment Advice to Interswitch
-  //   if (paid === true) {
-  //     try {
-  //       const sendPayment = await this.sendPaymentAdvice(
-  //         billPaymentDto,
-  //         userId,
-  //       );
-  //       return sendPayment;
-  //     } catch (error) {
-  //       this.handleAxiosError(error, 'Error making buy recharge ');
-  //     }
-  //     return 'Transaction sucessfull';
-  //   } else {
-  //     return 'Transaction not sucessfull';
-  //   }
-  // }
 
   async ninSearch(ninTransaction: NINTransaction, userId: string) {
     console.log(ninTransaction, userId);
@@ -138,7 +100,7 @@ export class TransactionService {
         return createTransaction;
       }
     } catch (error) {
-      this.handleAxiosError(error, 'Error creating transaction!');
+      this.handleAxiosError(error, 'Transaction Error!');
     }
   }
 
@@ -152,6 +114,17 @@ export class TransactionService {
       const payment = await this.debitWallet(userId, amount)
       return payment;
     }
+  }
+
+  private async processBillPaymentViaAccountTransfer(
+    billPaymentDto: BillPaymentTransaction,
+    userId: string,
+  ) {
+    const { amount } = billPaymentDto;
+    // Debit Wallet
+    const payment = await this.debitWallet(userId, amount);
+
+    return payment;
   }
 
   async initializePaystackWalletFunding(
