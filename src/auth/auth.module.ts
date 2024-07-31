@@ -28,7 +28,7 @@ import { WalletModule } from 'src/wallet/wallet.module';
       inject: [ConfigService],
       useFactory: async () => ({
         secret: process.env.JWT_SECRET,
-        signOptions: { expiresIn: '1h' },
+        signOptions: { expiresIn: '1d' },
       }),
     }),
     ReferralModule,
