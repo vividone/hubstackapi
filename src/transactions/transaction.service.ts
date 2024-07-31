@@ -255,27 +255,27 @@ export class TransactionService {
         paymentCode,
         customerId,
         customerMobile,
-        amountInKobo,
+        amount: amountInKobo,
         requestReference,
       };
       if (process.env.ENV !== 'development') {
         const authResponse = await this.genISWAuthToken();
         const token = authResponse.access_token;
-        // console.log(token);
         const url = `${baseUrl}/Transactions`;
-        const response = await axios.post(url, {
+        const response = await axios.post(url, data, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
             TerminalId,
           },
-          data,
-        });
-        if (response.data.data) {
+        });    
+        if (response.data.ResponseDescription === 'Success') {
+        // const transactionStatusFromISW = await this.getTransactionStatusFromISW(token, requestReference, TerminalId);
+        // console.log(transactionStatusFromISW);
           const updateTransactionData = {
             transactionStatus: transactionStatus.Successful,
+            paymentStatus: paymentStatus.Completed,
           };
-          // Update Transaction
           const updatedTransaction = await this.updateTransaction(
             transactionId,
             updateTransactionData,
@@ -319,14 +319,14 @@ export class TransactionService {
             transactionId,
             updateTransactionData,
           );
-          console.log(updatedTransaction);
+          console.log("MOCK: ", updatedTransaction);
 
           return updatedTransaction;
         } else {
           return 'Error with bill payment';
         }
       }
-      //return response.data.data;
+      
     } catch (error) {
       this.handleAxiosError(error, 'Error sending payment advice');
     }
@@ -435,6 +435,20 @@ export class TransactionService {
       };
       return data;
     }
+  }
+
+  private async getTransactionStatusFromISW(token: string, requestReference: string, TerminalId: string) {
+    const baseUrl = process.env.ISW_BASE_URL;
+    const url = `${baseUrl}/Transactions?requestRef=${requestReference}`;
+    console.log(token, requestReference, TerminalId)
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        TerminalId,
+      },
+    });
+    return response.data;
   }
 
   private handleAxiosError(error: any, defaultMessage: string) {
@@ -645,11 +659,13 @@ export class TransactionService {
     let referenceCode = Math.floor(
       1000000000 + Math.random() * 900000000,
     ).toString();
-    while (referenceCode.length > 10) {
+    for (let i = referenceCode.length; i < 10; i++) {
       referenceCode = '0' + referenceCode;
     }
+  
     return referenceCode;
   }
+  
 
   private convertToKobo(amount: number) {
     const converted = amount * 100;
