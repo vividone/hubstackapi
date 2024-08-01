@@ -21,9 +21,11 @@ import { CustomRequest } from 'src/configs/custom_request';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
+import { ApiKeyGuard } from './apikey.guard';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
+@UseGuards(ApiKeyGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

@@ -509,7 +509,7 @@ export class WalletService {
     return dvaResponse.data;
   }
 
-  // Create a virtual account with flutterwave 
+  // Create a virtual account with flutterwave
 
   async createVirtualAccount(data: CreateWalletDto, id: string) {
     const baseUrl: string = process.env.FLW_BASE_URL;
@@ -526,7 +526,8 @@ export class WalletService {
       //const country = 'NG';
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { existingAccountNumber, existingBankName,mobilenumber, ...rest } = data;
+      const { existingAccountNumber, existingBankName, mobilenumber, ...rest } =
+        data;
       const requestData = {
         ...rest,
         phonenumber: mobilenumber,
@@ -557,7 +558,9 @@ export class WalletService {
         user: user._id,
       };
 
-      const savedVirtualAccount = await this.walletRepo.create(createdVirtualAccount);
+      const savedVirtualAccount = await this.walletRepo.create(
+        createdVirtualAccount,
+      );
 
       return {
         message: 'Virtual Account created successfully',
@@ -571,7 +574,6 @@ export class WalletService {
     }
   }
 
-  
   // async getAVirtualAccount(userId: string) {
   //   try {
   //      if (!Types.ObjectId.isValid(userId)) {
@@ -585,7 +587,7 @@ export class WalletService {
   //      return account;
   //    } catch (error) {
   //      if (error instanceof BadRequestException || error instanceof NotFoundException) {
-  //        throw error; 
+  //        throw error;
   //      }
   //      throw new Error('Error retrieving user wallet');
   //    }

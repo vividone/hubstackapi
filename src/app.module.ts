@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { LoggerMiddleware } from './logger.middleware';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
@@ -12,6 +13,7 @@ import { CategoryModule } from './category/category.module';
 import { ProductModule } from './product/product.module';
 import { TransactionModule } from './transactions/transaction.module';
 import { ReferralModule } from './referrals/referral.module';
+import { ApiKeyModule } from './auth/apikey.module';
 
 @Module({
   imports: [
@@ -33,6 +35,13 @@ import { ReferralModule } from './referrals/referral.module';
     ProductModule,
     CategoryModule,
     TransactionModule,
+    ApiKeyModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware) // assuming you want to add some some loggerMiddleware then you can add it here
+      .forRoutes('*');
+  }
+}

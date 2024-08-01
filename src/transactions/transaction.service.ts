@@ -268,10 +268,10 @@ export class TransactionService {
             'Content-Type': 'application/json',
             TerminalId,
           },
-        });    
+        });
         if (response.data.ResponseDescription === 'Success') {
-        // const transactionStatusFromISW = await this.getTransactionStatusFromISW(token, requestReference, TerminalId);
-        // console.log(transactionStatusFromISW);
+          // const transactionStatusFromISW = await this.getTransactionStatusFromISW(token, requestReference, TerminalId);
+          // console.log(transactionStatusFromISW);
           const updateTransactionData = {
             transactionStatus: transactionStatus.Successful,
             paymentStatus: paymentStatus.Completed,
@@ -319,14 +319,13 @@ export class TransactionService {
             transactionId,
             updateTransactionData,
           );
-          console.log("MOCK: ", updatedTransaction);
+          console.log('MOCK: ', updatedTransaction);
 
           return updatedTransaction;
         } else {
           return 'Error with bill payment';
         }
       }
-      
     } catch (error) {
       this.handleAxiosError(error, 'Error sending payment advice');
     }
@@ -437,10 +436,14 @@ export class TransactionService {
     }
   }
 
-  private async getTransactionStatusFromISW(token: string, requestReference: string, TerminalId: string) {
+  private async getTransactionStatusFromISW(
+    token: string,
+    requestReference: string,
+    TerminalId: string,
+  ) {
     const baseUrl = process.env.ISW_BASE_URL;
     const url = `${baseUrl}/Transactions?requestRef=${requestReference}`;
-    console.log(token, requestReference, TerminalId)
+    console.log(token, requestReference, TerminalId);
     const response = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -662,10 +665,9 @@ export class TransactionService {
     for (let i = referenceCode.length; i < 10; i++) {
       referenceCode = '0' + referenceCode;
     }
-  
+
     return referenceCode;
   }
-  
 
   private convertToKobo(amount: number) {
     const converted = amount * 100;
