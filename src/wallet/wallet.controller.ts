@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   Get,
+  BadRequestException,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { Banks, CreateWalletDto } from './wallet.dto';
@@ -60,20 +61,18 @@ export class WalletController {
     }
   }
 
-  // Flutterwave Implementation
 
-  @Roles('SuperAgent', 'Agent', 'Individual')
+  @Roles('Agent', 'Individual')
   @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   @ApiOperation({ summary: 'Create wallet for a new user' })
   @UseGuards(JwtAuthGuard, RolesAuth)
-  // @Post('create-account')
   @Post('create-wallet')
   async createCustomerWallet(
     @Body() createWalletDto: CreateWalletDto,
     @Req() request: CustomRequest,
   ) {
     try {
-      const userId = request.user.id;
+      const userId = request.user.id; 
       const result = await this.walletService.createCustomerWallet(
         createWalletDto,
         userId,
@@ -84,6 +83,29 @@ export class WalletController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @Roles('Agent', 'Individual')
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Create wallet for a new user' })
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Post('/flutterwave/create-wallet')
+  async createVirtualWallet(
+    @Body() createWalletDto: CreateWalletDto,
+    @Req() request: CustomRequest,
+  ) {
+    try {
+      const userId = request.user.id;
+      const result = await this.walletService.createVirtualAccount(
+        createWalletDto,
+        userId,
+      );
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Roles('Admin', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
@@ -97,18 +119,6 @@ export class WalletController {
     return this.walletService.getUserWallet(userid);
   }
 
-  // @Roles('SuperAgent', 'Agent', 'Individual')
-  // @UseGuards(JwtAuthGuard)
-  // @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
-  // @ApiOperation({ summary: 'Get static account details of a user' })
-  // @Get('account/:accountReference')
-  // async getAStaticVirtualAccount(
-  //   @Param('accountReference') accountReference: string,
-  //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //   @Req() request: CustomRequest,
-  // ) {
-  //   return this.walletService.getAStaticAccount(accountReference);
-  // }
 
   // @Roles('SuperAgent', 'Agent', 'Individual')
   // @UseGuards(JwtAuthGuard)
