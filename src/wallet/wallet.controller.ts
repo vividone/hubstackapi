@@ -61,34 +61,11 @@ export class WalletController {
     }
   }
 
-
   @Roles('Agent', 'Individual')
   @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   @ApiOperation({ summary: 'Create wallet for a new user' })
   @UseGuards(JwtAuthGuard, RolesAuth)
-  @Post('create-wallet')
-  async createCustomerWallet(
-    @Body() createWalletDto: CreateWalletDto,
-    @Req() request: CustomRequest,
-  ) {
-    try {
-      const userId = request.user.id; 
-      const result = await this.walletService.createCustomerWallet(
-        createWalletDto,
-        userId,
-      );
-      return result;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  @Roles('Agent', 'Individual')
-  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
-  @ApiOperation({ summary: 'Create wallet for a new user' })
-  @UseGuards(JwtAuthGuard, RolesAuth)
-  @Post('/flutterwave/create-wallet')
+  @Post('/create-wallet')
   async createVirtualWallet(
     @Body() createWalletDto: CreateWalletDto,
     @Req() request: CustomRequest,
@@ -105,6 +82,30 @@ export class WalletController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+
+  // @Roles('Agent', 'Individual')
+  // @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  // @ApiOperation({ summary: 'Create wallet for a new user' })
+  // @UseGuards(JwtAuthGuard, RolesAuth)
+  // @Post('/paystack/create-wallet')
+  // async createCustomerWallet(
+  //   @Body() createWalletDto: CreateWalletDto,
+  //   @Req() request: CustomRequest,
+  // ) {
+  //   try {
+  //     const userId = request.user.id; 
+  //     const result = await this.walletService.createCustomerWallet(
+  //       createWalletDto,
+  //       userId,
+  //     );
+  //     return result;
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+  //   }
+  // }
+
 
   @Roles('Admin', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
