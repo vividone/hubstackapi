@@ -22,9 +22,11 @@ import {
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { CustomRequest } from 'src/configs/custom_request';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
 
 @ApiTags('Transactions')
 @Controller('transact')
+@UseGuards(ApiKeyGuard)
 export class TransactionController {
   constructor(private readonly transactService: TransactionService) {}
 

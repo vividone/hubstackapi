@@ -11,9 +11,11 @@ import {
 import { TransactionService } from './transaction.service';
 import { TransactionController } from './transaction.controller';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { ApiKeyModule } from 'src/auth/apikey.module';
 
 @Module({
-  providers: [TransactionService, TransactionRepository],
+  providers: [TransactionService, TransactionRepository, ApiKeyGuard],
   controllers: [TransactionController],
   exports: [TransactionRepository, TransactionService],
   imports: [
@@ -27,6 +29,7 @@ import { WalletModule } from 'src/wallet/wallet.module';
     JwtModule,
     UsersModule,
     WalletModule,
+    ApiKeyModule,
   ],
 })
 export class TransactionModule {}
