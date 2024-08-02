@@ -5,9 +5,11 @@ import { CategoryRepository } from 'src/entity/repositories/category.repo';
 import { Category, CategorySchema } from 'src/entity';
 import { HttpModule } from '@nestjs/axios';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { ApiKeyModule } from 'src/auth/apikey.module';
 
 @Module({
-  providers: [CategoryService, CategoryRepository],
+  providers: [CategoryService, CategoryRepository, ApiKeyGuard],
   controllers: [CategoryController],
   imports: [
     MongooseModule.forFeature([
@@ -17,6 +19,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       timeout: 5000,
       maxRedirects: 5,
     }),
+    ApiKeyModule,
   ],
   exports: [],
 })

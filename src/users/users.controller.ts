@@ -6,9 +6,11 @@ import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { CreateUserDto } from './users.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
 
 @ApiTags('User Operations')
 @Controller('users')
+@UseGuards(ApiKeyGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

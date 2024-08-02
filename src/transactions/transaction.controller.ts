@@ -22,9 +22,11 @@ import {
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { CustomRequest } from 'src/configs/custom_request';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
 
 @ApiTags('Transactions')
 @Controller('transact')
+@UseGuards(ApiKeyGuard)
 export class TransactionController {
   constructor(private readonly transactService: TransactionService) {}
 
@@ -49,23 +51,52 @@ export class TransactionController {
     }
   }
 
-  @Roles('Agent', 'Admin', 'Individual')
+  @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
     type: [TransactionDto],
     description: 'expected response',
   })
-  @ApiOperation({ summary: 'Get all transactions' })
-  @Get('/all/:userId/:transactionType')
+  @ApiOperation({
+    summary:
+      'Get transactions by type fundwalet, debitwallet, billpayment, buyunit, ninsearch',
+  })
+  @Get('/all/:transactionType')
   async getTransactions(
-    @Param('userid') userId: string,
+    @Req() request: CustomRequest,
     @Param('transactionType') transactionType: string,
   ) {
+    const userId = request.user.id;
+
     try {
       const getTransaction = await this.transactService.getTransactions(
         userId,
         transactionType,
       );
+      return getTransaction;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while retrieving transaction');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: [TransactionDto],
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Get wallet transactions by logged in user' })
+  @Get('/wallet-transactions/')
+  async getWalletTransactions(@Req() request: CustomRequest) {
+    const userId = request.user.id;
+
+    try {
+      const getTransaction =
+        await this.transactService.getWalletTransactions(userId);
       return getTransaction;
     } catch (error) {
       if (error instanceof NotFoundException) {

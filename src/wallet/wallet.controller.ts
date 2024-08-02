@@ -8,7 +8,6 @@ import {
   UseGuards,
   Req,
   Get,
-  BadRequestException,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { Banks, CreateWalletDto } from './wallet.dto';
@@ -18,9 +17,11 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { CustomRequest } from 'src/configs/custom_request';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Wallet } from 'src/entity';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
 
 @ApiTags('Wallet')
 @Controller('wallet')
+@UseGuards(ApiKeyGuard)
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 

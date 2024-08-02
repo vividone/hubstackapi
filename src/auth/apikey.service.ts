@@ -10,7 +10,7 @@ export class ApiKeyService {
   constructor(private readonly apiKeyRepo: ApiKeyRepository) {}
 
   async isKeyValid(apiKey: string) {
-    console.log(apiKey);
+    // console.log(apiKey);
     let valid = false;
     const response = await this.apiKeyRepo.findOne({ secretKey: apiKey });
     if (!response) {

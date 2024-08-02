@@ -367,7 +367,7 @@ export class WalletService {
       throw new BadRequestException('Invalid user ID format');
     }
     const convertedUserId = new Types.ObjectId(userId);
-    console.log('convertedUserId', convertedUserId);
+    // console.log('convertedUserId', convertedUserId);
     try {
       const wallet = await this.walletRepo.findOne({
         user: convertedUserId,
@@ -438,7 +438,7 @@ export class WalletService {
       // The request was made and the server responded with a status code
       // that falls out of the range of 2xx
       const { status, statusText, data } = error.response;
-      console.error('HTTP Error:', defaultMessage, status, statusText, data);
+      // console.error('HTTP Error:', defaultMessage, status, statusText, data);
       throw new BadRequestException({
         message: defaultMessage,
         statusCode: status,
@@ -458,7 +458,7 @@ export class WalletService {
     const baseUrl: string = process.env.PSTK_BASE_URL;
     const secretKey: string = process.env.PSTK_SECRET_KEY;
 
-    console.log('Validaate Payload: ', validatePayload);
+    // console.log('Validaate Payload: ', validatePayload);
 
     const { account_number, bank_code } = validatePayload;
 
@@ -476,7 +476,7 @@ export class WalletService {
       if (!resolves) {
         throw new NotFoundException('Not found');
       }
-      console.log(response);
+      // console.log(response);
 
       return resolves;
     } catch (error) {
@@ -534,7 +534,7 @@ export class WalletService {
         is_permanent: true,
         tx_ref: account_reference,
       };
-      console.log('DATA TO FLW', requestData);
+      // console.log('DATA TO FLW', requestData);
 
       const response = await axios.post(
         `${baseUrl}/virtual-account-numbers`,

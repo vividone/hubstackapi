@@ -6,10 +6,12 @@ import { UserRepository } from 'src/entity/repositories/user.repo';
 import { MongooseModule } from '@nestjs/mongoose';
 import { HttpModule } from '@nestjs/axios';
 import { JwtModule } from '@nestjs/jwt';
+import { ApiKeyModule } from 'src/auth/apikey.module';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
 
 @Module({
   controllers: [UsersController],
-  providers: [UsersService, UserRepository],
+  providers: [UsersService, UserRepository, ApiKeyGuard],
   imports: [
     MongooseModule.forFeature([{ name: Users.name, schema: UserSchema }]),
     HttpModule.register({
@@ -17,6 +19,7 @@ import { JwtModule } from '@nestjs/jwt';
       maxRedirects: 5,
     }),
     JwtModule,
+    ApiKeyModule,
   ],
   exports: [UsersService, UserRepository],
 })

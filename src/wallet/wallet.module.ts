@@ -7,9 +7,11 @@ import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { Wallet, WalletSchema } from 'src/entity';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from 'src/users/users.module';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { ApiKeyModule } from 'src/auth/apikey.module';
 
 @Module({
-  providers: [WalletService, WalletRepository],
+  providers: [WalletService, WalletRepository, ApiKeyGuard],
   controllers: [WalletController],
   exports: [WalletRepository, WalletService],
   imports: [
@@ -20,6 +22,7 @@ import { UsersModule } from 'src/users/users.module';
     }),
     JwtModule,
     UsersModule,
+    ApiKeyModule,
   ],
 })
 export class WalletModule {}

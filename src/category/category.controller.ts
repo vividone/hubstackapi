@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import {
   BillerCategoriesDto,
@@ -6,9 +6,11 @@ import {
   InterswitchCategoryBillers,
 } from './category.dto';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
 
 @ApiTags('Services')
 @Controller('categories')
+@UseGuards(ApiKeyGuard)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
