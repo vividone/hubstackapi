@@ -12,6 +12,10 @@ import { OtpService } from 'src/mailing/otp.mail';
 import { EmailService } from 'src/configs/email.helper';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { ApiKeyGuard } from './apikey.guard';
+import { ApiKeyService } from './apikey.service';
+import { ApiKeyModule } from './apikey.module';
+
 @Module({
   controllers: [AuthController],
   providers: [
@@ -21,6 +25,8 @@ import { WalletModule } from 'src/wallet/wallet.module';
     OtpService,
     EmailService,
     ResetPasswordService,
+    ApiKeyGuard,
+    ApiKeyService,
   ],
   imports: [
     JwtModule.registerAsync({
@@ -28,7 +34,7 @@ import { WalletModule } from 'src/wallet/wallet.module';
       inject: [ConfigService],
       useFactory: async () => ({
         secret: process.env.JWT_SECRET,
-        signOptions: { expiresIn: '1h' },
+        signOptions: { expiresIn: '1d' },
       }),
     }),
     ReferralModule,
@@ -36,6 +42,7 @@ import { WalletModule } from 'src/wallet/wallet.module';
     UsersModule,
     PassportModule,
     WalletModule,
+    ApiKeyModule,
   ],
   exports: [AuthService],
 })

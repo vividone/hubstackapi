@@ -435,15 +435,21 @@ export class WalletService {
   }
   private handleAxiosError(error: any, defaultMessage: string) {
     if (error.response) {
-      console.error('HTTP Error:', defaultMessage);
-      throw new BadRequestException(defaultMessage);
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      const { status, statusText, data } = error.response;
+      console.error('HTTP Error:', defaultMessage, status, statusText, data);
+      throw new BadRequestException({
+        message: defaultMessage,
+        statusCode: status,
+        statusText: statusText,
+        details: data,
+      });
     } else if (error.request) {
-      console.error('No response received from the server');
       throw new InternalServerErrorException(
         'No response received from the server',
       );
     } else {
-      console.error('Error message:', 'An unexpected error occurred');
       throw new InternalServerErrorException(defaultMessage);
     }
   }
@@ -503,79 +509,89 @@ export class WalletService {
     return dvaResponse.data;
   }
 
-  // Flutterwave Implementation
+  // Create a virtual account with flutterwave
 
-  // async createSubaccount(data: CreateWalletDto, id: string) {
-  //   const baseUrl: string = process.env.FLW_BASE_URL;
-  //   const secretKey: string = process.env.FLW_SECRET_KEY;
+  async createVirtualAccount(data: CreateWalletDto, id: string) {
+    const baseUrl: string = process.env.FLW_BASE_URL;
+    const secretKey: string = process.env.FLW_SECRET_KEY;
+    try {
+      const user = await this.userRepo.findOne({ _id: id });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const email: string = user.email;
+      const account_reference: string = this.generateAccountReference();
+      //const country = 'NG';
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { existingAccountNumber, existingBankName, mobilenumber, ...rest } =
+        data;
+      const requestData = {
+        ...rest,
+        phonenumber: mobilenumber,
+        is_permanent: true,
+        tx_ref: account_reference,
+      };
+      console.log('DATA TO FLW', requestData);
+
+      const response = await axios.post(
+        `${baseUrl}/virtual-account-numbers`,
+        requestData,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      const { account_number, account_name, bank_name } = response.data.data;
+
+      const createdVirtualAccount = {
+        email: email,
+        accountName: account_name,
+        accountNumber: account_number,
+        bankName: bank_name,
+        accountReference: account_reference,
+        user: user._id,
+      };
+
+      const savedVirtualAccount = await this.walletRepo.create(
+        createdVirtualAccount,
+      );
+
+      return {
+        message: 'Virtual Account created successfully',
+        data: savedVirtualAccount,
+      };
+    } catch (error) {
+      this.handleAxiosError(
+        error,
+        'An error occurred while creating virtual account with flutterwave',
+      );
+    }
+  }
+
+  // async getAVirtualAccount(userId: string) {
   //   try {
-  //     const user = await this.userRepo.findOne({ _id: id });
-
-  //     if (!user) {
-  //       throw new NotFoundException('User not found');
-  //     }
-
-  //     const email: string = user.email;
-  //     const account_reference: string = this.generateAccountReference();
-  //     const country = 'NG';
-
-  //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  //     const { bvn, ...rest } = data;
-  //     const requestData = {
-  //       email,
-  //       account_name: `${data.firstname} ${data.lastname}`,
-  //       account_reference,
-  //       country,
-  //     };
-  //     console.log('DATA TO FLW', requestData);
-
-  //     const response = await axios.post(
-  //       `${baseUrl}/payout-subaccounts`,
-  //       requestData,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${secretKey}`,
-  //           'Content-Type': 'application/json',
-  //         },
-  //       },
-  //     );
-
-  //     console.log('RESPONSE FROM FLW', response);
-
-  //     const { nuban, account_name, bank_code, bank_name } = response.data.data;
-
-  //     const createdSubaccount = {
-  //       email: email,
-  //       accountName: account_name,
-  //       accountNumber: nuban,
-  //       bankName: bank_name,
-  //       bankCode: bank_code,
-  //       accountReference: account_reference,
-  //       user: user._id,
-  //     };
-
-  //     const savedSubaccount = await this.walletRepo.create(createdSubaccount);
-
-  //     return {
-  //       message: 'Subaccount created successfully',
-  //       data: savedSubaccount,
-  //     };
-  //   } catch (error) {
-  //     if (error.response) {
-  //       console.error('Error response data:', error.response.data);
-  //       throw new Error(
-  //         error.response.data.message ||
-  //           'An error occurred while creating subaccount',
-  //       );
-  //     } else if (error.request) {
-  //       console.error('Error request:', error.request);
-  //       throw new Error('No response received from the server');
-  //     } else {
-  //       console.error('Error message:', error.message);
-  //       throw new Error('An error occurred while creating subaccount');
-  //     }
-  //   }
-  // }
+  //      if (!Types.ObjectId.isValid(userId)) {
+  //        throw new BadRequestException('Invalid user ID format');
+  //      }
+  //      const convertedUserId = new Types.ObjectId(userId);
+  //      const account = await this.walletRepo.findOne({ user: convertedUserId });
+  //      if (!account) {
+  //        throw new NotFoundException('Wallet not found');
+  //      }
+  //      return account;
+  //    } catch (error) {
+  //      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+  //        throw error;
+  //      }
+  //      throw new Error('Error retrieving user wallet');
+  //    }
+  //  }
 
   // async getSubaccountBalance(accountReference: string) {
   //   const baseUrl: string = process.env.FLW_BASE_URL;
@@ -615,7 +631,7 @@ export class WalletService {
   //   }
   // }
 
-  // async getAStaticAccount(accountReference: string) {
+  // async getAccountNumber(accountReference: string) {
   //   const baseUrl: string = process.env.FLW_BASE_URL;
   //   const secretKey: string = process.env.FLW_SECRET_KEY;
 
@@ -748,44 +764,6 @@ export class WalletService {
 
   //     return {
   //       message: 'Balance fetched successfully',
-  //       data: response.data.data,
-  //     };
-  //   } catch (error) {
-  //     console.error('Error:', error);
-
-  //     if (error.response) {
-  //       console.error('Error response data:', error.response.data);
-  //       throw new Error(
-  //         error.response.data.message ||
-  //           'An error occurred while fetching balance',
-  //       );
-  //     } else if (error.request) {
-  //       console.error('Error request:', error.request);
-  //       throw new Error('No response received from the server');
-  //     } else {
-  //       console.error('Error message:', error.message);
-  //       throw new Error('An error occurred while fetching balance');
-  //     }
-  //   }
-  // }
-
-  // async getAStaticAccount(accountReference: string) {
-  //   const baseUrl: string = process.env.FLW_BASE_URL;
-  //   const secretKey: string = process.env.FLW_SECRET_KEY;
-
-  //   try {
-  //     const response = await axios.get(
-  //       `${baseUrl}/payout-subaccounts/${accountReference}/static-account`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${secretKey}`,
-  //           'Content-Type': 'application/json',
-  //         },
-  //       },
-  //     );
-
-  //     return {
-  //       message: 'Account fetched successfully',
   //       data: response.data.data,
   //     };
   //   } catch (error) {
