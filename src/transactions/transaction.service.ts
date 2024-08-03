@@ -96,9 +96,8 @@ export class TransactionService {
     }
   }
 
-
   async buyAirtime(billPaymentDto: BillPaymentTransaction, userId: string) {
-    const { customerCode} = billPaymentDto;
+    const { customerCode } = billPaymentDto;
 
     if (paymentMode.wallet) {
       const payWithWallet = await this.processBillPaymentViaWallet(
@@ -117,8 +116,7 @@ export class TransactionService {
           transactionDetails: billPaymentDto,
           user: userId,
         };
-        const createTransaction =
-          await this.createTransaction(transactionData);
+        const createTransaction = await this.createTransaction(transactionData);
         return createTransaction;
       }
     }

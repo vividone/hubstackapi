@@ -296,8 +296,6 @@ export class TransactionController {
     }
   }
 
-
-  
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
@@ -311,7 +309,10 @@ export class TransactionController {
     @Param('userId') userId: string,
   ) {
     try {
-      const bill = await this.transactService.buyAirtime(billPaymentDto, userId);
+      const bill = await this.transactService.buyAirtime(
+        billPaymentDto,
+        userId,
+      );
       return bill;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -321,8 +322,6 @@ export class TransactionController {
       }
     }
   }
-
-  
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
