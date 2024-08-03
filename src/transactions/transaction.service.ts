@@ -96,6 +96,32 @@ export class TransactionService {
     }
   }
 
+  async buyAirtime(billPaymentDto: BillPaymentTransaction, userId: string) {
+    const { customerCode } = billPaymentDto;
+
+    if (paymentMode.wallet) {
+      const payWithWallet = await this.processBillPaymentViaWallet(
+        billPaymentDto,
+        userId,
+      );
+
+      if (payWithWallet.transactionStatus === transactionStatus.Successful) {
+        const reference = this.generateRequestReference();
+        const transactionData = {
+          transactionReference: reference,
+          amount: billPaymentDto.amount,
+          transactionType: transactionType.BillPayment,
+          transactionStatus: transactionStatus.Pending,
+          paymentMode: billPaymentDto.paymentMode,
+          transactionDetails: billPaymentDto,
+          user: userId,
+        };
+        const createTransaction = await this.createTransaction(transactionData);
+        return createTransaction;
+      }
+    }
+  }
+
   async ninSearch(ninTransaction: NINTransaction, userId: string) {
     const reference = this.generateRequestReference();
 
@@ -277,6 +303,7 @@ export class TransactionService {
             TerminalId,
           },
         });
+        //console.log('data: ', response.data);
         if (response.data.ResponseDescription === 'Success') {
           // const transactionStatusFromISW = await this.getTransactionStatusFromISW(token, requestReference, TerminalId);
           // console.log(transactionStatusFromISW);

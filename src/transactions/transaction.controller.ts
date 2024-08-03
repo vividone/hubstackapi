@@ -254,8 +254,8 @@ export class TransactionController {
     type: TransactionDto,
     description: 'expected response',
   })
-  @ApiOperation({ summary: 'Pay Bill' })
-  @Post('/:userId/pay-bill/')
+  @ApiOperation({ summary: 'Pay Electricity Bill' })
+  @Post('/:userId/pay-bill/electricity')
   async payBill(
     @Body() billPaymentDto: BillPaymentTransaction,
     @Param('userId') userId: string,
@@ -267,7 +267,133 @@ export class TransactionController {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        throw new Error('An error occurred while paying the bill');
+        throw new Error('An error occurred while paying Electricity bill');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Pay Cable Bills' })
+  @Post('/:userId/pay-bill/cable')
+  async payCableBill(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.payBills(billPaymentDto, userId);
+      return bill;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while paying cable bill');
+      }
+    }
+  }
+
+  
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'fund betting account' })
+  @Post('/:userId/pay-bill/betting')
+  async fundBettingAccount(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.payBills(billPaymentDto, userId);
+      return bill;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding betting account');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'pay internet bills' })
+  @Post('/:userId/pay-bill/internet')
+  async payInternetBills(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.payBills(billPaymentDto, userId);
+      return bill;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while paying internet bills');
+      }
+    }
+  }
+
+
+  
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Buy Airtime' })
+  @Post('/:userId/buy-airtime')
+  async buyAirtime(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.buyAirtime(
+        billPaymentDto,
+        userId,
+      );
+      return bill;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while Buying Airtime');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Buy Data' })
+  @Post('/:userId/buy-data')
+  async buyData(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.buyAirtime(billPaymentDto, userId);
+      return bill;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while Buying Data');
       }
     }
   }

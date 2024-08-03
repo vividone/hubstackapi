@@ -84,7 +84,6 @@ export class WalletController {
     }
   }
 
-
   // @Roles('Agent', 'Individual')
   // @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   // @ApiOperation({ summary: 'Create wallet for a new user' })
@@ -95,7 +94,7 @@ export class WalletController {
   //   @Req() request: CustomRequest,
   // ) {
   //   try {
-  //     const userId = request.user.id; 
+  //     const userId = request.user.id;
   //     const result = await this.walletService.createCustomerWallet(
   //       createWalletDto,
   //       userId,
@@ -106,7 +105,6 @@ export class WalletController {
   //     throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
   //   }
   // }
-
 
   @Roles('Admin', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
