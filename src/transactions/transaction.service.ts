@@ -21,13 +21,14 @@ import {
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { Types } from 'mongoose';
 import { UsersService } from 'src/users/users.service';
+import { Transaction } from 'src/entity';
 @Injectable()
 export class TransactionService {
   constructor(
     private readonly userService: UsersService,
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
-  ) {}
+  ) { }
 
   async getAllTransactions() {
     const transactions = await this.transactionRepo.find();
@@ -59,12 +60,12 @@ export class TransactionService {
   }
 
   async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
-    const { paymentCode, customerCode } = billPaymentDto;
+    const { paymentCode, customerId } = billPaymentDto;
 
     //Validate Customer
     const validateCustomer = await this.validateCustomer(
       paymentCode,
-      customerCode,
+      customerId,
     );
 
     if (!validateCustomer) {
@@ -96,33 +97,45 @@ export class TransactionService {
     }
   }
 
-
-  async buyAirtime(billPaymentDto: BillPaymentTransaction, userId: string) {
-    const { customerCode} = billPaymentDto;
-
-    if (paymentMode.wallet) {
-      const payWithWallet = await this.processBillPaymentViaWallet(
-        billPaymentDto,
-        userId,
-      );
-
-      if (payWithWallet.transactionStatus === transactionStatus.Successful) {
-        const reference = this.generateRequestReference();
-        const transactionData = {
-          transactionReference: reference,
-          amount: billPaymentDto.amount,
-          transactionType: transactionType.BillPayment,
-          transactionStatus: transactionStatus.Pending,
-          paymentMode: billPaymentDto.paymentMode,
-          transactionDetails: billPaymentDto,
-          user: userId,
-        };
-        const createTransaction =
-          await this.createTransaction(transactionData);
-        return createTransaction;
+  //buying airtime and data function
+  async payPhoneBills(billPaymentDto: BillPaymentTransaction, userId: string) {
+    try {
+      const { customerId } = billPaymentDto;
+  
+      if (paymentMode.wallet) {
+        const payWithWallet = await this.processBillPaymentViaWallet(
+          billPaymentDto,
+          userId,
+        );
+  
+        if (payWithWallet.transactionStatus === transactionStatus.Successful) {
+          const reference = this.generateRequestReference();
+          const transactionData = {
+            transactionReference: reference,
+            amount: billPaymentDto.amount,
+            transactionType: transactionType.BillPayment,
+            transactionStatus: transactionStatus.Pending,
+            paymentMode: billPaymentDto.paymentMode,
+            transactionDetails: billPaymentDto,
+            user: userId,
+          };
+  
+          const createTransaction = await this.createTransaction(transactionData);
+          const { transactionDetails, _id } = createTransaction;
+          const transactionId = _id.toString();
+          const response = await this.sendPaymentAdvice(transactionDetails, userId, transactionId);
+          return response;
+        } else {
+          throw new Error('Payment via wallet was not successful');
+        }
+      } else {
+        throw new Error('Unsupported payment mode');
       }
+    } catch (error) {
+      throw new Error('An error occurred while processing the phone bill payment: ' + error.message);
     }
   }
+  
 
   async ninSearch(ninTransaction: NINTransaction, userId: string) {
     const reference = this.generateRequestReference();
@@ -192,11 +205,15 @@ export class TransactionService {
     userId: string,
   ) {
     const { amount } = billPaymentDto;
-    // Debit Wallet
-    const payment = await this.debitWallet(userId, amount);
-    return payment;
+  
+    try {
+      const payment = await this.debitWallet(userId, amount);
+      return payment;
+    } catch (error) {
+      throw new Error('An error occurred while processing bill payment via wallet: ' + error.message);
+    }
   }
-
+  
   async initializePaystackWalletFunding(
     initializeWalletFunding: InitializeWalletFunding,
   ) {
@@ -286,6 +303,7 @@ export class TransactionService {
       } = transactionDetails;
 
       const amountInKobo = this.convertToKobo(amount);
+      console.log(amountInKobo)
       const data = {
         customerEmail,
         paymentCode,
@@ -294,75 +312,31 @@ export class TransactionService {
         amount: amountInKobo,
         requestReference,
       };
-      if (process.env.ENV !== 'development') {
-        const authResponse = await this.genISWAuthToken();
-        const token = authResponse.access_token;
-        const url = `${baseUrl}/Transactions`;
-        const response = await axios.post(url, data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            TerminalId,
-          },
-        });
-        //console.log('data: ', response.data);
-        if (response.data.ResponseDescription === 'Success') {
-          // const transactionStatusFromISW = await this.getTransactionStatusFromISW(token, requestReference, TerminalId);
-          // console.log(transactionStatusFromISW);
-          const updateTransactionData = {
-            transactionStatus: transactionStatus.Successful,
-            paymentStatus: paymentStatus.Completed,
-          };
-          const updatedTransaction = await this.updateTransaction(
-            transactionId,
-            updateTransactionData,
-          );
-          return updatedTransaction;
-        }
-      } else {
-        const data = {
-          billPayment: {
-            biller: 'MCN',
-            customerId1: '000000001',
-            customerId2: null,
-            paymentTypeName: 'Family',
-            paymentTypeCode: 'COFAMW4',
-            billerId: '104',
-          },
-          amount: '2000',
-          currencyCode: '566',
-          customer: '000000001',
-          customerEmail: 'test@interswitchng.com',
-          customerMobile: '08065186175',
-          paymentDate: '7/18/2016 8:53:39 AM',
-          requestReference: '119420151169',
-          serviceCode: 'COFAMW4',
-          serviceName: 'Family',
-          serviceProviderId: '104',
-          status: 'Completed',
-          surcharge: '100',
-          transactionRef: 'FTH|Web|3FTH0001|MCN|180716085339|00000002',
-          transactionResponseCode: '90000',
-          transactionSet: 'BillPayment',
+      const authResponse = await this.genISWAuthToken();
+      const token = authResponse.access_token;
+      const url = `${baseUrl}/Transactions`;
+      const response = await axios.post(url, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          TerminalId,
+        },
+      });
+      //console.log('data: ', response.data);
+      if (response.data.ResponseDescription === 'Success') {
+        // const transactionStatusFromISW = await this.getTransactionStatusFromISW(token, requestReference, TerminalId);
+        // console.log(transactionStatusFromISW);
+        const updateTransactionData = {
+          transactionStatus: transactionStatus.Successful,
+          paymentStatus: paymentStatus.Completed,
         };
-
-        if (data.status === 'Completed') {
-          const updateTransactionData = {
-            transactionStatus: transactionStatus.Successful,
-            paymentStatus: paymentStatus.Completed,
-          };
-          // Update Transaction
-          const updatedTransaction = await this.updateTransaction(
-            transactionId,
-            updateTransactionData,
-          );
-          console.log('MOCK: ', updatedTransaction);
-
-          return updatedTransaction;
-        } else {
-          return 'Error with bill payment';
-        }
+        const updatedTransaction = await this.updateTransaction(
+          transactionId,
+          updateTransactionData,
+        );
+        return updatedTransaction;
       }
+
     } catch (error) {
       this.handleAxiosError(error, 'Error sending payment advice');
     }
@@ -602,37 +576,45 @@ export class TransactionService {
   }
 
   private async debitWallet(userId: string, chargeAmount: number) {
-    const walletBalance = await this.getUserWallet(userId);
-    const { balance, _id } = walletBalance;
-    if (balance > chargeAmount) {
-      const newBalance = balance - chargeAmount;
-
-      // Update Wallet
-      const updateWallet = await this.walletRepo.findOneAndUpdate(
-        { _id: _id },
-        { balance: newBalance },
-      );
-      // Create Wallet Debit Transaction
-      if (updateWallet) {
-        const ref = this.generateTransactionReference();
-        const transactionData = {
-          transactionType: transactionType.DebitWallet,
-          transactionStatus: transactionStatus.Successful,
-          transactionReference: ref,
-          amount: chargeAmount,
-          user: userId,
-          transactionDetails: 'Wallet Debit',
-          paymentMode: paymentMode.wallet,
-        };
-
-        const debitWalletResponse =
-          await this.createTransaction(transactionData);
-        return debitWalletResponse;
+    try {
+      const walletBalance = await this.getUserWallet(userId);
+      const { balance, _id } = walletBalance;
+  
+      if (balance < chargeAmount) {
+        throw new Error('Insufficient Wallet Balance');
+      } else if (balance >= chargeAmount) {
+        const newBalance = balance - chargeAmount;
+  
+        // Update Wallet
+        const updateWallet = await this.walletRepo.findOneAndUpdate(
+          { _id: _id },
+          { balance: newBalance }
+        );
+  
+        // Create Wallet Debit Transaction
+        if (updateWallet) {
+          const ref = this.generateTransactionReference();
+          const transactionData = {
+            transactionType: transactionType.DebitWallet,
+            transactionStatus: transactionStatus.Successful,
+            transactionReference: ref,
+            amount: chargeAmount,
+            user: userId,
+            transactionDetails: 'Wallet Debit',
+            paymentMode: paymentMode.wallet,
+          };
+  
+          const debitWalletResponse = await this.createTransaction(transactionData);
+          return debitWalletResponse;
+        } else {
+          throw new Error('Failed to update wallet');
+        }
       }
-    } else {
-      throw new Error('An error occurred while debitting wallet');
+    } catch (error) {
+      throw new Error('An error occurred while debiting wallet: ' + error.message);
     }
   }
+  
 
   private async fundWallet(userId: string, amount: number) {
     try {

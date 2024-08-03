@@ -72,7 +72,7 @@ export class BillPaymentTransaction {
 
   @IsString()
   @ApiProperty()
-  customerCode: string;
+  customerId: string;
 
   @IsString()
   @ApiProperty()
