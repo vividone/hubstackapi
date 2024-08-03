@@ -296,6 +296,57 @@ export class TransactionController {
     }
   }
 
+  
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'fund betting account' })
+  @Post('/:userId/pay-bill/betting')
+  async fundBettingAccount(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.payBills(billPaymentDto, userId);
+      return bill;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding betting account');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'pay internet bills' })
+  @Post('/:userId/pay-bill/internet')
+  async payInternetBills(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.payBills(billPaymentDto, userId);
+      return bill;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while paying internet bills');
+      }
+    }
+  }
+
+
+  
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
@@ -319,6 +370,30 @@ export class TransactionController {
         throw new NotFoundException(error.message);
       } else {
         throw new Error('An error occurred while Buying Airtime');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Buy Data' })
+  @Post('/:userId/buy-data')
+  async buyData(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.buyAirtime(billPaymentDto, userId);
+      return bill;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while Buying Data');
       }
     }
   }
