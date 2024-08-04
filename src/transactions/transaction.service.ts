@@ -97,6 +97,7 @@ export class TransactionService {
   }
 
   async buyAirtime(billPaymentDto: BillPaymentTransaction, userId: string) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { customerCode } = billPaymentDto;
 
     if (paymentMode.wallet) {
