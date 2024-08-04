@@ -14,7 +14,7 @@ export class CategoryService {
 
   async getBillPaymentCategories() {
     const categories = await this.categoryRepo.find({
-      categoryType: 'billpayment',
+      categoryType: 'billpayments',
     });
     return categories;
   }
