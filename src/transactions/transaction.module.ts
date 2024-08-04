@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -28,8 +28,8 @@ import { ApiKeyModule } from 'src/auth/apikey.module';
     }),
     JwtModule,
     UsersModule,
-    WalletModule,
     ApiKeyModule,
+    forwardRef(() => WalletModule),
   ],
 })
 export class TransactionModule {}

@@ -18,10 +18,10 @@ import {
   transactionStatus,
   transactionType,
 } from './transaction.dto';
-import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { Types } from 'mongoose';
 import { UsersService } from 'src/users/users.service';
-import { Transaction } from 'src/entity';
+import { WalletService } from 'src/wallet/wallet.service';
+import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 @Injectable()
 export class TransactionService {
   constructor(
@@ -41,6 +41,29 @@ export class TransactionService {
       transactionType: transactionType,
     });
     return transactions;
+  }
+
+  async getUserWallet(userId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    const convertedUserId = new Types.ObjectId(userId);
+    // console.log('convertedUserId', convertedUserId);
+    try {
+      const wallet = await this.walletRepo.findOne({
+        user: convertedUserId,
+      });
+      if (!wallet) {
+        throw new NotFoundException('Wallet not found');
+      }
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new Error('An error occurred while fetching the wallet');
+      }
+    }
   }
 
   async getWalletTransactions(userId: string) {
@@ -169,95 +192,8 @@ export class TransactionService {
     };
     return transactionData;
   }
-
-  async fundWalletProcess(userId: string, transactionId: string) {
-    try {
-      const transaction = await this.transactionRepo.findOne({
-        _id: transactionId,
-      });
-      const { amount, reference } = transaction;
-      const verifyPayment = await this.verifyPayment(reference);
-      if (!verifyPayment) {
-        return BadRequestException;
-      }
-      const update = await this.fundWallet(userId, amount);
-      if (update) {
-        const transactionData = {
-          transactionType: transactionType.WalletFunding,
-          transactionStatus: transactionStatus.Successful,
-          transactionReference: reference,
-          transactionDetails: transaction,
-          user: userId,
-        };
-        const createTransaction = this.updateTransaction(
-          transactionId,
-          transactionData,
-        );
-        return createTransaction;
-      }
-    } catch (error) {
-      this.handleAxiosError(error, 'Transaction Error!');
-    }
-  }
-
-  private async processBillPaymentViaWallet(
-    billPaymentDto: BillPaymentTransaction,
-    userId: string,
-  ) {
-    const { amount } = billPaymentDto;
   
-    try {
-      const payment = await this.debitWallet(userId, amount);
-      return payment;
-    } catch (error) {
-      throw new Error('An error occurred while processing bill payment via wallet: ' + error.message);
-    }
-  }
   
-  async initializePaystackWalletFunding(
-    initializeWalletFunding: InitializeWalletFunding,
-  ) {
-    const baseUrl = process.env.PSTK_BASE_URL;
-    const secretKey = process.env.PSTK_SECRET_KEY;
-    // const reference = this.generateTransactionReference();
-    const data = {
-      email: initializeWalletFunding.email,
-      amount: initializeWalletFunding.amount,
-    };
-    // console.log('data sent to paystack', initializeWalletFunding);
-    try {
-      const response = await axios.post(
-        `${baseUrl}/transaction/initialize`,
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${secretKey}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      const { reference } = response.data.data;
-      const { status } = response.data;
-
-      if (status === true) {
-        const transactionData = {
-          transactionReference: reference,
-          amount: initializeWalletFunding.amount,
-          transactionType: transactionType.WalletFunding,
-          transactionStatus: transactionStatus.Pending,
-          paymentMode: initializeWalletFunding.paymentMode,
-          transactionDetails: initializeWalletFunding,
-          user: initializeWalletFunding.userId,
-        };
-
-        const startTransaction = await this.createTransaction(transactionData);
-        return startTransaction;
-      }
-    } catch (error) {
-      this.handleAxiosError(error, 'Error with trnsaction creation ');
-    }
-  }
 
   async queryDVA(queryDva: QueryDVA) {
     const baseUrl = process.env.PSTK_BASE_URL;
@@ -342,7 +278,7 @@ export class TransactionService {
     }
   }
 
-  private async verifyPayment(reference: string) {
+  public async verifyPayment(reference: string) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
     const ENV = process.env.ENV;
@@ -447,6 +383,60 @@ export class TransactionService {
     }
   }
 
+  public async processBillPaymentViaWallet(
+    billPaymentDto: BillPaymentTransaction,
+    userId: string,
+  ) {
+    const { amount } = billPaymentDto;
+  
+    try {
+      const payment = await this.debitWallet(userId, amount);
+      return payment;
+    } catch (error) {
+      throw new Error('An error occurred while processing bill payment via wallet: ' + error.message);
+    }
+  }
+
+  public async debitWallet(userId: string, chargeAmount: number) {
+    try {
+      const walletBalance = await this.getUserWallet(userId);
+      const { balance, _id } = walletBalance;
+  
+      if (balance < chargeAmount) {
+        throw new Error('Insufficient Wallet Balance');
+      } else if (balance >= chargeAmount) {
+        const newBalance = balance - chargeAmount;
+  
+        // Update Wallet
+        const updateWallet = await this.walletRepo.findOneAndUpdate(
+          { _id: _id },
+          { balance: newBalance }
+        );
+  
+        // Create Wallet Debit Transaction
+        if (updateWallet) {
+          const ref = this.generateTransactionReference();
+          const transactionData = {
+            transactionType: transactionType.DebitWallet,
+            transactionStatus: transactionStatus.Successful,
+            transactionReference: ref,
+            amount: chargeAmount,
+            user: userId,
+            transactionDetails: 'Wallet Debit',
+            paymentMode: paymentMode.wallet,
+          };
+  
+          const debitWalletResponse = await this.createTransaction(transactionData);
+          return debitWalletResponse;
+        } else {
+          throw new Error('Failed to update wallet');
+        }
+      }
+    } catch (error) {
+      throw new Error('An error occurred while debiting wallet: ' + error.message);
+    }
+  }
+
   private async getTransactionStatusFromISW(
     token: string,
     requestReference: string,
@@ -490,7 +480,7 @@ export class TransactionService {
     }
   }
 
-  private async createTransaction(transactionDto: TransactionDto) {
+  public async createTransaction(transactionDto: TransactionDto) {
     try {
       const createTransaction =
         await this.transactionRepo.create(transactionDto);
@@ -500,7 +490,7 @@ export class TransactionService {
     }
   }
 
-  private async updateTransaction(transactionId: string, updateData: any) {
+  public async updateTransaction(transactionId: string, updateData: any) {
     try {
       const createTransaction = await this.transactionRepo.findOneAndUpdate(
         { _id: transactionId },
@@ -575,96 +565,7 @@ export class TransactionService {
     }
   }
 
-  private async debitWallet(userId: string, chargeAmount: number) {
-    try {
-      const walletBalance = await this.getUserWallet(userId);
-      const { balance, _id } = walletBalance;
-  
-      if (balance < chargeAmount) {
-        throw new Error('Insufficient Wallet Balance');
-      } else if (balance >= chargeAmount) {
-        const newBalance = balance - chargeAmount;
-  
-        // Update Wallet
-        const updateWallet = await this.walletRepo.findOneAndUpdate(
-          { _id: _id },
-          { balance: newBalance }
-        );
-  
-        // Create Wallet Debit Transaction
-        if (updateWallet) {
-          const ref = this.generateTransactionReference();
-          const transactionData = {
-            transactionType: transactionType.DebitWallet,
-            transactionStatus: transactionStatus.Successful,
-            transactionReference: ref,
-            amount: chargeAmount,
-            user: userId,
-            transactionDetails: 'Wallet Debit',
-            paymentMode: paymentMode.wallet,
-          };
-  
-          const debitWalletResponse = await this.createTransaction(transactionData);
-          return debitWalletResponse;
-        } else {
-          throw new Error('Failed to update wallet');
-        }
-      }
-    } catch (error) {
-      throw new Error('An error occurred while debiting wallet: ' + error.message);
-    }
-  }
-  
-
-  private async fundWallet(userId: string, amount: number) {
-    try {
-      const walletBalance = await this.getUserWallet(userId);
-
-      const { balance, _id } = walletBalance;
-      const newBalance = balance + amount;
-      // update wallet balance
-      const response = await this.walletRepo.findOneAndUpdate(
-        { _id: _id },
-        { balance: newBalance },
-      );
-      if (response) {
-        // create transaction
-      }
-
-      return response;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      } else {
-        throw new Error('An error occurred while funding wallet');
-      }
-    }
-  }
-
-  private async getUserWallet(userId: string) {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new BadRequestException('Invalid user ID format');
-    }
-    const convertedUserId = new Types.ObjectId(userId);
-    // console.log('convertedUserId', convertedUserId);
-    try {
-      const wallet = await this.walletRepo.findOne({
-        user: convertedUserId,
-      });
-      if (!wallet) {
-        throw new NotFoundException('Wallet not found');
-      }
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      } else {
-        throw new Error('An error occurred while fetching the wallet');
-      }
-    }
-  }
-
-  private generateTransactionReference(): string {
+  public generateTransactionReference(): string {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const prefix = 'HUBSTK';
     let result = prefix;

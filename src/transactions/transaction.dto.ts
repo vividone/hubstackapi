@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { WalletFundingDto } from 'src/wallet/wallet.dto';
 
 export enum paymentStatus {
   Processing = 'processing',
@@ -81,6 +82,7 @@ export class BillPaymentTransaction {
   @IsString()
   ISWTransactionRef: string;
 }
+
 
 export class PaymentValidation {
   @IsString()
@@ -205,6 +207,7 @@ export class TransactionDto {
     | BillPaymentTransaction
     | FundWalletTransaction
     | InitializeWalletFunding
+    | WalletFundingDto
     | string;
 
   @IsString()

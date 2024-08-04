@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsBoolean,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsObject,
   IsString,
 } from 'class-validator';
+import { paymentMode } from 'src/transactions/transaction.dto';
 
 export class CreateWalletDto {
   @IsNotEmpty()
@@ -148,4 +150,15 @@ export class dataObjectResp {
   @ApiProperty()
   @IsNumber()
   bank_id: number;
+}
+
+export class WalletFundingDto {
+  @IsString()
+  @ApiProperty()
+  @IsNotEmpty()
+  amount: number;
+
+  @IsEnum(paymentMode)
+  @ApiProperty()
+  paymentMode: paymentMode;
 }

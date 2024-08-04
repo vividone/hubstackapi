@@ -135,55 +135,6 @@ export class TransactionController {
     }
   }
 
-  @Roles('Agent', 'Individual')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: TransactionDto,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'Verify wallet funding' })
-  @Post('/fund-wallet/verify/')
-  async verifyFunding(@Body() verifyFundingDto: VerifyFundingDto) {
-    try {
-      const { userId, transactionId } = verifyFundingDto;
-      const wallet = await this.transactService.fundWalletProcess(
-        userId,
-        transactionId,
-      );
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while funding wallet');
-      }
-    }
-  }
-
-  @Roles('Agent', 'Individual')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: TransactionDto,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'Fund user wallet' })
-  @Post('/fund-wallet/initialize')
-  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
-    try {
-      const wallet =
-        await this.transactService.initializePaystackWalletFunding(
-          fundWalletDto,
-        );
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while funding wallet');
-      }
-    }
-  }
-
   @Roles('Agent')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({

@@ -8,9 +8,10 @@ import {
   UseGuards,
   Req,
   Get,
+  NotFoundException,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { Banks, CreateWalletDto } from './wallet.dto';
+import { Banks, CreateWalletDto, WalletFundingDto } from './wallet.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
@@ -18,6 +19,7 @@ import { CustomRequest } from 'src/configs/custom_request';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Wallet } from 'src/entity';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { InitializeWalletFunding, TransactionDto, VerifyFundingDto } from 'src/transactions/transaction.dto';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -81,6 +83,55 @@ export class WalletController {
     } catch (error) {
       console.error(error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Fund user wallet' })
+  @Post('/fund-wallet/initialize')
+  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
+    try {
+      const wallet =
+        await this.walletService.initializePaystackWalletFunding(
+          fundWalletDto,
+        );
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding wallet');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: WalletFundingDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Verify wallet funding' })
+  @Post('/fund-wallet/verify/')
+  async verifyFunding(@Body() verifyFundingDto: VerifyFundingDto) {
+    try {
+      const { userId, transactionId } = verifyFundingDto;
+      const wallet = await this.walletService.fundWalletProcess(
+        userId,
+        transactionId,
+      );
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding wallet');
+      }
     }
   }
 
