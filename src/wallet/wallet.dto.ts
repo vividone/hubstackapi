@@ -158,6 +158,11 @@ export class WalletFundingDto {
   @IsNotEmpty()
   amount: number;
 
+  @IsString()
+  @ApiProperty()
+  @IsNotEmpty()
+  transactionReference: string;
+
   @IsEnum(paymentMode)
   @ApiProperty()
   paymentMode: paymentMode;

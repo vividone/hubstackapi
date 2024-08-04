@@ -146,11 +146,6 @@ export class InitializeWalletFunding {
   @ApiProperty()
   @IsNotEmpty()
   paymentMode: paymentMode;
-
-  @IsString()
-  @ApiProperty()
-  @IsNotEmpty()
-  userId: string;
 }
 
 export class QueryDVA {

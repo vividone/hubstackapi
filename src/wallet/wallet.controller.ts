@@ -94,11 +94,13 @@ export class WalletController {
   })
   @ApiOperation({ summary: 'Fund user wallet' })
   @Post('/fund-wallet/initialize')
-  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
+  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding, @Req() request: CustomRequest) {
     try {
+      const userId = request.user.id;
       const wallet =
         await this.walletService.initializePaystackWalletFunding(
           fundWalletDto,
+          userId
         );
       return wallet;
     } catch (error) {
@@ -113,14 +115,13 @@ export class WalletController {
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    type: WalletFundingDto,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Verify wallet funding' })
-  @Post('/fund-wallet/verify/')
-  async verifyFunding(@Body() verifyFundingDto: VerifyFundingDto) {
+  @Post('/fund-wallet/verify/:transactionId')
+  async verifyFunding(@Param('transactionId') transactionId: string, @Req() request: CustomRequest ) {
     try {
-      const { userId, transactionId } = verifyFundingDto;
+      const  userId  = request.user.id;
       const wallet = await this.walletService.fundWalletProcess(
         userId,
         transactionId,

@@ -124,13 +124,13 @@ export class TransactionService {
   async payPhoneBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     try {
       const { customerId } = billPaymentDto;
-  
+
       if (paymentMode.wallet) {
         const payWithWallet = await this.processBillPaymentViaWallet(
           billPaymentDto,
           userId,
         );
-  
+
         if (payWithWallet.transactionStatus === transactionStatus.Successful) {
           const reference = this.generateRequestReference();
           const transactionData = {
@@ -142,7 +142,7 @@ export class TransactionService {
             transactionDetails: billPaymentDto,
             user: userId,
           };
-  
+
           const createTransaction = await this.createTransaction(transactionData);
           const { transactionDetails, _id } = createTransaction;
           const transactionId = _id.toString();
@@ -158,7 +158,7 @@ export class TransactionService {
       throw new Error('An error occurred while processing the phone bill payment: ' + error.message);
     }
   }
-  
+
 
   async ninSearch(ninTransaction: NINTransaction, userId: string) {
     const reference = this.generateRequestReference();
@@ -192,8 +192,8 @@ export class TransactionService {
     };
     return transactionData;
   }
-  
-  
+
+
 
   async queryDVA(queryDva: QueryDVA) {
     const baseUrl = process.env.PSTK_BASE_URL;
@@ -281,105 +281,19 @@ export class TransactionService {
   public async verifyPayment(reference: string) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
-    const ENV = process.env.ENV;
-
-    if (ENV !== 'development') {
-      try {
-        const verifyResponse = await axios.get(
-          `${baseUrl}/transaction/verify/${reference}`,
-          {
-            headers: {
-              Authorization: `Bearer ${secretKey}`,
-              'Content-Type': 'application/json',
-            },
+    try {
+      const verifyResponse = await axios.get(
+        `${baseUrl}/transaction/verify/${reference}`,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
           },
-        );
-        return verifyResponse.data;
-      } catch (error) {
-        this.handleAxiosError(error, 'error verifying payment');
-      }
-    } else {
-      const data = {
-        status: true,
-        message: 'Verification successful',
-        data: {
-          id: 2009945086,
-          domain: 'test',
-          status: 'success',
-          reference: 'rd0bz6z2wu',
-          amount: 20000,
-          message: null,
-          gateway_response: 'Successful',
-          paid_at: '2022-08-09T14:21:32.000Z',
-          created_at: '2022-08-09T14:20:57.000Z',
-          channel: 'card',
-          currency: 'NGN',
-          ip_address: '100.64.11.35',
-          metadata: '',
-          log: {
-            start_time: 1660054888,
-            time_spent: 4,
-            attempts: 1,
-            errors: 0,
-            success: true,
-            mobile: false,
-            input: [],
-            history: [
-              {
-                type: 'action',
-                message: 'Attempted to pay with card',
-                time: 3,
-              },
-              {
-                type: 'success',
-                message: 'Successfully paid with card',
-                time: 4,
-              },
-            ],
-          },
-          fees: 100,
-          fees_split: null,
-          authorization: {
-            authorization_code: 'AUTH_ahisucjkru',
-            bin: '408408',
-            last4: '4081',
-            exp_month: '12',
-            exp_year: '2030',
-            channel: 'card',
-            card_type: 'visa ',
-            bank: 'TEST BANK',
-            country_code: 'NG',
-            brand: 'visa',
-            reusable: true,
-            signature: 'SIG_yEXu7dLBeqG0kU7g95Ke',
-            account_name: null,
-          },
-          customer: {
-            id: 89929267,
-            first_name: null,
-            last_name: null,
-            email: 'hello@email.com',
-            customer_code: 'CUS_i5yosncbl8h2kvc',
-            phone: null,
-            metadata: null,
-            risk_action: 'default',
-            international_format_phone: null,
-          },
-          plan: null,
-          split: {},
-          order_id: null,
-          paidAt: '2022-08-09T14:21:32.000Z',
-          createdAt: '2022-08-09T14:20:57.000Z',
-          requested_amount: 20000,
-          pos_transaction_data: null,
-          source: null,
-          fees_breakdown: null,
-          transaction_date: '2022-08-09T14:20:57.000Z',
-          plan_object: {},
-          subaccount: {},
         },
-      };
-      return data;
+      );
+      return verifyResponse.data;
+    } catch (error) {
+      this.handleAxiosError(error, 'error verifying payment');
     }
   }
 
@@ -388,7 +302,7 @@ export class TransactionService {
     userId: string,
   ) {
     const { amount } = billPaymentDto;
-  
+
     try {
       const payment = await this.debitWallet(userId, amount);
       return payment;
@@ -401,18 +315,18 @@ export class TransactionService {
     try {
       const walletBalance = await this.getUserWallet(userId);
       const { balance, _id } = walletBalance;
-  
+
       if (balance < chargeAmount) {
         throw new Error('Insufficient Wallet Balance');
       } else if (balance >= chargeAmount) {
         const newBalance = balance - chargeAmount;
-  
+
         // Update Wallet
         const updateWallet = await this.walletRepo.findOneAndUpdate(
           { _id: _id },
           { balance: newBalance }
         );
-  
+
         // Create Wallet Debit Transaction
         if (updateWallet) {
           const ref = this.generateTransactionReference();
@@ -425,7 +339,7 @@ export class TransactionService {
             transactionDetails: 'Wallet Debit',
             paymentMode: paymentMode.wallet,
           };
-  
+
           const debitWalletResponse = await this.createTransaction(transactionData);
           return debitWalletResponse;
         } else {

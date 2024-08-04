@@ -392,42 +392,43 @@ export class WalletService {
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
-      // Retrieve transaction details
       const transaction = await this.transactionRepo.findOne({ _id: transactionId });
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }
-      const { amount, reference } = transaction;
-
-      const updatedWallet = await this.fundWallet(userId, amount);
-      if (!updatedWallet) {
-        throw new Error('Failed to fund wallet.');
-      }
-      const verifyPayment = await this.transactionService.verifyPayment(reference);
-      if (!verifyPayment) {
+  
+      const { amount, transactionReference } = transaction;
+      const verifyPayment = await this.transactionService.verifyPayment(transactionReference);
+      const { status } = verifyPayment;
+      if (status !== true) {
         throw new BadRequestException('Payment verification failed.');
       }
-      const transactionData = {
-        transactionStatus: transactionStatus.Successful,
-      };
+      const updateWallet = await this.fundWallet(userId, transaction);
+      if (!updateWallet) {
+        throw new InternalServerErrorException('Failed to fund wallet.');
+      }
+      const transactionData = { transactionStatus: transactionStatus.Successful };
       const updatedTransaction = await this.transactionService.updateTransaction(transactionId, transactionData);
   
       return updatedTransaction;
     } catch (error) {
-      // console.error('Error in fundWalletProcess:', error);
-      throw new Error('Transaction Error: ' + error.message);
+      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof InternalServerErrorException) {
+        throw error;
+      } else {
+        throw new InternalServerErrorException('An unexpected error occurred. Please try again later.');
+      }
     }
   }
-
   async initializePaystackWalletFunding(
-    initializeWalletFunding: InitializeWalletFunding,
+    initializeWalletFunding: InitializeWalletFunding, userId: string
   ) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
-    // const reference = this.generateTransactionReference();
+    const reference = this.transactionService.generateTransactionReference();
     const data = {
       email: initializeWalletFunding.email,
       amount: initializeWalletFunding.amount,
+      reference: reference,
     };
     // console.log('data sent to paystack', initializeWalletFunding);
     try {
@@ -453,7 +454,7 @@ export class WalletService {
           transactionStatus: transactionStatus.Pending,
           paymentMode: initializeWalletFunding.paymentMode,
           transactionDetails: initializeWalletFunding,
-          user: initializeWalletFunding.userId,
+          user: userId,
         };
 
         const startTransaction = await this.transactionService.createTransaction(transactionData);
@@ -661,13 +662,10 @@ export class WalletService {
       if (amount <= 0) {
         throw new BadRequestException('Amount must be greater than zero.');
       }
-  
-      // Retrieve user's wallet
       const walletBalance = await this.getUserWallet(userId);
       if (!walletBalance) {
         throw new NotFoundException('Wallet not found');
       }
-  
       const { balance, _id } = walletBalance;
       const newBalance = balance + amount;
 
@@ -678,24 +676,11 @@ export class WalletService {
       if (!updatedWallet) {
         throw new Error('Failed to update wallet balance.');
       }
-
-      const transactionData = {
-        transactionType: transactionType.WalletFunding,
-        transactionStatus: transactionStatus.Pending,
-        transactionReference: this.transactionService.generateTransactionReference(),
-        paymentMode: paymentMode.account_transfer,
-        amount,
-        user: userId,
-        transactionDetails: walletFundingDto
-      };
-      await this.transactionService.createTransaction(transactionData);
-  
       return updatedWallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       } else {
-        //console.error('Error in fundWallet:', error);
         throw new Error('An error occurred while funding the wallet.');
       }
     }
