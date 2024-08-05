@@ -19,7 +19,11 @@ import { CustomRequest } from 'src/configs/custom_request';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Wallet } from 'src/entity';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
-import { InitializeWalletFunding, TransactionDto, VerifyFundingDto } from 'src/transactions/transaction.dto';
+import {
+  InitializeWalletFunding,
+  TransactionDto,
+  VerifyFundingDto,
+} from 'src/transactions/transaction.dto';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -94,14 +98,16 @@ export class WalletController {
   })
   @ApiOperation({ summary: 'Fund user wallet' })
   @Post('/fund-wallet/initialize')
-  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding, @Req() request: CustomRequest) {
+  async fundWallet(
+    @Body() fundWalletDto: InitializeWalletFunding,
+    @Req() request: CustomRequest,
+  ) {
     try {
       const userId = request.user.id;
-      const wallet =
-        await this.walletService.initializePaystackWalletFunding(
-          fundWalletDto,
-          userId
-        );
+      const wallet = await this.walletService.initializePaystackWalletFunding(
+        fundWalletDto,
+        userId,
+      );
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -119,9 +125,12 @@ export class WalletController {
   })
   @ApiOperation({ summary: 'Verify wallet funding' })
   @Post('/fund-wallet/verify/:transactionId')
-  async verifyFunding(@Param('transactionId') transactionId: string, @Req() request: CustomRequest ) {
+  async verifyFunding(
+    @Param('transactionId') transactionId: string,
+    @Req() request: CustomRequest,
+  ) {
     try {
-      const  userId  = request.user.id;
+      const userId = request.user.id;
       const wallet = await this.walletService.fundWalletProcess(
         userId,
         transactionId,
@@ -135,7 +144,6 @@ export class WalletController {
       }
     }
   }
-
 
   // @Roles('Agent', 'Individual')
   // @ApiCreatedResponse({ type: Wallet, description: 'expected response' })

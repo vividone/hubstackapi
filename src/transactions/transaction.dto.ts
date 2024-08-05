@@ -83,7 +83,6 @@ export class BillPaymentTransaction {
   ISWTransactionRef: string;
 }
 
-
 export class PaymentValidation {
   @IsString()
   @ApiProperty()

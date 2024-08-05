@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   Injectable,
@@ -11,7 +12,11 @@ import { UserRepository } from 'src/entity/repositories/user.repo';
 import { Types } from 'mongoose';
 import { TransactionService } from 'src/transactions/transaction.service';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
-import { BillPaymentTransaction, InitializeWalletFunding, paymentMode, transactionStatus, transactionType } from 'src/transactions/transaction.dto';
+import {
+  InitializeWalletFunding,
+  transactionStatus,
+  transactionType,
+} from 'src/transactions/transaction.dto';
 
 @Injectable()
 export class WalletService {
@@ -19,7 +24,7 @@ export class WalletService {
     private readonly walletRepo: WalletRepository,
     private readonly userRepo: UserRepository,
     private readonly transactionService: TransactionService,
-    private readonly transactionRepo: TransactionRepository
+    private readonly transactionRepo: TransactionRepository,
   ) {}
 
   // async createVirtualAccount(data: CreateWalletDto, id: string) {
@@ -392,13 +397,16 @@ export class WalletService {
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
-      const transaction = await this.transactionRepo.findOne({ _id: transactionId });
+      const transaction = await this.transactionRepo.findOne({
+        _id: transactionId,
+      });
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }
-  
+
       const { amount, transactionReference } = transaction;
-      const verifyPayment = await this.transactionService.verifyPayment(transactionReference);
+      const verifyPayment =
+        await this.transactionService.verifyPayment(transactionReference);
       const { status } = verifyPayment;
       if (status !== true) {
         throw new BadRequestException('Payment verification failed.');
@@ -407,20 +415,33 @@ export class WalletService {
       if (!updateWallet) {
         throw new InternalServerErrorException('Failed to fund wallet.');
       }
-      const transactionData = { transactionStatus: transactionStatus.Successful };
-      const updatedTransaction = await this.transactionService.updateTransaction(transactionId, transactionData);
-  
+      const transactionData = {
+        transactionStatus: transactionStatus.Successful,
+      };
+      const updatedTransaction =
+        await this.transactionService.updateTransaction(
+          transactionId,
+          transactionData,
+        );
+
       return updatedTransaction;
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof InternalServerErrorException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof InternalServerErrorException
+      ) {
         throw error;
       } else {
-        throw new InternalServerErrorException('An unexpected error occurred. Please try again later.');
+        throw new InternalServerErrorException(
+          'An unexpected error occurred. Please try again later.',
+        );
       }
     }
   }
   async initializePaystackWalletFunding(
-    initializeWalletFunding: InitializeWalletFunding, userId: string
+    initializeWalletFunding: InitializeWalletFunding,
+    userId: string,
   ) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
@@ -457,14 +478,15 @@ export class WalletService {
           user: userId,
         };
 
-        const startTransaction = await this.transactionService.createTransaction(transactionData);
+        const startTransaction =
+          await this.transactionService.createTransaction(transactionData);
         return startTransaction;
       }
     } catch (error) {
       this.handleAxiosError(error, 'Error with trnsaction creation ');
     }
   }
-  
+
   private async createCustomer(
     userId: string,
     baseUrl: string,
@@ -656,7 +678,6 @@ export class WalletService {
 
   private async fundWallet(userId: string, walletFundingDto: WalletFundingDto) {
     try {
-
       const { amount } = walletFundingDto;
 
       if (amount <= 0) {

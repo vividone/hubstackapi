@@ -15,11 +15,9 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import {
   BillPaymentTransaction,
   BuyUnitTransaction,
-  InitializeWalletFunding,
   NINTransaction,
   PaymentValidation,
   TransactionDto,
-  VerifyFundingDto,
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { CustomRequest } from 'src/configs/custom_request';
@@ -217,8 +215,10 @@ export class TransactionController {
       return bill;
     } catch (error) {
       if (error.message.includes('Insufficient Wallet Balance')) {
-        throw new BadRequestException('Insufficient wallet balance. Please top up your wallet and try again.');
-      }  
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
@@ -244,8 +244,10 @@ export class TransactionController {
       return bill;
     } catch (error) {
       if (error.message.includes('Insufficient Wallet Balance')) {
-        throw new BadRequestException('Insufficient wallet balance. Please top up your wallet and try again.');
-      }  
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
@@ -271,8 +273,10 @@ export class TransactionController {
       return bill;
     } catch (error) {
       if (error.message.includes('Insufficient Wallet Balance')) {
-        throw new BadRequestException('Insufficient wallet balance. Please top up your wallet and try again.');
-      }  
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
@@ -298,8 +302,10 @@ export class TransactionController {
       return bill;
     } catch (error) {
       if (error.message.includes('Insufficient Wallet Balance')) {
-        throw new BadRequestException('Insufficient wallet balance. Please top up your wallet and try again.');
-      }  
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
@@ -308,32 +314,38 @@ export class TransactionController {
     }
   }
 
-@Roles('Agent', 'Individual')
-@UseGuards(JwtAuthGuard)
-@ApiCreatedResponse({
-  type: TransactionDto,
-  description: 'Expected response',
-})
-@ApiOperation({ summary: 'Buy Airtime' })
-@Post('/:userId/pay-bill/buy-airtime')
-async buyAirtime(
-  @Body() billPaymentDto: BillPaymentTransaction,
-  @Param('userId') userId: string,
-) {
-  try {
-    const bill = await this.transactService.payPhoneBills(billPaymentDto, userId);
-    return bill;
-  } catch (error) {
-    if (error.message.includes('Insufficient Wallet Balance')) {
-      throw new BadRequestException('Insufficient wallet balance. Please top up your wallet and try again.');
-    }  
-    if (error instanceof NotFoundException) {
-      throw new NotFoundException(error.message);
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'Expected response',
+  })
+  @ApiOperation({ summary: 'Buy Airtime' })
+  @Post('/:userId/pay-bill/buy-airtime')
+  async buyAirtime(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.payPhoneBills(
+        billPaymentDto,
+        userId,
+      );
+      return bill;
+    } catch (error) {
+      if (error.message.includes('Insufficient Wallet Balance')) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw new BadRequestException(
+        'An error occurred while buying airtime. Please try again later.',
+      );
     }
-    throw new BadRequestException('An error occurred while buying airtime. Please try again later.');
   }
-}
-
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
@@ -348,12 +360,17 @@ async buyAirtime(
     @Param('userId') userId: string,
   ) {
     try {
-      const bill = await this.transactService.payPhoneBills(billPaymentDto, userId);
+      const bill = await this.transactService.payPhoneBills(
+        billPaymentDto,
+        userId,
+      );
       return bill;
     } catch (error) {
       if (error.message.includes('Insufficient Wallet Balance')) {
-        throw new BadRequestException('Insufficient wallet balance. Please top up your wallet and try again.');
-      }  
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {

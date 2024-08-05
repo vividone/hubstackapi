@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { WalletController } from './wallet.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -21,7 +21,7 @@ import { TransactionModule } from 'src/transactions/transaction.module';
       timeout: 5000,
       maxRedirects: 5,
     }),
-    TransactionModule, 
+    TransactionModule,
     JwtModule,
     UsersModule,
     ApiKeyModule,

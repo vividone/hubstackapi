@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   Injectable,
@@ -28,7 +29,7 @@ export class TransactionService {
     private readonly userService: UsersService,
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
-  ) { }
+  ) {}
 
   async getAllTransactions() {
     const transactions = await this.transactionRepo.find();
@@ -142,22 +143,29 @@ export class TransactionService {
             transactionDetails: billPaymentDto,
             user: userId,
           };
-          const createTransaction = await this.createTransaction(transactionData);
+          const createTransaction =
+            await this.createTransaction(transactionData);
           const { transactionDetails, _id } = createTransaction;
           const transactionId = _id.toString();
-          const response = await this.sendPaymentAdvice(transactionDetails, userId, transactionId);
+          const response = await this.sendPaymentAdvice(
+            transactionDetails,
+            userId,
+            transactionId,
+          );
           return response;
         } else {
           throw new Error('Payment via wallet was not successful');
         }
       } else {
-        throw new Error('Unsupported payment mode'){
+        throw new Error('Unsupported payment mode');
       }
     } catch (error) {
-      throw new Error('An error occurred while processing the phone bill payment: ' + error.message);
+      throw new Error(
+        'An error occurred while processing the phone bill payment: ' +
+          error.message,
+      );
     }
   }
-
 
   async ninSearch(ninTransaction: NINTransaction, userId: string) {
     const reference = this.generateRequestReference();
@@ -191,8 +199,6 @@ export class TransactionService {
     };
     return transactionData;
   }
-
-
 
   async queryDVA(queryDva: QueryDVA) {
     const baseUrl = process.env.PSTK_BASE_URL;
@@ -238,7 +244,7 @@ export class TransactionService {
       } = transactionDetails;
 
       const amountInKobo = this.convertToKobo(amount);
-      console.log(amountInKobo)
+      console.log(amountInKobo);
       const data = {
         customerEmail,
         paymentCode,
@@ -271,7 +277,6 @@ export class TransactionService {
         );
         return updatedTransaction;
       }
-
     } catch (error) {
       this.handleAxiosError(error, 'Error sending payment advice');
     }
@@ -306,7 +311,10 @@ export class TransactionService {
       const payment = await this.debitWallet(userId, amount);
       return payment;
     } catch (error) {
-      throw new Error('An error occurred while processing bill payment via wallet: ' + error.message);
+      throw new Error(
+        'An error occurred while processing bill payment via wallet: ' +
+          error.message,
+      );
     }
   }
 
@@ -323,7 +331,7 @@ export class TransactionService {
         // Update Wallet
         const updateWallet = await this.walletRepo.findOneAndUpdate(
           { _id: _id },
-          { balance: newBalance }
+          { balance: newBalance },
         );
 
         // Create Wallet Debit Transaction
@@ -339,14 +347,17 @@ export class TransactionService {
             paymentMode: paymentMode.wallet,
           };
 
-          const debitWalletResponse = await this.createTransaction(transactionData);
+          const debitWalletResponse =
+            await this.createTransaction(transactionData);
           return debitWalletResponse;
         } else {
           throw new Error('Failed to update wallet');
         }
       }
     } catch (error) {
-      throw new Error('An error occurred while debiting wallet: ' + error.message);
+      throw new Error(
+        'An error occurred while debiting wallet: ' + error.message,
+      );
     }
   }
 
