@@ -5,16 +5,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import axios from 'axios';
-import { CreateWalletDto } from './wallet.dto';
+import { CreateWalletDto, WalletFundingDto } from './wallet.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { Types } from 'mongoose';
+import { TransactionService } from 'src/transactions/transaction.service';
+import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
+import { BillPaymentTransaction, InitializeWalletFunding, paymentMode, transactionStatus, transactionType } from 'src/transactions/transaction.dto';
 
 @Injectable()
 export class WalletService {
   constructor(
     private readonly walletRepo: WalletRepository,
     private readonly userRepo: UserRepository,
+    private readonly transactionService: TransactionService,
+    private readonly transactionRepo: TransactionRepository
   ) {}
 
   // async createVirtualAccount(data: CreateWalletDto, id: string) {
@@ -206,7 +211,7 @@ export class WalletService {
         },
       });
 
-      const banks = { data: response.data.data, message: 'Sucessfull' };
+      const banks = { data: response.data.data, message: 'Successfull' };
 
       return banks;
     } catch (error) {
@@ -385,6 +390,81 @@ export class WalletService {
     }
   }
 
+  async fundWalletProcess(userId: string, transactionId: string) {
+    try {
+      const transaction = await this.transactionRepo.findOne({ _id: transactionId });
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found.');
+      }
+  
+      const { amount, transactionReference } = transaction;
+      const verifyPayment = await this.transactionService.verifyPayment(transactionReference);
+      const { status } = verifyPayment;
+      if (status !== true) {
+        throw new BadRequestException('Payment verification failed.');
+      }
+      const updateWallet = await this.fundWallet(userId, transaction);
+      if (!updateWallet) {
+        throw new InternalServerErrorException('Failed to fund wallet.');
+      }
+      const transactionData = { transactionStatus: transactionStatus.Successful };
+      const updatedTransaction = await this.transactionService.updateTransaction(transactionId, transactionData);
+  
+      return updatedTransaction;
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof InternalServerErrorException) {
+        throw error;
+      } else {
+        throw new InternalServerErrorException('An unexpected error occurred. Please try again later.');
+      }
+    }
+  }
+  async initializePaystackWalletFunding(
+    initializeWalletFunding: InitializeWalletFunding, userId: string
+  ) {
+    const baseUrl = process.env.PSTK_BASE_URL;
+    const secretKey = process.env.PSTK_SECRET_KEY;
+    const reference = this.transactionService.generateTransactionReference();
+    const data = {
+      email: initializeWalletFunding.email,
+      amount: initializeWalletFunding.amount,
+      reference: reference,
+    };
+    // console.log('data sent to paystack', initializeWalletFunding);
+    try {
+      const response = await axios.post(
+        `${baseUrl}/transaction/initialize`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      const { reference } = response.data.data;
+      const { status } = response.data;
+
+      if (status === true) {
+        const transactionData = {
+          transactionReference: reference,
+          amount: initializeWalletFunding.amount,
+          transactionType: transactionType.WalletFunding,
+          transactionStatus: transactionStatus.Pending,
+          paymentMode: initializeWalletFunding.paymentMode,
+          transactionDetails: initializeWalletFunding,
+          user: userId,
+        };
+
+        const startTransaction = await this.transactionService.createTransaction(transactionData);
+        return startTransaction;
+      }
+    } catch (error) {
+      this.handleAxiosError(error, 'Error with trnsaction creation ');
+    }
+  }
+  
   private async createCustomer(
     userId: string,
     baseUrl: string,
@@ -571,6 +651,38 @@ export class WalletService {
         error,
         'An error occurred while creating virtual account with flutterwave',
       );
+    }
+  }
+
+  private async fundWallet(userId: string, walletFundingDto: WalletFundingDto) {
+    try {
+
+      const { amount } = walletFundingDto;
+
+      if (amount <= 0) {
+        throw new BadRequestException('Amount must be greater than zero.');
+      }
+      const walletBalance = await this.getUserWallet(userId);
+      if (!walletBalance) {
+        throw new NotFoundException('Wallet not found');
+      }
+      const { balance, _id } = walletBalance;
+      const newBalance = balance + amount;
+
+      const updatedWallet = await this.walletRepo.findOneAndUpdate(
+        { _id },
+        { balance: newBalance },
+      );
+      if (!updatedWallet) {
+        throw new Error('Failed to update wallet balance.');
+      }
+      return updatedWallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new Error('An error occurred while funding the wallet.');
+      }
     }
   }
 

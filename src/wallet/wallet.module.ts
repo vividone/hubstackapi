@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { WalletController } from './wallet.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from 'src/users/users.module';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
 import { ApiKeyModule } from 'src/auth/apikey.module';
+import { TransactionModule } from 'src/transactions/transaction.module';
 
 @Module({
   providers: [WalletService, WalletRepository, ApiKeyGuard],
@@ -20,6 +21,7 @@ import { ApiKeyModule } from 'src/auth/apikey.module';
       timeout: 5000,
       maxRedirects: 5,
     }),
+    TransactionModule, 
     JwtModule,
     UsersModule,
     ApiKeyModule,
