@@ -142,7 +142,6 @@ export class TransactionService {
             transactionDetails: billPaymentDto,
             user: userId,
           };
-
           const createTransaction = await this.createTransaction(transactionData);
           const { transactionDetails, _id } = createTransaction;
           const transactionId = _id.toString();
@@ -152,7 +151,7 @@ export class TransactionService {
           throw new Error('Payment via wallet was not successful');
         }
       } else {
-        throw new Error('Unsupported payment mode');
+        throw new Error('Unsupported payment mode'){
       }
     } catch (error) {
       throw new Error('An error occurred while processing the phone bill payment: ' + error.message);

@@ -12,7 +12,7 @@ export enum CategoryType {
 export
 @Schema({ timestamps: true })
 class Category {
-  @Prop()
+  @Prop({ unique: true })
   @ApiProperty()
   name: string;
 

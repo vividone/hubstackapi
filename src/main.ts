@@ -16,7 +16,7 @@ async function bootstrap() {
 
   // Setup Swagger Documentation
   const configSwagger = new DocumentBuilder()
-    .setTitle("Hubstak's API Documentation V1")
+    .setTitle("Hubstack's API Documentation V1")
     .setDescription(
       "This API allows developers to access and interact with Hubstack's business logic.",
     )

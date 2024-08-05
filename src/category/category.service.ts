@@ -8,13 +8,17 @@ export class CategoryService {
   constructor(private readonly categoryRepo: CategoryRepository) {}
 
   async createCategory(categoryDto: CategoryDto) {
-    const createdProduct = await this.categoryRepo.create({ ...categoryDto });
-    return createdProduct;
+    try {
+      const createdProduct = await this.categoryRepo.create({ ...categoryDto });
+      return createdProduct;
+    } catch (error) {
+      throw new Error('Error creating new category or category already exists');
+    }
   }
 
   async getBillPaymentCategories() {
     const categories = await this.categoryRepo.find({
-      categoryType: 'billpayment',
+      categoryType: 'billpayments',
     });
     return categories;
   }
@@ -23,13 +27,15 @@ export class CategoryService {
     const baseUrl: string = process.env.ISW_BASE_URL;
     const TerminalID: string = process.env.ISW_TERMINAL_ID;
     let token: string;
+
     const url = `${baseUrl}/services?categoryId=${categoryId}`;
 
     try {
       const authResponse = await this.genISWAuthToken();
       token = authResponse.access_token;
+      console.log('isw token', token);
     } catch (error) {
-      console.error('Error fetching auth token:', error.message);
+      // console.error('Error fetching auth token:', error.message);
       throw new Error('Failed to authenticate');
     }
 
@@ -42,7 +48,7 @@ export class CategoryService {
         },
       });
 
-      console.log('Response:', response.data);
+      // console.log('Response:', response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(
@@ -56,13 +62,15 @@ export class CategoryService {
     const baseUrl: string = process.env.ISW_BASE_URL;
     const TerminalID: string = process.env.ISW_TERMINAL_ID;
     let token: string;
+    console.log(TerminalID);
     const url = `${baseUrl}/services/options?serviceid=${billerId}`;
 
     try {
       const authResponse = await this.genISWAuthToken();
       token = authResponse.access_token;
+      console.log('isw token', token);
     } catch (error) {
-      console.error('Error fetching auth token:', error.message);
+      // console.error('Error fetching auth token:', error.message);
       throw new Error('Failed to authenticate');
     }
 
@@ -98,7 +106,7 @@ export class CategoryService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
-
+      console.log('ISW Auth', response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(error, 'An error occurred authenticating!');

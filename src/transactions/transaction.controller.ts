@@ -254,7 +254,6 @@ export class TransactionController {
     }
   }
 
-  
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
@@ -309,9 +308,7 @@ export class TransactionController {
     }
   }
 
-
-  
-  @Roles('Agent', 'Individual')
+@Roles('Agent', 'Individual')
 @UseGuards(JwtAuthGuard)
 @ApiCreatedResponse({
   type: TransactionDto,
@@ -364,8 +361,6 @@ async buyAirtime(
       }
     }
   }
-
-  
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
