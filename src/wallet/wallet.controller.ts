@@ -8,9 +8,10 @@ import {
   UseGuards,
   Req,
   Get,
+  NotFoundException,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { Banks, CreateWalletDto } from './wallet.dto';
+import { Banks, CreateWalletDto, WalletFundingDto } from './wallet.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
@@ -18,12 +19,23 @@ import { CustomRequest } from 'src/configs/custom_request';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Wallet } from 'src/entity';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import {
+  InitializeWalletFunding,
+  TransactionDto,
+  VerifyFundingDto,
+} from 'src/transactions/transaction.dto';
+import { FlutterwaveWalletService } from './wallet-flutterwave.service';
+import { PaystackWalletService } from './wallet-paystack.service';
 
 @ApiTags('Wallet')
 @Controller('wallet')
 @UseGuards(ApiKeyGuard)
 export class WalletController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(
+    private readonly walletService: WalletService,
+    private readonly flutterwaveWalletService: FlutterwaveWalletService,
+    private readonly paystackWalletService: PaystackWalletService,
+  ) {}
 
   // Paystack Implementation
   // @Roles('SuperAgent', 'Agent', 'Individual')
@@ -54,7 +66,7 @@ export class WalletController {
   @Get('banks')
   async getBankList() {
     try {
-      const result = await this.walletService.getBanks();
+      const result = await this.paystackWalletService.getBanks();
       return result;
     } catch (error) {
       // console.error(error);
@@ -73,7 +85,7 @@ export class WalletController {
   ) {
     try {
       const userId = request.user.id;
-      const result = await this.walletService.createVirtualAccount(
+      const result = await this.flutterwaveWalletService.createVirtualAccount(
         createWalletDto,
         userId,
       );
@@ -81,6 +93,61 @@ export class WalletController {
     } catch (error) {
       console.error(error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Fund user wallet' })
+  @Post('/fund-wallet/initialize')
+  async fundWallet(
+    @Body() fundWalletDto: InitializeWalletFunding,
+    @Req() request: CustomRequest,
+  ) {
+    try {
+      const userId = request.user.id;
+      const wallet = await this.paystackWalletService.initializePaystackWalletFunding(
+        fundWalletDto,
+        userId,
+      );
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding wallet');
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Verify wallet funding' })
+  @Post('/fund-wallet/verify/:transactionId')
+  async verifyFunding(
+    @Param('transactionId') transactionId: string,
+    @Req() request: CustomRequest,
+  ) {
+    try {
+      const userId = request.user.id;
+      const wallet = await this.walletService.fundWalletProcess(
+        userId,
+        transactionId,
+      );
+      return wallet;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while funding wallet');
+      }
     }
   }
 

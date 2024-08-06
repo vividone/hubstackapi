@@ -9,9 +9,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from 'src/users/users.module';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
 import { ApiKeyModule } from 'src/auth/apikey.module';
+import { TransactionModule } from 'src/transactions/transaction.module';
+import { FlutterwaveWalletService } from './wallet-flutterwave.service';
+import { PaystackWalletService } from './wallet-paystack.service';
 
 @Module({
-  providers: [WalletService, WalletRepository, ApiKeyGuard],
+  providers: [WalletService, FlutterwaveWalletService,PaystackWalletService, WalletRepository, ApiKeyGuard],
   controllers: [WalletController],
   exports: [WalletRepository, WalletService],
   imports: [
@@ -20,6 +23,7 @@ import { ApiKeyModule } from 'src/auth/apikey.module';
       timeout: 5000,
       maxRedirects: 5,
     }),
+    TransactionModule,
     JwtModule,
     UsersModule,
     ApiKeyModule,

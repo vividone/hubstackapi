@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -14,11 +15,9 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import {
   BillPaymentTransaction,
   BuyUnitTransaction,
-  InitializeWalletFunding,
   NINTransaction,
   PaymentValidation,
   TransactionDto,
-  VerifyFundingDto,
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { CustomRequest } from 'src/configs/custom_request';
@@ -134,55 +133,6 @@ export class TransactionController {
     }
   }
 
-  @Roles('Agent', 'Individual')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: TransactionDto,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'Verify wallet funding' })
-  @Post('/fund-wallet/verify/')
-  async verifyFunding(@Body() verifyFundingDto: VerifyFundingDto) {
-    try {
-      const { userId, transactionId } = verifyFundingDto;
-      const wallet = await this.transactService.fundWalletProcess(
-        userId,
-        transactionId,
-      );
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while funding wallet');
-      }
-    }
-  }
-
-  @Roles('Agent', 'Individual')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: TransactionDto,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'Fund user wallet' })
-  @Post('/fund-wallet/initialize')
-  async fundWallet(@Body() fundWalletDto: InitializeWalletFunding) {
-    try {
-      const wallet =
-        await this.transactService.initializePaystackWalletFunding(
-          fundWalletDto,
-        );
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while funding wallet');
-      }
-    }
-  }
-
   @Roles('Agent')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
@@ -264,6 +214,11 @@ export class TransactionController {
       const bill = await this.transactService.payBills(billPaymentDto, userId);
       return bill;
     } catch (error) {
+      if (error.message.includes('Insufficient Wallet Balance')) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
@@ -288,6 +243,11 @@ export class TransactionController {
       const bill = await this.transactService.payBills(billPaymentDto, userId);
       return bill;
     } catch (error) {
+      if (error.message.includes('Insufficient Wallet Balance')) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
@@ -312,6 +272,11 @@ export class TransactionController {
       const bill = await this.transactService.payBills(billPaymentDto, userId);
       return bill;
     } catch (error) {
+      if (error.message.includes('Insufficient Wallet Balance')) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
@@ -336,6 +301,11 @@ export class TransactionController {
       const bill = await this.transactService.payBills(billPaymentDto, userId);
       return bill;
     } catch (error) {
+      if (error.message.includes('Insufficient Wallet Balance')) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
@@ -348,26 +318,32 @@ export class TransactionController {
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
     type: TransactionDto,
-    description: 'expected response',
+    description: 'Expected response',
   })
   @ApiOperation({ summary: 'Buy Airtime' })
-  @Post('/:userId/buy-airtime')
+  @Post('/:userId/pay-bill/buy-airtime')
   async buyAirtime(
     @Body() billPaymentDto: BillPaymentTransaction,
     @Param('userId') userId: string,
   ) {
     try {
-      const bill = await this.transactService.buyAirtime(
+      const bill = await this.transactService.payPhoneBills(
         billPaymentDto,
         userId,
       );
       return bill;
     } catch (error) {
+      if (error.message.includes('Insufficient Wallet Balance')) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while Buying Airtime');
       }
+      throw new BadRequestException(
+        'An error occurred while buying airtime. Please try again later.',
+      );
     }
   }
 
@@ -378,18 +354,23 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Buy Data' })
-  @Post('/:userId/buy-data')
+  @Post('/:userId/pay-bill/buy-data')
   async buyData(
     @Body() billPaymentDto: BillPaymentTransaction,
     @Param('userId') userId: string,
   ) {
     try {
-      const bill = await this.transactService.buyAirtime(
+      const bill = await this.transactService.payPhoneBills(
         billPaymentDto,
         userId,
       );
       return bill;
     } catch (error) {
+      if (error.message.includes('Insufficient Wallet Balance')) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      }
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
