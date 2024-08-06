@@ -24,12 +24,18 @@ import {
   TransactionDto,
   VerifyFundingDto,
 } from 'src/transactions/transaction.dto';
+import { FlutterwaveWalletService } from './wallet-flutterwave.service';
+import { PaystackWalletService } from './wallet-paystack.service';
 
 @ApiTags('Wallet')
 @Controller('wallet')
 @UseGuards(ApiKeyGuard)
 export class WalletController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(
+    private readonly walletService: WalletService,
+    private readonly flutterwaveWalletService: FlutterwaveWalletService,
+    private readonly paystackWalletService: PaystackWalletService,
+  ) {}
 
   // Paystack Implementation
   // @Roles('SuperAgent', 'Agent', 'Individual')
@@ -60,7 +66,7 @@ export class WalletController {
   @Get('banks')
   async getBankList() {
     try {
-      const result = await this.walletService.getBanks();
+      const result = await this.paystackWalletService.getBanks();
       return result;
     } catch (error) {
       // console.error(error);
@@ -79,7 +85,7 @@ export class WalletController {
   ) {
     try {
       const userId = request.user.id;
-      const result = await this.walletService.createVirtualAccount(
+      const result = await this.flutterwaveWalletService.createVirtualAccount(
         createWalletDto,
         userId,
       );
@@ -104,7 +110,7 @@ export class WalletController {
   ) {
     try {
       const userId = request.user.id;
-      const wallet = await this.walletService.initializePaystackWalletFunding(
+      const wallet = await this.paystackWalletService.initializePaystackWalletFunding(
         fundWalletDto,
         userId,
       );
