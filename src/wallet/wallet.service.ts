@@ -258,10 +258,10 @@ export class WalletService {
       // if (!wallet) {
       //   throw new NotFoundException('Wallet not found');
       // }
-      return null;
+      return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
-        throw error;
+        return null;
       } else {
         throw new Error('An error occurred while fetching the wallet');
       }

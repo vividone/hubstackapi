@@ -193,13 +193,14 @@ export class WalletController {
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   @ApiOperation({ summary: 'Get accounts details of the user' })
-  @Get('/accounts/:userid')
+  @Get('/accounts/')
   async getUserWallet(
-    @Param('userid') userid: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Req() request: CustomRequest,
   ) {
-    return this.walletService.fetchBankAccounts(userid);
+    const userId = request.user.id;
+
+    return this.walletService.fetchBankAccounts(userId);
   }
 
   // @Roles('SuperAgent', 'Agent', 'Individual')

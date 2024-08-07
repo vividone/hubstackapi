@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import axios from 'axios';
 import { CreateWalletDto } from './wallet.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
@@ -36,7 +41,7 @@ export class FlutterwaveWalletService {
       if (checkCustomerAccount.status === true) {
         return {
           message: 'Virtual Account already exists ',
-          data: checkCustomerAccount,
+          data: checkCustomerAccount.data,
         };
       } else {
         const email: string = user.email;
@@ -99,22 +104,26 @@ export class FlutterwaveWalletService {
     }
   }
 
-  private async getWemaAccount(id: string) {
-    try {
-      const account = await this.bankRepo.findOne({
-        user: id,
-        provider: 'Flutterwave',
-      });
-      if (account) {
-        return { status: true, data: account };
-      } else {
-        return { status: false, data: null };
-      }
-    } catch (error) {
-      handleAxiosError(
-        error,
-        'An error occurred fetching virtual account with flutterwave',
-      );
+  async getWemaAccount(userId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    const convertedUserId = new Types.ObjectId(userId);
+    // console.log('convertedUserId', convertedUserId);
+    const provider = 'Flutterwave';
+    const wallet = await this.bankRepo.findOne({
+      user: convertedUserId,
+      provider: provider,
+    });
+
+    Logger.log('Flutterwave Wema', wallet);
+    // if (!wallet) {
+    //   throw new NotFoundException('Wallet not found');
+    // }
+    if (wallet === null) {
+      return { status: false, data: null };
+    } else {
+      return { status: true, data: wallet };
     }
   }
 }
