@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   Injectable,
@@ -10,7 +11,7 @@ import * as bcrypt from 'bcryptjs';
 export class UsersService {
   constructor(private readonly userRepo: UserRepository) {}
 
-  async findOne(id: string) {
+  async findUserById(id: string) {
     const user = await this.userRepo.findOne({ _id: id });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -58,7 +59,7 @@ export class UsersService {
     oldPassword: string,
     newPassword: string,
   ) {
-    const user = await this.findOne(userId);
+    const user = await this.findUserById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }

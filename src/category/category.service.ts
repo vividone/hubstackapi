@@ -33,7 +33,7 @@ export class CategoryService {
     try {
       const authResponse = await this.genISWAuthToken();
       token = authResponse.access_token;
-      console.log('isw token', token);
+      // console.log('isw token', token);
     } catch (error) {
       // console.error('Error fetching auth token:', error.message);
       throw new Error('Failed to authenticate');
@@ -68,7 +68,7 @@ export class CategoryService {
     try {
       const authResponse = await this.genISWAuthToken();
       token = authResponse.access_token;
-      console.log('isw token', token);
+      // console.log('isw token', token);
     } catch (error) {
       // console.error('Error fetching auth token:', error.message);
       throw new Error('Failed to authenticate');
