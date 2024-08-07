@@ -229,7 +229,7 @@ export class TransactionService {
   ) {
     const baseUrl = process.env.ISW_BASE_URL;
     const TerminalId = process.env.ISW_TERMINAL_ID;
-    const user = await this.userService.findOne(userId);
+    const user = await this.userService.findUserById(userId);
     if (!user) {
       throw new BadRequestException('User not found');
     }
