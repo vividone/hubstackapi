@@ -29,8 +29,12 @@ export class WalletService {
   ) {}
 
   async fetchBankAccounts(userId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    const convertedUserId = new Types.ObjectId(userId);
     try {
-      const bankAccounts = await this.bankRepo.find({ user: userId });
+      const bankAccounts = await this.bankRepo.find({ user: convertedUserId });
       return bankAccounts;
     } catch (error) {
       throw new NotFoundException('User does not have any account');
