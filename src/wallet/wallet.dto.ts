@@ -167,3 +167,29 @@ export class WalletFundingDto {
   @ApiProperty()
   paymentMode: paymentMode;
 }
+
+export class BankAccount {
+  @IsString()
+  @ApiProperty()
+  accountName: string;
+
+  @IsString()
+  @ApiProperty()
+  accountNumber: string;
+
+  @IsString()
+  @ApiProperty()
+  accountReference: string;
+
+  @IsString()
+  @ApiProperty()
+  bankName: string;
+
+  @IsString()
+  @ApiProperty()
+  bank_slug: string;
+
+  @IsString()
+  @ApiProperty()
+  provider: string;
+}
