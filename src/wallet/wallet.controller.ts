@@ -12,7 +12,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { Banks, CreateWalletDto, WalletFundingDto } from './wallet.dto';
+import {
+  BankAccount,
+  Banks,
+  CreateWalletDto,
+  WalletFundingDto,
+} from './wallet.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
@@ -191,16 +196,44 @@ export class WalletController {
 
   @Roles('Admin', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiCreatedResponse({ type: BankAccount, description: 'expected response' })
   @ApiOperation({ summary: 'Get accounts details of the user' })
   @Get('/accounts/')
-  async getUserWallet(
+  async getUserAccount(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Req() request: CustomRequest,
   ) {
     const userId = request.user.id;
 
     return this.walletService.fetchBankAccounts(userId);
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Get wallet balance for the the user' })
+  @Get('/balance')
+  async getUserWalletBalance(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Req() request: CustomRequest,
+  ) {
+    const userId = request.user.id;
+
+    return this.walletService.getUserWalletBalance(userId);
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
+  @ApiOperation({ summary: 'Get wallet details for the the user' })
+  @Get('/')
+  async getUserWalletDetails(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Req() request: CustomRequest,
+  ) {
+    const userId = request.user.id;
+
+    return this.walletService.getUserWallet(userId);
   }
 
   // @Roles('SuperAgent', 'Agent', 'Individual')
