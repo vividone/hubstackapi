@@ -17,6 +17,7 @@ import {
   transactionStatus,
   transactionType,
 } from 'src/transactions/transaction.dto';
+import { BankAccountRepository } from 'src/entity/repositories/bankaccount.repo';
 
 @Injectable()
 export class WalletService {
@@ -24,8 +25,27 @@ export class WalletService {
     private readonly walletRepo: WalletRepository,
     private readonly transactionService: TransactionService,
     private readonly transactionRepo: TransactionRepository,
+    private readonly bankRepo: BankAccountRepository,
   ) {}
 
+  async fetchBankAccounts(userId: string) {
+    try {
+      const bankAccounts = await this.bankRepo.find({ user: userId });
+      return bankAccounts;
+    } catch (error) {
+      throw new NotFoundException('User does not have any account');
+    }
+  }
+
+  async createWallet(userId: string) {
+    const userWalletExists = await this.getUserWallet(userId);
+    if (userWalletExists !== null) {
+      return userWalletExists;
+    } else {
+      const createWallet = await this.walletRepo.create({ user: userId });
+      return createWallet;
+    }
+  }
   // async createVirtualAccount(data: CreateWalletDto, id: string) {
   //   const baseUrl: string = process.env.FLW_BASE_URL;
   //   const secretKey: string = process.env.FLW_SECRET_KEY;
@@ -205,10 +225,7 @@ export class WalletService {
 
   // Get list of Nigerian Banks
 
-  
-
   // Validate customer
-
 
   async getUserWalletBalance(userId: string) {
     if (!Types.ObjectId.isValid(userId)) {
@@ -236,12 +253,12 @@ export class WalletService {
     // console.log('convertedUserId', convertedUserId);
     try {
       const wallet = await this.walletRepo.findOne({
-        user: convertedUserId,
+        user: userId,
       });
-      if (!wallet) {
-        throw new NotFoundException('Wallet not found');
-      }
-      return wallet;
+      // if (!wallet) {
+      //   throw new NotFoundException('Wallet not found');
+      // }
+      return null;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

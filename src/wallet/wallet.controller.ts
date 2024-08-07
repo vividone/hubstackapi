@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Post,
@@ -24,8 +25,8 @@ import {
   TransactionDto,
   VerifyFundingDto,
 } from 'src/transactions/transaction.dto';
-import { FlutterwaveWalletService } from './wallet-flutterwave.service';
-import { PaystackWalletService } from './wallet-paystack.service';
+import { FlutterwaveWalletService } from './flutterwave.service';
+import { PaystackWalletService } from './paystack.service';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -85,11 +86,25 @@ export class WalletController {
   ) {
     try {
       const userId = request.user.id;
-      const result = await this.flutterwaveWalletService.createVirtualAccount(
-        createWalletDto,
-        userId,
-      );
-      return result;
+      const flutterwaveAccount =
+        await this.flutterwaveWalletService.createVirtualAccount(
+          createWalletDto,
+          userId,
+        );
+
+      // const paystackAccount =
+      //   await this.paystackWalletService.createPaystackBankAccount(
+      //     createWalletDto,
+      //     userId,
+      //   );
+
+      const createWallet = await this.walletService.createWallet(userId);
+      return {
+        WemaBank: flutterwaveAccount,
+        PaystackTitan: 'Unavailable',
+        MicrobizMFB: 'Unavailable',
+        Wallet: createWallet,
+      };
     } catch (error) {
       console.error(error);
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -110,10 +125,11 @@ export class WalletController {
   ) {
     try {
       const userId = request.user.id;
-      const wallet = await this.paystackWalletService.initializePaystackWalletFunding(
-        fundWalletDto,
-        userId,
-      );
+      const wallet =
+        await this.paystackWalletService.initializePaystackWalletFunding(
+          fundWalletDto,
+          userId,
+        );
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -176,14 +192,14 @@ export class WalletController {
   @Roles('Admin', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
-  @ApiOperation({ summary: 'Get wallet details of a user' })
-  @Get('/:userid')
+  @ApiOperation({ summary: 'Get accounts details of the user' })
+  @Get('/accounts/:userid')
   async getUserWallet(
     @Param('userid') userid: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Req() request: CustomRequest,
   ) {
-    return this.walletService.getUserWallet(userid);
+    return this.walletService.fetchBankAccounts(userid);
   }
 
   // @Roles('SuperAgent', 'Agent', 'Individual')
