@@ -83,7 +83,7 @@ export class CategoryService {
         },
       });
 
-      console.log('Response:', response.data);
+      // console.log('Response:', response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(
@@ -106,7 +106,7 @@ export class CategoryService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
-      console.log('ISW Auth', response.data);
+      // console.log('ISW Auth', response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(error, 'An error occurred authenticating!');

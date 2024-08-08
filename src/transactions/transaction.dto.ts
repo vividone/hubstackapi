@@ -163,7 +163,7 @@ export class QueryDVA {
 export class FundWalletTransaction {
   @IsEnum(paymentMode)
   @ApiProperty()
-  paymentMode: paymentMode;
+  paymentMode: paymentMode | string;
 
   @IsString()
   @ApiProperty()
@@ -193,7 +193,7 @@ export class TransactionDto {
   @IsNotEmpty()
   @ApiProperty()
   @IsEnum(paymentMode)
-  paymentMode: paymentMode;
+  paymentMode: paymentMode | string;
 
   @IsOptional()
   @ApiProperty()
