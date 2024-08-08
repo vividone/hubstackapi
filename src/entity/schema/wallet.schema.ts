@@ -8,6 +8,10 @@ export type WalletDocument = HydratedDocument<Wallet>;
 export
 @Schema({ timestamps: true })
 class Wallet {
+  @Prop()
+  @ApiProperty()
+  email: string;
+
   @Prop({ default: 0.0 })
   @ApiProperty()
   balance: number;
