@@ -13,10 +13,11 @@ import { TransactionModule } from 'src/transactions/transaction.module';
 import { FlutterwaveWalletService } from './wallet-flutterwave.service';
 import { PaystackWalletService } from './wallet-paystack.service';
 import { PaystackWebhookController } from './wallet-paystack.controller';
+import { FlutterwaveWebhookController } from './wallet-flutterwave.controller';
 
 @Module({
   providers: [WalletService, FlutterwaveWalletService,PaystackWalletService, WalletRepository, ApiKeyGuard],
-  controllers: [WalletController, PaystackWebhookController],
+  controllers: [WalletController, PaystackWebhookController, FlutterwaveWebhookController],
   exports: [WalletRepository, WalletService],
   imports: [
     MongooseModule.forFeature([{ name: Wallet.name, schema: WalletSchema }]),

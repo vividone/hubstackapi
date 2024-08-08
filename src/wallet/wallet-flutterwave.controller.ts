@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import * as crypto from 'crypto';
 import { FlutterwaveWalletService } from './wallet-flutterwave.service';
 @Controller('webhooks/paystack')
-export class PaystackWebhookController {
+export class FlutterwaveWebhookController {
     constructor(private readonly flutterwaveWalletService: FlutterwaveWalletService) { }
 
     @Post('event')
@@ -50,7 +50,7 @@ export class PaystackWebhookController {
                 console.error('Failed to handle successful charge:', error);
             }
         }
-        
+
         return res.status(200).send('Webhook received');
     }
 }
