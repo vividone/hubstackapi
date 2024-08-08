@@ -10,7 +10,9 @@ import {
   Req,
   Get,
   NotFoundException,
+  Res,
 } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { WalletService } from './wallet.service';
 import {
   BankAccount,
@@ -172,6 +174,7 @@ export class WalletController {
     }
   }
 
+  
   // @Roles('Agent', 'Individual')
   // @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   // @ApiOperation({ summary: 'Create wallet for a new user' })
