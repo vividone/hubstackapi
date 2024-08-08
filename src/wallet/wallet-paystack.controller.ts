@@ -1,7 +1,7 @@
 import { Controller, Post, Req, Res, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as crypto from 'crypto';
-import { PaystackWalletService } from './wallet-paystack.service';
+import { PaystackWalletService } from './paystack.service';
 @Controller('webhooks/paystack')
 export class PaystackWebhookController {
   constructor(private readonly paystackWalletService: PaystackWalletService) {}
@@ -9,9 +9,6 @@ export class PaystackWebhookController {
   @Post('event')
   async handlePaystackWebhook(@Req() req: Request, @Res() res: Response) {
     console.log('Received Paystack webhook request');
-    console.log('Headers:', req.headers);
-    console.log('Body:', req.body);
-
     const secret = process.env.PSTK_SECRET_KEY; 
     const signature = req.headers['x-paystack-signature'] as string;
 
@@ -48,7 +45,7 @@ export class PaystackWebhookController {
     if (event === 'charge.success' && data.status === 'success') {
       const customer = data.customer;
       const transactionReference = data.reference;
-      const amount = data.amount / 100; // Paystack amounts are in kobo, convert to Naira
+      const amount = data.amount / 100; 
 
       try {
         await this.paystackWalletService.handleSuccessfulCharge(customer, transactionReference, amount);
