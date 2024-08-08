@@ -295,6 +295,7 @@ export class TransactionService {
           },
         },
       );
+      console.log(verifyResponse.data)
       return verifyResponse.data;
     } catch (error) {
       this.handleAxiosError(error, 'error verifying payment');

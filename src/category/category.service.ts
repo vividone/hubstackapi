@@ -68,7 +68,7 @@ export class CategoryService {
     try {
       const authResponse = await this.genISWAuthToken();
       token = authResponse.access_token;
-      console.log('isw token', token);
+      // console.log('isw token', token);
     } catch (error) {
       // console.error('Error fetching auth token:', error.message);
       throw new Error('Failed to authenticate');
@@ -83,7 +83,7 @@ export class CategoryService {
         },
       });
 
-      console.log('Response:', response.data);
+      // console.log('Response:', response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(
@@ -106,7 +106,7 @@ export class CategoryService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
-      console.log('ISW Auth', response.data);
+      // console.log('ISW Auth', response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(error, 'An error occurred authenticating!');

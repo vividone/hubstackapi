@@ -1,0 +1,62 @@
+import { Controller, Post, Req, Res, HttpException, HttpStatus } from '@nestjs/common';
+import { Request, Response } from 'express';
+import * as crypto from 'crypto';
+import { PaystackWalletService } from './wallet-paystack.service';
+@Controller('webhooks/paystack')
+export class PaystackWebhookController {
+  constructor(private readonly paystackWalletService: PaystackWalletService) {}
+
+  @Post('event')
+  async handlePaystackWebhook(@Req() req: Request, @Res() res: Response) {
+    console.log('Received Paystack webhook request');
+    console.log('Headers:', req.headers);
+    console.log('Body:', req.body);
+
+    const secret = process.env.PSTK_SECRET_KEY; // Your Paystack secret key
+    const signature = req.headers['x-paystack-signature'] as string;
+
+    console.log(signature)
+
+    if (!signature) {
+      console.log('Signature missing');
+      throw new HttpException('Signature missing', HttpStatus.BAD_REQUEST);
+    }
+
+    const bodyString = JSON.stringify(req.body);
+
+    const hash = crypto
+      .createHmac('sha512', secret)
+      .update(bodyString)
+      .digest('hex');
+    console.log(hash)
+    if (signature !== hash) {
+      console.log('Invalid signature');
+      throw new HttpException('Invalid signature', HttpStatus.UNAUTHORIZED);
+    }
+
+    let body;
+    try {
+      body = JSON.parse(bodyString);
+    } catch (error) {
+      console.log('Invalid request body');
+      throw new HttpException('Invalid request body', HttpStatus.BAD_REQUEST);
+    }
+
+    const { event, data } = body;
+    console.log("body of what should be the recent verif: ", body);
+
+    if (event === 'paymentrequest.success' && data.status === 'success') {
+      const customer = data.customer;
+      const transactionReference = data.reference;
+      const amount = data.amount / 100; // Paystack amounts are in kobo, convert to Naira
+
+      try {
+        await this.paystackWalletService.handleSuccessfulCharge(customer, transactionReference, amount);
+      } catch (error) {
+        console.error('Failed to handle successful charge:', error);
+      }
+    }
+
+    return res.status(200).send('Webhook received');
+  }
+}

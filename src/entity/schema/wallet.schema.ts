@@ -10,6 +10,10 @@ export
 class Wallet {
   @Prop()
   @ApiProperty()
+  email: string;
+
+  @Prop()
+  @ApiProperty()
   accountName: string;
 
   @Prop({ default: 0 })
