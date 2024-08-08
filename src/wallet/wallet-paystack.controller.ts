@@ -12,7 +12,7 @@ export class PaystackWebhookController {
     console.log('Headers:', req.headers);
     console.log('Body:', req.body);
 
-    const secret = process.env.PSTK_SECRET_KEY; // Your Paystack secret key
+    const secret = process.env.PSTK_SECRET_KEY; 
     const signature = req.headers['x-paystack-signature'] as string;
 
     console.log(signature)
@@ -43,9 +43,9 @@ export class PaystackWebhookController {
     }
 
     const { event, data } = body;
-    console.log("body of what should be the recent verif: ", body);
+    console.log("body of what should be the recent webhook body: ", body);
 
-    if (event === 'paymentrequest.success' && data.status === 'success') {
+    if (event === 'charge.success' && data.status === 'success') {
       const customer = data.customer;
       const transactionReference = data.reference;
       const amount = data.amount / 100; // Paystack amounts are in kobo, convert to Naira
