@@ -15,7 +15,10 @@ import { handleAxiosError } from 'src/configs/handleAxiosError';
 import { WalletService } from './wallet.service';
 import { BankAccountRepository } from 'src/entity/repositories/bankaccount.repo';
 import { TransactionService } from 'src/transactions/transaction.service';
-import { transactionType, transactionStatus } from 'src/transactions/transaction.dto';
+import {
+  transactionType,
+  transactionStatus,
+} from 'src/transactions/transaction.dto';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
 
 @Injectable()
@@ -24,7 +27,7 @@ export class FlutterwaveWalletService {
     private readonly walletRepo: WalletRepository,
     private readonly userRepo: UserRepository,
     private readonly walletService: WalletService,
-    private readonly transactionRepo : TransactionRepository,
+    private readonly transactionRepo: TransactionRepository,
     private readonly bankRepo: BankAccountRepository,
     private readonly transactionService: TransactionService,
   ) {}
@@ -131,8 +134,12 @@ export class FlutterwaveWalletService {
     }
   }
 
-  //WEBHOOKS 
-  async handleSuccessfulCharge(customer: any, transactionReference: string, amount: number) {
+  //WEBHOOKS
+  async handleSuccessfulCharge(
+    customer: any,
+    transactionReference: string,
+    amount: number,
+  ) {
     const { email } = customer;
 
     try {
@@ -141,26 +148,37 @@ export class FlutterwaveWalletService {
         throw new NotFoundException('Wallet not found.');
       }
 
-      await this.createAndProcessTransaction(wallet.userId, transactionReference, amount);
+      await this.createAndProcessTransaction(
+        wallet.userId,
+        transactionReference,
+        amount,
+      );
     } catch (error) {
       console.error('Error processing Flutterwave charge:', error);
-      throw new InternalServerErrorException('An error occurred while processing the charge.');
+      throw new InternalServerErrorException(
+        'An error occurred while processing the charge.',
+      );
     }
   }
 
-  async createAndProcessTransaction(userId: string, transactionReference: string, amount: number) {
+  async createAndProcessTransaction(
+    userId: string,
+    transactionReference: string,
+    amount: number,
+  ) {
     try {
-        const transactionData = {
-            transactionReference: transactionReference,
-            amount: amount,
-            transactionType: transactionType.WalletFunding,
-            transactionStatus: transactionStatus.Pending,
-            paymentMode: 'account_transfer',
-            transactionDetails: 'wallet-funding',
-            user: userId,
-          };
+      const transactionData = {
+        transactionReference: transactionReference,
+        amount: amount,
+        transactionType: transactionType.WalletFunding,
+        transactionStatus: transactionStatus.Pending,
+        paymentMode: 'account_transfer',
+        transactionDetails: 'wallet-funding',
+        user: userId,
+      };
 
-      const createTransaction = await this.transactionService.createTransaction(transactionData);
+      const createTransaction =
+        await this.transactionService.createTransaction(transactionData);
       const { _id } = createTransaction;
       const transactionId = _id.toString();
       await this.fundWalletProcess(userId, transactionId);
@@ -172,7 +190,9 @@ export class FlutterwaveWalletService {
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
-      const transaction = await this.transactionRepo.findOne({ _id: transactionId });
+      const transaction = await this.transactionRepo.findOne({
+        _id: transactionId,
+      });
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }

@@ -17,6 +17,8 @@ import {
 } from 'src/entity/schema/bankaccount.schema';
 import { BankAccountRepository } from 'src/entity/repositories/bankaccount.repo';
 import { FlutterwaveWalletService } from './flutterwave.service';
+import { FlutterwaveWebhookController } from './wallet-flutterwave.controller';
+import { PaystackWebhookController } from './wallet-paystack.controller';
 
 @Module({
   providers: [
@@ -27,7 +29,11 @@ import { FlutterwaveWalletService } from './flutterwave.service';
     PaystackWalletService,
     FlutterwaveWalletService,
   ],
-  controllers: [WalletController],
+  controllers: [
+    WalletController,
+    FlutterwaveWebhookController,
+    PaystackWebhookController,
+  ],
   exports: [WalletRepository, WalletService, BankAccountRepository],
   imports: [
     MongooseModule.forFeature([

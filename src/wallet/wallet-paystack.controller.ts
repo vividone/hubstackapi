@@ -1,18 +1,28 @@
-import { Controller, Post, Req, Res, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Req,
+  Res,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as crypto from 'crypto';
 import { PaystackWalletService } from './paystack.service';
-@Controller('webhooks/paystack')
+import { ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Webhooks')
+@Controller('hooks/pstk')
 export class PaystackWebhookController {
   constructor(private readonly paystackWalletService: PaystackWalletService) {}
 
   @Post('event')
   async handlePaystackWebhook(@Req() req: Request, @Res() res: Response) {
     console.log('Received Paystack webhook request');
-    const secret = process.env.PSTK_SECRET_KEY; 
+    const secret = process.env.PSTK_SECRET_KEY;
     const signature = req.headers['x-paystack-signature'] as string;
 
-    console.log(signature)
+    console.log(signature);
 
     if (!signature) {
       console.log('Signature missing');
@@ -25,7 +35,7 @@ export class PaystackWebhookController {
       .createHmac('sha512', secret)
       .update(bodyString)
       .digest('hex');
-    console.log(hash)
+    console.log(hash);
     if (signature !== hash) {
       console.log('Invalid signature');
       throw new HttpException('Invalid signature', HttpStatus.UNAUTHORIZED);
@@ -40,15 +50,19 @@ export class PaystackWebhookController {
     }
 
     const { event, data } = body;
-    console.log("body of what should be the recent webhook body: ", body);
+    console.log('body of what should be the recent webhook body: ', body);
 
     if (event === 'charge.success' && data.status === 'success') {
       const customer = data.customer;
       const transactionReference = data.reference;
-      const amount = data.amount / 100; 
+      const amount = data.amount / 100;
 
       try {
-        await this.paystackWalletService.handleSuccessfulCharge(customer, transactionReference, amount);
+        await this.paystackWalletService.handleSuccessfulCharge(
+          customer,
+          transactionReference,
+          amount,
+        );
       } catch (error) {
         console.error('Failed to handle successful charge:', error);
       }

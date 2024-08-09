@@ -257,66 +257,83 @@ export class PaystackWalletService {
     }
   }
 
-   async handleSuccessfulCharge(customer: any, transactionReference: string, amount: number) {
-        const { email } = customer;
-    
-        try {
-          const wallet = await this.walletRepo.findOne({ email });
-          if (!wallet) {
-            throw new NotFoundException('Wallet not found.');
-          }
-    
-          await this.createAndProcessTransaction(wallet.userId, transactionReference, amount);
-        } catch (error) {
-          console.error('Error processing Flutterwave charge:', error);
-          throw new InternalServerErrorException('An error occurred while processing the charge.');
-        }
+  async handleSuccessfulCharge(
+    customer: any,
+    transactionReference: string,
+    amount: number,
+  ) {
+    const { email } = customer;
+
+    try {
+      const wallet = await this.walletRepo.findOne({ email });
+      if (!wallet) {
+        throw new NotFoundException('Wallet not found.');
       }
-    
-      async createAndProcessTransaction(userId: string, transactionReference: string, amount: number) {
-        try {
-            const transactionData = {
-                transactionReference: transactionReference,
-                amount: amount,
-                transactionType: transactionType.WalletFunding,
-                transactionStatus: transactionStatus.Pending,
-                paymentMode: 'account_transfer',
-                transactionDetails: 'wallet-funding',
-                user: userId,
-              };
-    
-          const createTransaction = await this.transactionService.createTransaction(transactionData);
-          const { _id } = createTransaction;
-          const transactionId = _id.toString();
-          await this.fundWalletProcess(userId, transactionId);
-        } catch (error) {
-          console.error('Error creating transaction:', error);
-          throw new InternalServerErrorException('Failed to create transaction.');
-        }
+
+      await this.createAndProcessTransaction(
+        wallet.userId,
+        transactionReference,
+        amount,
+      );
+    } catch (error) {
+      console.error('Error processing Flutterwave charge:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while processing the charge.',
+      );
+    }
+  }
+
+  async createAndProcessTransaction(
+    userId: string,
+    transactionReference: string,
+    amount: number,
+  ) {
+    try {
+      const transactionData = {
+        transactionReference: transactionReference,
+        amount: amount,
+        transactionType: transactionType.WalletFunding,
+        transactionStatus: transactionStatus.Pending,
+        paymentMode: 'account_transfer',
+        transactionDetails: 'wallet-funding',
+        user: userId,
+      };
+
+      const createTransaction =
+        await this.transactionService.createTransaction(transactionData);
+      const { _id } = createTransaction;
+      const transactionId = _id.toString();
+      await this.fundWalletProcess(userId, transactionId);
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      throw new InternalServerErrorException('Failed to create transaction.');
+    }
+  }
+
+  async fundWalletProcess(userId: string, transactionId: string) {
+    try {
+      const transaction = await this.transactionRepo.findOne({
+        _id: transactionId,
+      });
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found.');
       }
-    
-      async fundWalletProcess(userId: string, transactionId: string) {
-        try {
-          const transaction = await this.transactionRepo.findOne({ _id: transactionId });
-          if (!transaction) {
-            throw new NotFoundException('Transaction not found.');
-          }
-    
-          const wallet = await this.walletRepo.findOne({ userId });
-          if (!wallet) {
-            throw new NotFoundException('Wallet not found.');
-          }
-    
-          wallet.balance += transaction.amount;
-          await wallet.save();
-    
-          transaction.status = transactionStatus.Successful;
-          await transaction.save();
-        } catch (error) {
-          console.error('Error funding wallet:', error);
-          throw new InternalServerErrorException('Failed to fund wallet.');
-        }
+
+      const wallet = await this.walletRepo.findOne({ userId });
+      if (!wallet) {
+        throw new NotFoundException('Wallet not found.');
       }
+
+      wallet.balance += transaction.amount;
+      await wallet.save();
+
+      transaction.status = transactionStatus.Successful;
+      await transaction.save();
+    } catch (error) {
+      console.error('Error funding wallet:', error);
+      throw new InternalServerErrorException('Failed to fund wallet.');
+    }
+  }
   private async createCustomer(
     userId: string,
     email: string,

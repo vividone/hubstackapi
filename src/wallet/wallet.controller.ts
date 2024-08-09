@@ -174,7 +174,6 @@ export class WalletController {
     }
   }
 
-  
   // @Roles('Agent', 'Individual')
   // @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
   // @ApiOperation({ summary: 'Create wallet for a new user' })
