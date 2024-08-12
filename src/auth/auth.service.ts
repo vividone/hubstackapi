@@ -119,8 +119,15 @@ export class AuthService {
 
   async loginUser(loginUserDto: LoginUser, res: any) {
     const { email, password } = loginUserDto;
-
+    
     const user = await this.userRepo.findOne({ email });
+
+    // console.log('Login Attempt:', {
+    //   plainPassword: password,
+    //   storedHash: user.password,
+    // });
+
+
     if (!user || !(await user.comparePassword(password))) {
       throw new BadRequestException('Invalid credentials');
     }
@@ -177,13 +184,11 @@ export class AuthService {
     const resetToken = this.jwtService.sign(payload, { expiresIn: '10m' });
 
     const resetPasswordUrl = `${process.env.APP_DOMAIN}/auth/reset-password/?token=${resetToken}`;
-    // console.log(resetToken);
-
+    console.log(resetToken);
     await this.resetPasswordService.sendResetPasswordEmail(
       email,
       resetPasswordUrl,
     );
-
     return {
       status: 'Success',
       message: 'Password reset token sent to email',

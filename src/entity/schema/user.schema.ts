@@ -74,9 +74,12 @@ UserSchema.pre<UserDocument>('save', async function (next) {
     return next();
   }
 
+  if (this.password.startsWith('$2a$')) {
+    return next();
+  }
+
   try {
-    const hashedPassword = await bcrypt.hash(this.password, 10);
-    this.password = hashedPassword;
+    this.password = await bcrypt.hash(this.password, 10);
     next();
   } catch (error) {
     next(error);
@@ -84,10 +87,10 @@ UserSchema.pre<UserDocument>('save', async function (next) {
 });
 
 UserSchema.methods.comparePassword = async function (
-  userPassword: string,
+  password: string,
 ): Promise<boolean> {
   try {
-    return await bcrypt.compare(userPassword, this.password);
+   return await bcrypt.compare(password, this.password);
   } catch (error) {
     return false;
   }
