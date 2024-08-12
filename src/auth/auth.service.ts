@@ -177,7 +177,7 @@ export class AuthService {
     const resetToken = this.jwtService.sign(payload, { expiresIn: '10m' });
 
     const resetPasswordUrl = `${process.env.APP_DOMAIN}/auth/reset-password/?token=${resetToken}`;
-    console.log(resetPasswordUrl);
+    // console.log(resetToken);
 
     await this.resetPasswordService.sendResetPasswordEmail(
       email,
@@ -193,24 +193,24 @@ export class AuthService {
   async resetForgottenPassword(password: string, token: string) {
     try {
       const decoded = this.jwtService.verify(token);
-
-      const user = await this.userRepo.findOne({ _id: decoded.id });
+  
+      const user = await this.userRepo.findOne({ _id: decoded.userId });
       if (!user) {
         throw new BadRequestException('Token is invalid or has expired');
       }
-
+  
       user.password = await bcrypt.hash(password, 10);
       await user.save();
-
+  
       return {
         status: 'Success',
         message: 'Password has been reset successfully',
       };
     } catch (error) {
-      console.error('Error during password reset:', error);
       throw new BadRequestException('Token is invalid or has expired');
     }
   }
+  
 
   async updatePassword(
     userId: string,
