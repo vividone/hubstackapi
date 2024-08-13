@@ -45,14 +45,10 @@ export class TransactionService {
   }
 
   async getUserWallet(userId: string) {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new BadRequestException('Invalid user ID format');
-    }
-    const convertedUserId = new Types.ObjectId(userId);
     // console.log('convertedUserId', convertedUserId);
     try {
       const wallet = await this.walletRepo.findOne({
-        user: convertedUserId,
+        user: userId,
       });
       if (!wallet) {
         throw new NotFoundException('Wallet not found');
@@ -120,7 +116,7 @@ export class TransactionService {
       }
     }
   }
-
+  
   //buying airtime and data function
   async payPhoneBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     try {
