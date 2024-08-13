@@ -144,7 +144,7 @@ export class AuthService {
     let balance = 0;
 
     try {
-      const wallet = await this.walletService.fetchBankAccounts(user._id);
+      const wallet = await this.walletService.getUserWallet(user._id);
       hasWallet = !!wallet;
 
       if (hasWallet) {
@@ -222,8 +222,28 @@ export class AuthService {
     oldPassword: string,
     newPassword: string,
   ) {
-    return this.userService.updatePassword(userId, oldPassword, newPassword);
+    const user = await this.userRepo.findOne({ _id: userId });
+    
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    
+    if (!isMatch) {
+      throw new BadRequestException('Old password is incorrect');
+    }
+    if (await bcrypt.compare(newPassword, user.password)) {
+      throw new BadRequestException('New password cannot be the same as the old password');
+    }
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+  
+    return {
+      status: 'Success',
+      message: 'Password has been updated successfully',
+    };
   }
+  
 
   private generateReferralCode() {
     const length = 10;
