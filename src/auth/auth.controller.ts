@@ -142,7 +142,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, RolesAuth)
-  @Roles('SuperAgent', 'Agent', 'Individual')
+  @Roles('Agent', 'Individual')
   @Put('update-password')
   async updatePassword(
     @Req() request: CustomRequest,
