@@ -144,7 +144,7 @@ export class AuthService {
     let balance = 0;
 
     try {
-      const wallet = await this.walletService.getUserWallet(user._id);
+      const wallet = await this.walletService.fetchBankAccounts(user._id);
       hasWallet = !!wallet;
 
       if (hasWallet) {
