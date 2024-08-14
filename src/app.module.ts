@@ -14,6 +14,8 @@ import { ProductModule } from './product/product.module';
 import { TransactionModule } from './transactions/transaction.module';
 import { ReferralModule } from './referrals/referral.module';
 import { ApiKeyModule } from './auth/apikey.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { KeepAliveService } from './configs/keep-alive.service';
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { ApiKeyModule } from './auth/apikey.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     PassportModule,
     MongooseModule.forRoot(process.env.MONGODB_URL),
     UsersModule,
@@ -37,6 +40,7 @@ import { ApiKeyModule } from './auth/apikey.module';
     TransactionModule,
     ApiKeyModule,
   ],
+  providers: [KeepAliveService]
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

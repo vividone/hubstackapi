@@ -232,45 +232,35 @@ export class WalletService {
   // Validate customer
 
   async getUserWalletBalance(userId: string) {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new BadRequestException('Invalid user ID format');
-    }
-    const convertedUserId = new Types.ObjectId(userId);
+    const userIdString = new Types.ObjectId(userId).toString();
     try {
-      const user = await this.walletRepo.findOne({ user: convertedUserId });
+
+      const user = await this.walletRepo.findOne({ user: userIdString });
+      if (!user) {
+        throw new NotFoundException('Wallet not found');
+      }
       const balance = user.balance;
       return balance;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       } else {
-        throw new Error('An error occurred while fetching the wallet');
+        throw new Error('An error occurred while fetching the wallet balance');
       }
     }
   }
 
   async getUserWallet(userId: string) {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new BadRequestException('Invalid user ID format');
-    }
-    const convertedUserId = new Types.ObjectId(userId);
-    // console.log('convertedUserId', convertedUserId);
+    const userIdString = new Types.ObjectId(userId).toString();
     try {
-      const wallet = await this.walletRepo.findOne({
-        user: userId,
-      });
-      // if (!wallet) {
-      //   throw new NotFoundException('Wallet not found');
-      // }
+      const wallet = await this.walletRepo.findOne({ user: userIdString });
       return wallet;
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        return null;
-      } else {
-        throw new Error('An error occurred while fetching the wallet');
-      }
+      throw error;
     }
   }
+  
+  
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
