@@ -22,6 +22,7 @@ import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { ApiKeyGuard } from './apikey.guard';
+import { ResetPasswordDto } from './dto/reset.password.dto';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
@@ -120,15 +121,15 @@ export class AuthController {
     }
   }
 
-  @Post('reset-password/:token')
+  @Post('reset-password')
   async resetForgottenPassword(
-    @Body('password') password: string,
-    @Param('token') token: string,
+    @Body() resetPasswordDto: ResetPasswordDto
   ) {
+    const {password, otp} = resetPasswordDto;
     try {
       const result = await this.authService.resetForgottenPassword(
         password,
-        token,
+        otp,
       );
       return { status: 'Success', ...result };
     } catch (error) {

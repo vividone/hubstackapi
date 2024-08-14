@@ -40,6 +40,10 @@ class Users {
   @ApiProperty()
   otp: string;
 
+  @Prop()
+  @ApiProperty()
+  otpExpiry: Date;
+
   @Prop({ default: false })
   kyc: boolean;
 

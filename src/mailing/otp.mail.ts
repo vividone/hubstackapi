@@ -11,9 +11,7 @@ export class OtpService {
 
   async sendOtpEmail(
     email: string,
-    otp: string,
-    firstname: string,
-    lastName: string,
+    otp: string
   ) {
     const templateString = '<p>Your OTP is: %OTP%</p>';
     const loadedTemplate = this.emailService.loadTemplate(templateString, {
@@ -24,7 +22,7 @@ export class OtpService {
       process.env.NO_REPLY_ADDRESS,
       'Your OTP Code',
       loadedTemplate,
-      { email, firstname, lastName },
+      { email },
     );
   }
 }
