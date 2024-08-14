@@ -80,7 +80,7 @@ export class AuthService {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user.toObject();
 
-      console.log('Validated User:', result);
+      // console.log('Validated User:', result);
       return result;
     }
     return null;
@@ -177,9 +177,7 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Email does not exist');
     }
-
     const otp = this.otpService.generateOTP();
-    console.log(otp)
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     user.otp = otp;
     user.otpExpiry = otpExpiry;
@@ -196,7 +194,6 @@ export class AuthService {
   async resetForgottenPassword(password: string, otp: string) {
     try {
       const user = await this.userRepo.findOne({ otp });
-
       if (!user) {
         throw new BadRequestException('OTP is invalid or has expired');
       }
