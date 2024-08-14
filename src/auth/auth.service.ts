@@ -35,7 +35,8 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     req: any,
   ) {
-    const { email, role, referralCode } = createUserDto;
+    let { email, role, referralCode } = createUserDto;
+    email = email.toLowerCase();
     const existingUser = await this.userRepo.findOne({ email });
     if (existingUser) {
       throw new BadRequestException('Email already exists');
@@ -116,39 +117,41 @@ export class AuthService {
   }
 
   async loginUser(loginUserDto: LoginUser, res: any) {
-    const { email, password } = loginUserDto;
-
+    let { email, password } = loginUserDto;
+    email = email.toLowerCase();
     const user = await this.userRepo.findOne({ email });
-
+  
     if (!user || !(await user.comparePassword(password))) {
       throw new BadRequestException('Invalid credentials');
     }
 
+    if (!user.isVerified) {
+      await this.resendOtp(email);
+    }
+  
     const refreshToken = this.generateRefreshToken(user._id);
     await this.userService.updateRefreshToken(
       user._id,
       refreshToken.refresh_token,
     );
-
-    // this.setRefreshTokenCookie(res, refreshToken.refresh_token);
-
+  
     let hasWallet = false;
     let balance = 0;
-
+  
     try {
       const wallet = await this.walletService.getUserWallet(user._id);
       hasWallet = !!wallet;
-
+  
       if (hasWallet) {
         balance = await this.walletService.getUserWalletBalance(user._id);
       }
     } catch (error) {
       console.error('Error fetching wallet or balance:', error.message);
     }
-
+  
     const userData = await this.userRepo.findOne(user._id, { password: false });
     const token = await this.generateToken(userData);
-
+  
     return {
       status: 'Success',
       message: 'Login successful',
@@ -158,6 +161,7 @@ export class AuthService {
       token,
     };
   }
+  
 
   // private setRefreshTokenCookie(res: any, token: string) {
   //   res.cookie('refreshToken', token, {
@@ -167,6 +171,7 @@ export class AuthService {
   // }
 
   async forgotPasswordToken(email: string) {
+    email = email.toLowerCase();
     const user = await this.userRepo.findOne({ email });
     if (!user) {
       throw new NotFoundException('Email does not exist');
