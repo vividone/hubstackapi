@@ -28,7 +28,7 @@ import { ResetPasswordDto } from './dto/reset.password.dto';
 @Controller('auth')
 @UseGuards(ApiKeyGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register-individual')
   registerUser(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
@@ -76,10 +76,32 @@ export class AuthController {
     return this.authService.createUser(createAgentDto, req);
   }
 
-  @Post('verify-otp')
+  @Post('verify-email')
   async verifyOtp(@Body() verifyOtp: any) {
     return this.authService.verifyOtp(verifyOtp.otp);
   }
+
+  @Post('verify-otp')
+  async verifyResetPasswordOtp(@Body() verifyOtp: any) {
+    return this.authService.verifyPasswordResetOtp(verifyOtp.otp);
+  }
+
+  @Post('resend-otp')
+  async resendOtp(@Body('email') email: string) {
+    try {
+      const result = await this.authService.resendOtp(email);
+      return {
+        status: 'Success',
+        message: result.message,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw new BadRequestException('Internal Server Error');
+    }
+  }
+
 
   @ApiCreatedResponse({
     type: LoginDtoResponse,
@@ -121,15 +143,15 @@ export class AuthController {
     }
   }
 
-  @Post('reset-password')
+  @Post('reset-password/:token')
   async resetForgottenPassword(
-    @Body() resetPasswordDto: ResetPasswordDto
+    @Body('password') password: string,
+    @Param('token') token: string,
   ) {
-    const {password, otp} = resetPasswordDto;
     try {
       const result = await this.authService.resetForgottenPassword(
         password,
-        otp,
+        token,
       );
       return { status: 'Success', ...result };
     } catch (error) {

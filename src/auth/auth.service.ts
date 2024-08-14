@@ -120,12 +120,6 @@ export class AuthService {
 
     const user = await this.userRepo.findOne({ email });
 
-    // console.log('Login Attempt:', {
-    //   plainPassword: password,
-    //   storedHash: user.password,
-    // });
-
-
     if (!user || !(await user.comparePassword(password))) {
       throw new BadRequestException('Invalid credentials');
     }
@@ -178,6 +172,7 @@ export class AuthService {
       throw new NotFoundException('Email does not exist');
     }
     const otp = this.otpService.generateOTP();
+    console.log(otp)
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     user.otp = otp;
     user.otpExpiry = otpExpiry;
@@ -189,39 +184,53 @@ export class AuthService {
     };
   }
 
+  async verifyPasswordResetOtp(otp: string) {
+    const user = await this.userRepo.findOne({ otp });
+    if (!user) {
+      throw new BadRequestException('Invalid OTP');
+    }
+  
+    if (user.otpExpiry && new Date() > user.otpExpiry) {
+      throw new BadRequestException('OTP has expired');
+    }
+
+    user.otp = null;
+    user.otpExpiry = null;
+    user.isOtpVerified = true;
+    await user.save();
+    const token = this.jwtService.sign({ userId: user._id });
+  
+    return { token, message: 'OTP verified successfully' };
+  }
+  
 
 
-  async resetForgottenPassword(password: string, otp: string) {
+  async resetForgottenPassword(password: string, token: string) {
     try {
-      const user = await this.userRepo.findOne({ otp });
-      if (!user) {
-        throw new BadRequestException('OTP is invalid or has expired');
-      }
-      if (user.otpExpiry && new Date() > user.otpExpiry) {
-        throw new BadRequestException('OTP has expired');
+      const decoded = this.jwtService.verify(token);
+      const userId = String(decoded.userId)
+
+      const user = await this.userRepo.findOne({_id: userId});
+  
+      if (!user || !user.isOtpVerified) {
+        throw new BadRequestException('User not found or OTP not verified');
       }
       user.password = await bcrypt.hash(password, 10);
-      user.otp = null;
-      user.otpExpiry = null;
+      user.isOtpVerified = false;
 
       await user.save();
-
+  
       return {
         status: 'Success',
         message: 'Password has been reset successfully',
       };
     } catch (error) {
-      console.error('Error in resetForgottenPassword:', error);
       throw new BadRequestException(
         error.message || 'An error occurred while resetting the password'
       );
     }
   }
-
-
-
-
-
+  
   async updatePassword(
     userId: string,
     oldPassword: string,
@@ -249,7 +258,7 @@ export class AuthService {
     };
   }
 
-  private async resendOtp(email: string) {
+  async resendOtp(email: string) {
     const user = await this.userRepo.findOne({ email });
     if (!user) {
       throw new NotFoundException('Email does not exist');
