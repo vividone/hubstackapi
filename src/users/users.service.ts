@@ -98,6 +98,21 @@ export class UsersService {
     };
   }
 
+  async updateUserWithOtp(email: string, otp: string): Promise<void> {
+    try {
+      const result = await this.userRepo.findOneAndUpdate(
+        { email },
+        { $set: { otp } }
+      );
+  
+      if (result.nModified === 0) {
+        throw new NotFoundException('User not found or OTP not updated');
+      }
+    } catch (error) {
+      throw new Error('An error occurred while updating OTP for the user');
+    }
+  }
+
   private async updateUser(user: UserRepository) {
     return await this.userRepo.create(user);
   }

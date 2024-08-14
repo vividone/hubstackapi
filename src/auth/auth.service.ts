@@ -28,7 +28,7 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly resetPasswordService: ResetPasswordService,
     private readonly referralService: ReferralService,
-  ) {}
+  ) { }
 
   async createUser(
     createUserDto: CreateUserDto | CreateAgentProfileDto,
@@ -58,8 +58,6 @@ export class AuthService {
     await this.otpService.sendOtpEmail(
       email,
       otp,
-      createUserDto.firstname,
-      createUserDto.lastname,
     );
     await this.userService.saveOtpToUser(email, otp);
 
@@ -82,13 +80,13 @@ export class AuthService {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...result } = user.toObject();
 
-      console.log('Validated User:', result);
+      // console.log('Validated User:', result);
       return result;
     }
     return null;
   }
 
-  async verifyOtp(otp: string) {
+  public async verifyOtp(otp: string) {
     const user = await this.userRepo.findOne({ otp });
     if (!user) {
       throw new BadRequestException('Invalid OTP');
@@ -119,14 +117,8 @@ export class AuthService {
 
   async loginUser(loginUserDto: LoginUser, res: any) {
     const { email, password } = loginUserDto;
-    
+
     const user = await this.userRepo.findOne({ email });
-
-    // console.log('Login Attempt:', {
-    //   plainPassword: password,
-    //   storedHash: user.password,
-    // });
-
 
     if (!user || !(await user.comparePassword(password))) {
       throw new BadRequestException('Invalid credentials');
@@ -138,7 +130,7 @@ export class AuthService {
       refreshToken.refresh_token,
     );
 
-    this.setRefreshTokenCookie(res, refreshToken.refresh_token);
+    // this.setRefreshTokenCookie(res, refreshToken.refresh_token);
 
     let hasWallet = false;
     let balance = 0;
@@ -167,44 +159,65 @@ export class AuthService {
     };
   }
 
-  private setRefreshTokenCookie(res: any, token: string) {
-    res.cookie('refreshToken', token, {
-      httpOnly: true,
-      maxAge: 72 * 60 * 60 * 1000, // 72 hours in milliseconds
-    });
-  }
+  // private setRefreshTokenCookie(res: any, token: string) {
+  //   res.cookie('refreshToken', token, {
+  //     httpOnly: true,
+  //     maxAge: 72 * 60 * 60 * 1000, // 72 hours in milliseconds
+  //   });
+  // }
 
   async forgotPasswordToken(email: string) {
     const user = await this.userRepo.findOne({ email });
     if (!user) {
       throw new NotFoundException('Email does not exist');
     }
-
-    const payload = { email: user.email, userId: user._id };
-    const resetToken = this.jwtService.sign(payload, { expiresIn: '10m' });
-
-    const resetPasswordUrl = `${process.env.APP_DOMAIN}/auth/reset-password/?token=${resetToken}`;
-    console.log(resetToken);
-    await this.resetPasswordService.sendResetPasswordEmail(
-      email,
-      resetPasswordUrl,
-    );
+    const otp = this.otpService.generateOTP();
+    console.log(otp)
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    user.otp = otp;
+    user.otpExpiry = otpExpiry;
+    await user.save();
+    await this.otpService.sendOtpEmail(email, otp);
     return {
       status: 'Success',
-      message: 'Password reset token sent to email',
+      message: 'Password reset OTP sent to email',
     };
   }
+
+  async verifyPasswordResetOtp(otp: string) {
+    const user = await this.userRepo.findOne({ otp });
+    if (!user) {
+      throw new BadRequestException('Invalid OTP');
+    }
+  
+    if (user.otpExpiry && new Date() > user.otpExpiry) {
+      throw new BadRequestException('OTP has expired');
+    }
+
+    user.otp = null;
+    user.otpExpiry = null;
+    user.isOtpVerified = true;
+    await user.save();
+    const token = this.jwtService.sign({ userId: user._id });
+  
+    return { token, message: 'OTP verified successfully' };
+  }
+  
+
 
   async resetForgottenPassword(password: string, token: string) {
     try {
       const decoded = this.jwtService.verify(token);
+      const userId = String(decoded.userId)
+
+      const user = await this.userRepo.findOne({_id: userId});
   
-      const user = await this.userRepo.findOne({ _id: decoded.userId });
-      if (!user) {
-        throw new BadRequestException('Token is invalid or has expired');
+      if (!user || !user.isOtpVerified) {
+        throw new BadRequestException('User not found or OTP not verified');
       }
-  
       user.password = await bcrypt.hash(password, 10);
+      user.isOtpVerified = false;
+
       await user.save();
   
       return {
@@ -212,23 +225,24 @@ export class AuthService {
         message: 'Password has been reset successfully',
       };
     } catch (error) {
-      throw new BadRequestException('Token is invalid or has expired');
+      throw new BadRequestException(
+        error.message || 'An error occurred while resetting the password'
+      );
     }
   }
   
-
   async updatePassword(
     userId: string,
     oldPassword: string,
     newPassword: string,
   ) {
     const user = await this.userRepo.findOne({ _id: userId });
-    
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
     const isMatch = await bcrypt.compare(oldPassword, user.password);
-    
+
     if (!isMatch) {
       throw new BadRequestException('Old password is incorrect');
     }
@@ -237,13 +251,31 @@ export class AuthService {
     }
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
-  
+
     return {
       status: 'Success',
       message: 'Password has been updated successfully',
     };
   }
-  
+
+  async resendOtp(email: string) {
+    const user = await this.userRepo.findOne({ email });
+    if (!user) {
+      throw new NotFoundException('Email does not exist');
+    }
+
+    const otp = this.otpService.generateOTP();
+    user.otp = otp;
+    user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+    await this.otpService.sendOtpEmail(email, otp);
+    return {
+      status: 'Success',
+      message: 'A new OTP has been sent to your email',
+    };
+  }
+
+
 
   private generateReferralCode() {
     const length = 10;
