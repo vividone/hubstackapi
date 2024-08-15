@@ -81,41 +81,67 @@ export class TransactionService {
 
   async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     const { paymentCode, customerId } = billPaymentDto;
-
-    //Validate Customer
-    const validateCustomer = await this.validateCustomer(
-      paymentCode,
-      customerId,
-    );
-
+  
+    // Validate Customer
+    const validateCustomer = await this.validateCustomer(paymentCode, customerId);
+  
     if (!validateCustomer) {
       return 'Customer data is invalid';
-    } else {
-      //
-      if (paymentMode.wallet) {
-        const payWithWallet = await this.processBillPaymentViaWallet(
-          billPaymentDto,
-          userId,
-        );
-
-        if (payWithWallet.transactionStatus === transactionStatus.Successful) {
-          const reference = this.generateRequestReference();
-          const transactionData = {
-            transactionReference: reference,
-            amount: billPaymentDto.amount,
-            transactionType: transactionType.BillPayment,
-            transactionStatus: transactionStatus.Pending,
-            paymentMode: billPaymentDto.paymentMode,
-            transactionDetails: billPaymentDto,
-            user: userId,
-          };
-          const createTransaction =
-            await this.createTransaction(transactionData);
-          return createTransaction;
-        }
-      }
     }
+
+    const reference = this.generateRequestReference();
+  
+    const transactionData = {
+      transactionReference: reference,
+      amount: billPaymentDto.amount,
+      transactionType: transactionType.BillPayment,
+      transactionStatus: transactionStatus.Pending,
+      paymentMode: billPaymentDto.paymentMode,
+      transactionDetails: billPaymentDto,
+      user: userId,
+    };
+  
+    const createTransaction = await this.createTransaction(transactionData);
+  
+    return createTransaction;
   }
+  
+
+  // async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
+  //   const { paymentCode, customerId } = billPaymentDto;
+
+  //   //Validate Customer
+  //   const validateCustomer = await this.validateCustomer(
+  //     paymentCode,
+  //     customerId,
+  //   );
+
+  //   // if (!validateCustomer) {
+  //   //   return 'Customer data is invalid';
+  //   // } else {
+  //   //   //
+  //   //   if (paymentMode.wallet) {
+  //   //     const payWithWallet = await this.processBillPaymentViaWallet(
+  //   //       billPaymentDto,
+  //   //       userId,
+  //   //     );
+
+  //   //     if (payWithWallet.transactionStatus === transactionStatus.Successful) {
+  //   //       const reference = this.generateRequestReference();
+  //   //       const transactionData = {
+  //   //         transactionReference: reference,
+  //   //         amount: billPaymentDto.amount,
+  //   //         transactionType: transactionType.BillPayment,
+  //   //         transactionStatus: transactionStatus.Pending,
+  //   //         paymentMode: billPaymentDto.paymentMode,
+  //   //         transactionDetails: billPaymentDto,
+  //   //         user: userId,
+  //   //       };
+  //   //       const createTransaction =
+  //   //         await this.createTransaction(transactionData);
+  //   //       return createTransaction
+  //     }
+  // }
   
   //buying airtime and data function
   async payPhoneBills(billPaymentDto: BillPaymentTransaction, userId: string) {
@@ -240,7 +266,7 @@ export class TransactionService {
       } = transactionDetails;
 
       const amountInKobo = this.convertToKobo(amount);
-      console.log(amountInKobo);
+      // console.log(amountInKobo);
       const data = {
         customerEmail,
         paymentCode,
@@ -259,20 +285,35 @@ export class TransactionService {
           TerminalId,
         },
       });
-      //console.log('data: ', response.data);
-      if (response.data.ResponseDescription === 'Success') {
-        // const transactionStatusFromISW = await this.getTransactionStatusFromISW(token, requestReference, TerminalId);
-        // console.log(transactionStatusFromISW);
+      console.log('data: ', response.data);
+      const payWithWallet = await this.processBillPaymentViaWallet(
+        transactionDetails,
+        userId,
+      );
+      if (payWithWallet.transactionStatus === transactionStatus.Pending){
         const updateTransactionData = {
           transactionStatus: transactionStatus.Successful,
           paymentStatus: paymentStatus.Completed,
         };
         const updatedTransaction = await this.updateTransaction(
-          transactionId,
-          updateTransactionData,
+          transactionId, 
+          updateTransactionData
         );
         return updatedTransaction;
       }
+      // if (response.data.ResponseDescription === 'Success') {
+      //   // const transactionStatusFromISW = await this.getTransactionStatusFromISW(token, requestReference, TerminalId);
+      //   // console.log(transactionStatusFromISW);
+      //   const updateTransactionData = {
+      //     transactionStatus: transactionStatus.Successful,
+      //     paymentStatus: paymentStatus.Completed,
+      //   };
+      //   const updatedTransaction = await this.updateTransaction(
+      //     transactionId,
+      //     updateTransactionData,
+      //   );
+      //   return updatedTransaction;
+      // }
     } catch (error) {
       this.handleAxiosError(error, 'Error sending payment advice');
     }
@@ -463,6 +504,7 @@ export class TransactionService {
     try {
       const authResponse = await this.genISWAuthToken();
       token = authResponse.access_token;
+      // console.log(token)
     } catch (error) {
       console.error('Error fetching auth token:', error.message);
       throw new Error('Failed to authenticate');
@@ -476,7 +518,7 @@ export class TransactionService {
           'Content-Type': 'application/json',
         },
       });
-
+      console.log(response.data)
       return response.data;
     } catch (error) {
       this.handleAxiosError(

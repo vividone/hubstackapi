@@ -75,7 +75,10 @@ export class AuthController {
     }
     return this.authService.createUser(createAgentDto, req);
   }
-
+  @ApiCreatedResponse({
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'verify email' })
   @Post('verify-email')
   async verifyOtp(@Body() verifyOtp: any) {
     return this.authService.verifyOtp(verifyOtp.otp);
