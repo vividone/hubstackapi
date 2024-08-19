@@ -13,9 +13,11 @@ import { TransactionController } from './transaction.controller';
 import { WalletModule } from 'src/wallet/wallet.module';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
 import { ApiKeyModule } from 'src/auth/apikey.module';
+import { EmailService } from 'src/configs/email.helper';
+import { NotificationMailingService } from 'src/mailing/notification.mails';
 
 @Module({
-  providers: [TransactionService, TransactionRepository, ApiKeyGuard],
+  providers: [TransactionService, TransactionRepository, ApiKeyGuard, EmailService, NotificationMailingService],
   controllers: [TransactionController],
   exports: [TransactionRepository, TransactionService],
   imports: [
