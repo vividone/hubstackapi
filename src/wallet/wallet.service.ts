@@ -18,14 +18,18 @@ import {
   transactionType,
 } from 'src/transactions/transaction.dto';
 import { BankAccountRepository } from 'src/entity/repositories/bankaccount.repo';
+import { NotificationMailingService } from 'src/mailing/notification.mails';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class WalletService {
   constructor(
+    private readonly userService: UsersService,
     private readonly walletRepo: WalletRepository,
     private readonly transactionService: TransactionService,
     private readonly transactionRepo: TransactionRepository,
     private readonly bankRepo: BankAccountRepository,
+    private readonly notificationMailingService: NotificationMailingService
   ) {}
 
   async fetchBankAccounts(userId: string) {
@@ -271,6 +275,11 @@ export class WalletService {
         throw new NotFoundException('Transaction not found.');
       }
 
+      const user = await this.userService.findUserById(userId);
+      if(!user){
+        throw new NotFoundException('User not found');
+      }
+      const email = user.email;
       const { transactionReference } = transaction;
       const verifyPayment =
         await this.transactionService.verifyPayment(transactionReference);
@@ -285,12 +294,18 @@ export class WalletService {
       const transactionData = {
         transactionStatus: transactionStatus.Successful,
       };
+
       const updatedTransaction =
         await this.transactionService.updateTransaction(
           transactionId,
           transactionData,
         );
 
+        const formattedTransactionData = `
+        Transaction Reference: ${transaction.transactionReference}\n
+        Amount: ${transaction.amount}\n
+      `;
+        await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
       return updatedTransaction;
     } catch (error) {
       if (

@@ -327,25 +327,24 @@ export class TransactionController {
     @Param('userId') userId: string,
   ) {
     try {
-      const bill = await this.transactService.payPhoneBills(
-        billPaymentDto,
-        userId,
-      );
+      const bill = await this.transactService.payPhoneBills(billPaymentDto, userId);
       return bill;
     } catch (error) {
       if (error.message.includes('Insufficient Wallet Balance')) {
         throw new BadRequestException(
           'Insufficient wallet balance. Please top up your wallet and try again.',
         );
-      }
-      if (error instanceof NotFoundException) {
+      } else if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
+      } else {
+        console.error('Error occurred:', error); 
+        throw new BadRequestException(
+          'An error occurred while buying airtime. Please try again later.',
+        );
       }
-      throw new BadRequestException(
-        'An error occurred while buying airtime. Please try again later.',
-      );
     }
   }
+  
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)

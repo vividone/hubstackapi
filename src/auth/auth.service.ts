@@ -26,7 +26,6 @@ export class AuthService {
     private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
-    private readonly resetPasswordService: ResetPasswordService,
     private readonly referralService: ReferralService,
   ) { }
 
@@ -268,17 +267,28 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Email does not exist');
     }
-
-    const otp = this.otpService.generateOTP();
+  
+    let otp: string;
+    let isUniqueOtp = false;
+    while (!isUniqueOtp) {
+      otp = this.otpService.generateOTP();
+      const checkOtp = await this.userRepo.findOne({ otp });
+  
+      if (!checkOtp) {
+        isUniqueOtp = true;
+      }
+    }
     user.otp = otp;
     user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
     await this.otpService.sendOtpEmail(email, otp);
+  
     return {
       status: 'Success',
       message: 'A new OTP has been sent to your email',
     };
   }
+  
 
 
 

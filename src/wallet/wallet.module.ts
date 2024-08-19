@@ -19,6 +19,8 @@ import { BankAccountRepository } from 'src/entity/repositories/bankaccount.repo'
 import { FlutterwaveWalletService } from './flutterwave.service';
 import { FlutterwaveWebhookController } from './wallet-flutterwave.controller';
 import { PaystackWebhookController } from './wallet-paystack.controller';
+import { EmailService } from 'src/configs/email.helper';
+import { NotificationMailingService } from 'src/mailing/notification.mails';
 
 @Module({
   providers: [
@@ -28,6 +30,8 @@ import { PaystackWebhookController } from './wallet-paystack.controller';
     BankAccountRepository,
     PaystackWalletService,
     FlutterwaveWalletService,
+    EmailService,
+    NotificationMailingService,
   ],
   controllers: [
     WalletController,
