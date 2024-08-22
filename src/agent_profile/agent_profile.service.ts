@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
-import { CreateAgentProfileDto } from './agent_profile.dto';
+import { CreateAgentProfileDto } from './dto/agent_profile.dto';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 @Injectable()
 export class AgentService {

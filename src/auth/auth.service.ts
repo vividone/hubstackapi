@@ -10,7 +10,7 @@ import { OtpService } from '../mailing/otp.mail';
 import { JwtPayload } from './jwt-payload';
 import * as bcrypt from 'bcryptjs';
 import { LoginUser } from 'src/users/users.entity';
-import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
+import { CreateAgentProfileDto } from 'src/agent_profile/dto/agent_profile.dto';
 import { CreateUserDto } from 'src/users/users.dto';
 import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
