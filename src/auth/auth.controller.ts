@@ -22,7 +22,7 @@ import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { ApiKeyGuard } from './apikey.guard';
-import { ResetPasswordDto } from './dto/reset.password.dto';
+import { ForgotPasswordDto, ResetPasswordDto, UpdatePasswordDto } from './dto/reset.password.dto';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
@@ -132,8 +132,9 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  async forgotPasswordToken(@Body('email') email: string) {
+  async forgotPasswordToken(@Body() forgotPasswordDto: ForgotPasswordDto) {
     try {
+      const { email } = forgotPasswordDto;
       const result = await this.authService.forgotPasswordToken(email);
       return { status: 'Success', ...result };
     } catch (error) {
@@ -148,10 +149,11 @@ export class AuthController {
 
   @Post('reset-password/:token')
   async resetForgottenPassword(
-    @Body('password') password: string,
+    @Body() resetPasswordDto: ResetPasswordDto,
     @Param('token') token: string,
   ) {
     try {
+      const { password } = resetPasswordDto;
       const result = await this.authService.resetForgottenPassword(
         password,
         token,
@@ -172,7 +174,7 @@ export class AuthController {
   @Put('update-password')
   async updatePassword(
     @Req() request: CustomRequest,
-    @Body() body: { oldPassword: string; newPassword: string },
+    @Body() body:UpdatePasswordDto,
   ) {
     const { oldPassword, newPassword } = body;
     const userId = request.user.id;
