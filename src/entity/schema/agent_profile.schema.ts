@@ -10,7 +10,11 @@ export
 class Agent extends Users {
   @Prop()
   @ApiProperty()
-  business_username: string;
+  business_name: string;
+
+  @Prop()
+  @ApiProperty()
+  CAC: string;
 
   @Prop()
   @ApiProperty()
@@ -20,9 +24,9 @@ class Agent extends Users {
   @ApiProperty()
   location: string;
 
-  @Prop()
+  @Prop({ default: false })
   @ApiProperty()
-  is_verified: boolean;
+  agentVerified: boolean;
 
   @Prop({ type: Types.ObjectId, ref: Users.name, required: true })
   @ApiProperty()
