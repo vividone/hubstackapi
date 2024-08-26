@@ -14,7 +14,7 @@ import { Controller } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { CreateUserDto } from 'src/users/users.dto';
-import { CreateAgentProfileDto } from 'src/agent_profile/agent_profile.dto';
+import { CreateAgentProfileDto } from 'src/agent_profile/dto/agent_profile.dto';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto, LoginDtoResponse } from './dto/login.dto';
 import { CustomRequest } from 'src/configs/custom_request';

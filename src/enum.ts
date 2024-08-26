@@ -5,7 +5,6 @@ export enum Status {
 }
 export enum Role {
   SUPER_ADMIN = 'SuperAdmin',
-  SUPER_AGENT = 'SuperAgent',
   AGENT = 'Agent',
   INDIVIDUAL = 'Individual',
 }

@@ -4,7 +4,6 @@ import { LoggerMiddleware } from './logger.middleware';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
-import { AdminProfileModule } from './admin_profile/admin_profile.module';
 import { AgentProfileModule } from './agent_profile/agent_profile.module';
 import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
@@ -16,6 +15,7 @@ import { ReferralModule } from './referrals/referral.module';
 import { ApiKeyModule } from './auth/apikey.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { KeepAliveService } from './configs/keep-alive.service';
+import { AdminProfileModule } from './admin/admin.module';
 
 @Module({
   imports: [
