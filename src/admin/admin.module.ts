@@ -5,6 +5,7 @@ import { UsersModule } from 'src/users/users.module';
 import { HttpModule } from '@nestjs/axios';
 import { ApiKeyModule } from 'src/auth/apikey.module';
 import { TransactionModule } from 'src/transactions/transaction.module';
+import { WalletModule } from 'src/wallet/wallet.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { TransactionModule } from 'src/transactions/transaction.module';
       timeout: 5000,
       maxRedirects: 5,
     }),
+    WalletModule,
     UsersModule,
     TransactionModule,
     ApiKeyModule
