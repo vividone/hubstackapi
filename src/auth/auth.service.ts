@@ -149,12 +149,18 @@ export class AuthService {
     }
   
     const userData = await this.userRepo.findOne(user._id, { password: false });
+
+    let agentProfile = null;
+    if (user.role === 'Agent') {
+      agentProfile = await this.agentRepo.findOne({ user: user._id });
+    }    
     const token = await this.generateToken(userData);
   
     return {
       status: 'Success',
       message: 'Login successful',
       data: userData,
+      agentProfile,
       hasWallet,
       balance,
       token,
