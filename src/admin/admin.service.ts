@@ -82,7 +82,7 @@ export class AdminProfileService {
                   $group: {
                     _id: null,
                     totalBalance: { $sum: `$balance` },
-                    numberOfUsers: { $sum: 1 },
+                    numberOfUsersWithWallets: { $sum: 1 },
                     averageBalance: { $avg: '$balance' },
                     minBalance: { $min: '$balance' },
                     maxBalance: { $max: '$balance' },
@@ -92,7 +92,7 @@ export class AdminProfileService {
                     $project: {
                       _id: 0,
                       totalBalance: 1,
-                      numberOfUsers: 1,
+                      numberOfUsersWithWallets: 1,
                       averageBalance: 1,
                       minBalance: 1,
                       maxBalance: 1,
@@ -122,7 +122,7 @@ export class AdminProfileService {
                   $group: {
                     _id: null,
                     totalBalance: { $sum: `$balance` },
-                    numberOfUsers: { $sum: 1 },
+                    numberOfAentsWithWallets: { $sum: 1 },
                     averageBalance: { $avg: '$balance' },
                     minBalance: { $min: '$balance' },
                     maxBalance: { $max: '$balance' },
@@ -132,7 +132,7 @@ export class AdminProfileService {
                     $project: {
                       _id: 0,
                       totalBalance: 1,
-                      numberOfUsers: 1,
+                      numberOfAgentsWithWallets: 1,
                       averageBalance: 1,
                       minBalance: 1,
                       maxBalance: 1,
@@ -144,7 +144,7 @@ export class AdminProfileService {
                   $group: {
                     _id: null,
                     totalBalance: { $sum: '$balance' },
-                    numberOfUsers: { $sum: 1 },
+                    overallUsersWithWallets: { $sum: 1 },
                     averageBalance: { $avg: '$balance' },
                     minBalance: { $min: '$balance' },
                     maxBalance: { $max: '$balance' },
@@ -154,7 +154,7 @@ export class AdminProfileService {
                   $project: {
                     _id: 0,
                     totalBalance: 1,
-                    numberOfUsers: 1,
+                    overallUsersWithWallets: 1,
                     averageBalance: 1,
                     minBalance: 1,
                     maxBalance: 1,
