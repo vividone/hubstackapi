@@ -1,10 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AdminProfileService } from './admin.service';
 import { ApiTags } from '@nestjs/swagger';
+import { ApiKeyGuard } from 'src/auth/apikey.guard';
 @ApiTags('Admin Operations')
-@Controller('admin-profile')
+@Controller('admin')
+@UseGuards(ApiKeyGuard)
 export class AdminProfileController {
-
     constructor(
         private readonly adminServices: AdminProfileService,
     ){}
@@ -15,9 +16,21 @@ export class AdminProfileController {
         return allUsers;
     }
 
-    @Get('/role/users')
+    @Get('/users/role')
     async userCount() {
         const userCount = await this.adminServices.countUsersByRole()
         return userCount;
+    }
+
+    @Get('/transactions/status')
+    async allTransactionsByStatus() {
+        const transactions = await this.adminServices.countTransactionsByStatus()
+        return transactions;
+    }
+
+    @Get('/transactions')
+    async allTransactions() {
+        const allTransactions = await this.adminServices.countTransactions()
+        return allTransactions;
     }
 }
