@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { Users, UserSchema } from 'src/entity';
@@ -8,6 +8,7 @@ import { HttpModule } from '@nestjs/axios';
 import { JwtModule } from '@nestjs/jwt';
 import { ApiKeyModule } from 'src/auth/apikey.module';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { AgentProfileModule } from 'src/agent_profile/agent_profile.module';
 
 @Module({
   controllers: [UsersController],
@@ -18,6 +19,7 @@ import { ApiKeyGuard } from 'src/auth/apikey.guard';
       timeout: 5000,
       maxRedirects: 5,
     }),
+    forwardRef(() => AgentProfileModule),
     JwtModule,
     ApiKeyModule,
   ],
