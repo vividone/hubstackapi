@@ -23,6 +23,7 @@ import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { ApiKeyGuard } from './apikey.guard';
 import { ForgotPasswordDto, ResetPasswordDto, UpdatePasswordDto } from './dto/reset.password.dto';
+import { ResendOtp, VerifyEmail, VerifyOtp } from './dto/otp.dto';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
@@ -80,19 +81,19 @@ export class AuthController {
   })
   @ApiOperation({ summary: 'verify email' })
   @Post('verify-email')
-  async verifyOtp(@Body() verifyOtp: any) {
-    return this.authService.verifyOtp(verifyOtp.otp);
+  async verifyOtp(@Body() verifyEmail: VerifyEmail) {
+    return this.authService.verifyOtp(verifyEmail.otp);
   }
 
   @Post('verify-otp')
-  async verifyResetPasswordOtp(@Body() verifyOtp: any) {
+  async verifyResetPasswordOtp(@Body() verifyOtp: VerifyOtp) {
     return this.authService.verifyPasswordResetOtp(verifyOtp.otp);
   }
 
   @Post('resend-otp')
-  async resendOtp(@Body('email') email: string) {
+  async resendOtp(@Body() resendOtp: ResendOtp) {
     try {
-      const result = await this.authService.resendOtp(email);
+      const result = await this.authService.resendOtp(resendOtp.email);
       return {
         status: 'Success',
         message: result.message,
