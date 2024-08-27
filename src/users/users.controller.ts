@@ -21,6 +21,14 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('user/:id')
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
+  async getAUser(@Param('id') id: string) {
+    return this.usersService.findUserById(id);
+  }
+
+
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Individual')
   @Put('update-profile/:id')

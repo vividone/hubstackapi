@@ -7,14 +7,25 @@ import {
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { CreateUserDto } from './users.dto';
 import * as bcrypt from 'bcryptjs';
+import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
 @Injectable()
 export class UsersService {
-  constructor(private readonly userRepo: UserRepository) {}
+  constructor(
+    private readonly userRepo: UserRepository,
+    private readonly agentRepo: AgentProfileRepository,
+  ) {}
 
   async findUserById(id: string) {
     const user = await this.userRepo.findOne({ _id: id });
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+    if (user.role === 'Individual') {
+      return user;
+    }
+    else if (user.role === 'Agent') {
+      const agentProfile = await this.agentRepo.findOne({ user: user._id });
+      return agentProfile;
     }
     return user;
   }

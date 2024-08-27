@@ -1,12 +1,14 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
 import { UserRepository } from 'src/entity/repositories/user.repo';
+import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 
 @Injectable()
 export class AdminProfileService {
     constructor(
         private readonly userRepo: UserRepository,
         private readonly transactionRepo: TransactionRepository,
+        private readonly walletRepo: WalletRepository,
     ){}
 
     async countUsers(){
@@ -53,5 +55,131 @@ export class AdminProfileService {
         } catch (error) {
             throw new InternalServerErrorException('Could not retrive transactions');
         }
+    }
+
+    async getWalletSummary(){
+        try {
+            const individualSummary = await this.walletRepo.aggregate([
+                {
+                    $lookup: {
+                        from: 'users',
+                        let: { walletUserId: { $toObjectId: '$user' } },
+                        pipeline: [
+                          {
+                            $match: {
+                              $expr: {
+                                $eq: ['$_id', '$$walletUserId'],
+                              },
+                            },
+                          },
+                        ],
+                        as: 'user',
+                      },
+                    },
+                { $unwind: '$user' },
+                { $match: { 'user.role': 'Individual' } },
+                {
+                  $group: {
+                    _id: null,
+                    totalBalance: { $sum: `$balance` },
+                    numberOfUsersWithWallets: { $sum: 1 },
+                    averageBalance: { $avg: '$balance' },
+                    minBalance: { $min: '$balance' },
+                    maxBalance: { $max: '$balance' },
+                  },
+                },
+                {
+                    $project: {
+                      _id: 0,
+                      totalBalance: 1,
+                      numberOfUsersWithWallets: 1,
+                      averageBalance: 1,
+                      minBalance: 1,
+                      maxBalance: 1,
+                    },
+                  },
+              ]);
+              const agentSummary = await this.walletRepo.aggregate([
+                {
+                    $lookup: {
+                        from: 'users',
+                        let: { walletUserId: { $toObjectId: '$user' } },
+                        pipeline: [
+                          {
+                            $match: {
+                              $expr: {
+                                $eq: ['$_id', '$$walletUserId'],
+                              },
+                            },
+                          },
+                        ],
+                        as: 'user',
+                      },
+                    },
+                { $unwind: '$user' },
+                { $match: { 'user.role': 'Agent' } },
+                {
+                  $group: {
+                    _id: null,
+                    totalBalance: { $sum: `$balance` },
+                    numberOfAentsWithWallets: { $sum: 1 },
+                    averageBalance: { $avg: '$balance' },
+                    minBalance: { $min: '$balance' },
+                    maxBalance: { $max: '$balance' },
+                  },
+                },
+                {
+                    $project: {
+                      _id: 0,
+                      totalBalance: 1,
+                      numberOfAgentsWithWallets: 1,
+                      averageBalance: 1,
+                      minBalance: 1,
+                      maxBalance: 1,
+                    },
+                  },
+              ]);
+              const totalBalance = await this.walletRepo.aggregate([
+                {
+                  $group: {
+                    _id: null,
+                    totalBalance: { $sum: '$balance' },
+                    overallUsersWithWallets: { $sum: 1 },
+                    averageBalance: { $avg: '$balance' },
+                    minBalance: { $min: '$balance' },
+                    maxBalance: { $max: '$balance' },
+                  },
+                },
+                {
+                  $project: {
+                    _id: 0,
+                    totalBalance: 1,
+                    overallUsersWithWallets: 1,
+                    averageBalance: 1,
+                    minBalance: 1,
+                    maxBalance: 1,
+                  },
+                },
+              ]);
+              return {
+                individuals: individualSummary[0] || this.emptySummary(),
+                agents: agentSummary[0] || this.emptySummary(),
+                overall: totalBalance[0] || this.emptySummary(),
+            }
+            
+        } catch (error) {
+            console.log(error)
+            throw new Error('Could not fetch wallet summary');
+        }
+    }
+
+    private emptySummary() {
+        return {
+          totalBalance: 0,
+          numberOfUsers: 0,
+          averageBalance: 0,
+          minBalance: 0,
+          maxBalance: 0,
+        };
     }
 }

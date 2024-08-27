@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, InternalServerErrorException, UseGuards } from '@nestjs/common';
 import { AdminProfileService } from './admin.service';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
@@ -32,5 +32,16 @@ export class AdminProfileController {
     async allTransactions() {
         const allTransactions = await this.adminServices.countTransactions()
         return allTransactions;
+    }
+
+    @Get('/summary')
+    async getWalletSummary() {
+      try {
+        const summary = await this.adminServices.getWalletSummary();
+        return summary;
+      } catch (error) {
+        console.error('Error fetching wallet summary:', error);
+        throw new InternalServerErrorException('Could not fetch wallet summary');
+      }
     }
 }

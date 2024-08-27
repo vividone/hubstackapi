@@ -269,6 +269,7 @@ export class AuthService {
   }
 
   async resendOtp(email: string) {
+    email = email.toLowerCase();
     const user = await this.userRepo.findOne({ email });
     if (!user) {
       throw new NotFoundException('Email does not exist');
