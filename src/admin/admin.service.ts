@@ -173,6 +173,122 @@ export class AdminProfileService {
         }
     }
 
+    async getTopServices() {
+      try {
+        return await this.transactionRepo.aggregate([
+          {
+            $group: {
+              _id: '$transactionDetails.service', 
+              totalTransactions: { $sum: 1 },
+            },
+          },
+          {
+            $sort: { totalTransactions: -1 }, 
+          },
+          {
+            $limit: 5, 
+          },
+          {
+            $project: {
+              _id: 0,
+              serviceType: '$_id',
+              totalTransactions: 1,
+            },
+          },
+        ]);
+      } catch (error) {
+        console.error('Error getting top services:', error);
+        throw new Error('Could not fetch top services');
+      }
+    }
+    
+    async getTopReferrals() {
+      try {
+        const referralLevels = ['platinum', 'gold', 'bronze', 'steel'];
+        return await this.userRepo.aggregate([
+          {
+            $addFields: {
+              referralLevelIndex: {
+                $indexOfArray: [referralLevels, '$referralLevel'],
+              },
+            },
+          },
+          {
+            $sort: {
+              referralLevelIndex: 1, 
+            },
+          },
+          {
+            $group: {
+              _id: '$referralLevel',
+              topUsers: {
+                $push: {
+                  user: '$username',
+                  referralLevel: '$referralLevel',
+                },
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              referralLevel: '$_id',
+              topUsers: { $slice: ['$topUsers', 3] }, 
+            },
+          },
+        ]);
+      } catch (error) {
+        console.error('Error getting top referrals:', error);
+        throw new Error('Could not fetch top referrals');
+      }
+    }
+    
+    async getActiveUsersByTransaction() {
+      try {
+        return await this.transactionRepo.aggregate([
+          {
+            $addFields: {
+              userIdAsObjectId: { $toObjectId: "$user" } 
+            }
+          },
+          {
+            $group: {
+              _id: '$userIdAsObjectId',
+              totalTransactions: { $sum: 1 },
+            },
+          },
+          {
+            $lookup: {
+              from: 'users',
+              localField: '_id',
+              foreignField: '_id',
+              as: 'user',
+            },
+          },
+          {
+            $unwind: '$user',
+          },
+          {
+            $sort: { totalTransactions: -1 }, 
+          },
+          {
+            $limit: 5, 
+          },
+          {
+            $project: {
+              _id: 0,
+              userId: '$user.username',
+              totalTransactions: 1,
+            },
+          },
+        ]);
+      } catch (error) {
+        console.error('Error getting active users by transaction:', error);
+        throw new Error('Could not fetch active users by transaction');
+      }
+    }
+    
+
     private emptySummary() {
         return {
           totalBalance: 0,
