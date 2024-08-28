@@ -182,8 +182,8 @@ export class AuthService {
       throw new NotFoundException('Email does not exist');
     }
     const otp = this.otpService.generateOTP();
-    console.log(otp)
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    const currentTime = new Date();
+    const otpExpiry = new Date(currentTime.getTime() + 10 * 60 * 1000 - currentTime.getTimezoneOffset() * 60 * 1000);
     user.otp = otp;
     user.otpExpiry = otpExpiry;
     await user.save();
@@ -218,16 +218,20 @@ export class AuthService {
   async resetForgottenPassword(password: string, token: string) {
     try {
       const decoded = this.jwtService.verify(token);
-      const userId = String(decoded.userId)
-
-      const user = await this.userRepo.findOne({_id: userId});
+      const userId = String(decoded.userId);
+  
+      const user = await this.userRepo.findOne({ _id: userId });
   
       if (!user || !user.isOtpVerified) {
         throw new BadRequestException('User not found or OTP not verified');
       }
+      const currentTime = new Date();
+      if (user.otpExpiry && currentTime > user.otpExpiry) {
+        throw new BadRequestException('OTP has expired');
+      }
       user.password = await bcrypt.hash(password, 10);
       user.isOtpVerified = false;
-
+  
       await user.save();
   
       return {
@@ -240,6 +244,7 @@ export class AuthService {
       );
     }
   }
+  
   
   async updatePassword(
     userId: string,
@@ -285,8 +290,10 @@ export class AuthService {
         isUniqueOtp = true;
       }
     }
+    const currentTime = new Date();
+    const otpExpiry = new Date(currentTime.getTime() + 10 * 60 * 1000 - currentTime.getTimezoneOffset() * 60 * 1000);
     user.otp = otp;
-    user.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    user.otpExpiry = otpExpiry;
     await user.save();
     await this.otpService.sendOtpEmail(email, otp);
   
