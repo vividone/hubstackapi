@@ -84,21 +84,29 @@ export class UsersService {
     return await this.updateUser(user);
   }
 
-  async updateUserProfile(id: string, updateUserDto: CreateUserDto) {
+  async updateUserProfile(e_mail: string, updateUserDto: CreateUserDto) {
     const { email, firstname, lastname, password, role, ...otherFields } =
       updateUserDto;
 
-    if (email) {
-      const existingUser = await this.userRepo.findOne({ email });
-      if (existingUser && existingUser._id.toString() !== id) {
-        throw new BadRequestException('Email already exists');
+      const userProfile = await this.userRepo.findOne({ email: e_mail });
+      if (!userProfile) {
+        throw new NotFoundException('User profile not found');
       }
-    }
+  
+      if (email) {
+        const existingUser = await this.userRepo.findOne({ email });
+        if (
+          existingUser &&
+          existingUser._id.toString() !== userProfile._id.toString()
+        ) {
+          throw new BadRequestException('Email already exists');
+        }
+      }
 
     const updateData = { ...otherFields };
 
     const updatedUser = await this.userRepo.findOneAndUpdate(
-      { _id: id, role: 'Individual' },
+      { email: e_mail, role: 'Individual' },
       { $set: updateData },
     );
 

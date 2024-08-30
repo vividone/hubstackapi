@@ -1,4 +1,4 @@
-import { Body, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
@@ -7,6 +7,7 @@ import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { CreateUserDto } from './users.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { CustomRequest } from 'src/configs/custom_request';
 
 @ApiTags('User Operations')
 @Controller('users')
@@ -29,11 +30,12 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Individual')
-  @Put('update-profile/:id')
+  @Put('update-profile')
   async updateAgentProfile(
-    @Param('id') id: string,
     @Body() updateUserDto: CreateUserDto,
+    @Req() request: CustomRequest,
   ) {
-    return await this.usersService.updateUserProfile(id, updateUserDto);
+    const email = request.user.email;
+    return await this.usersService.updateUserProfile(email, updateUserDto);
   }
 }
