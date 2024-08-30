@@ -13,7 +13,7 @@ export class OtpService {
     email: string,
     otp: string
   ) {
-    const templateString = '<p>Your OTP is: %OTP%</p>';
+    const templateString = '<p>Your OTP is: %OTP% The otp will expire in 20 minutes</p>';
     const loadedTemplate = this.emailService.loadTemplate(templateString, {
       '%OTP%': otp,
     });
