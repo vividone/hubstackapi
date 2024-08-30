@@ -22,8 +22,6 @@ export class UsersController {
   }
 
   @Get('user/:id')
-  @UseGuards(JwtAuthGuard, RolesAuth)
-  @Roles('Admin')
   async getAUser(@Param('id') id: string) {
     return this.usersService.findUserById(id);
   }
