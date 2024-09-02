@@ -5,17 +5,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import axios from 'axios';
-import { CreateWalletDto, WalletFundingDto } from './wallet.dto';
+import { WalletFundingDto } from './wallet.dto';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
-import { UserRepository } from 'src/entity/repositories/user.repo';
 import { Types } from 'mongoose';
 import { TransactionService } from 'src/transactions/transaction.service';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
 import {
-  InitializeWalletFunding,
   transactionStatus,
-  transactionType,
 } from 'src/transactions/transaction.dto';
 import { BankAccountRepository } from 'src/entity/repositories/bankaccount.repo';
 import { NotificationMailingService } from 'src/mailing/notification.mails';
@@ -30,7 +26,7 @@ export class WalletService {
     private readonly transactionRepo: TransactionRepository,
     private readonly bankRepo: BankAccountRepository,
     private readonly notificationMailingService: NotificationMailingService
-  ) {}
+  ) { }
 
   async fetchBankAccounts(userId: string) {
     if (!Types.ObjectId.isValid(userId)) {
@@ -263,8 +259,8 @@ export class WalletService {
       throw error;
     }
   }
-  
-  
+
+
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
@@ -276,7 +272,7 @@ export class WalletService {
       }
 
       const user = await this.userService.findUserById(userId);
-      if(!user){
+      if (!user) {
         throw new NotFoundException('User not found');
       }
       const email = user.email;
@@ -301,11 +297,11 @@ export class WalletService {
           transactionData,
         );
 
-        const formattedTransactionData = `
+      const formattedTransactionData = `
         Transaction Reference: ${transaction.transactionReference}\n
         Amount: ${transaction.amount}\n
       `;
-        await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
+      await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
       return updatedTransaction;
     } catch (error) {
       if (
