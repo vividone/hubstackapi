@@ -24,3 +24,9 @@ export class ProductDto {
   @ApiProperty({ required: false })
   price: number;
 }
+export class NinDto {
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty()
+  nin: string;
+}
