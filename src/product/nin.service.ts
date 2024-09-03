@@ -34,6 +34,32 @@ export class NinService {
     }
   }
 
+  async validateVirtualNIN(ninDto: NinDto){
+    
+    const url = `${process.env.CKID_BASE_URL}/identity/nin`;
+    const token = process.env.CKID_TOKEN;
+
+    try {
+        const { nin } = ninDto;
+      const response = await axios.post(
+        url,
+        {
+          nin
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      console.log(response)
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to validate Virtual NIN: ${error.message}`);
+    }
+  }
+
   async getNIN(ninDataDto: NinDataDto){
     
     const url = `${process.env.CKID_BASE_URL}/identity/nin-demo`;
