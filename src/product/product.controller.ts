@@ -22,6 +22,7 @@ export class ProductController {
 
 
   @ApiTags('Products')
+  @ApiOperation({ summary: 'Get all products' })
   @Get('all-products')
   async findAll() {
     return this.productService.findAll();
@@ -33,9 +34,20 @@ export class ProductController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Validate NIN number' })
-  @Post('/nin/validate')
+  @Post('/nin/validate-nin')
   async validateNIN(@Body() nin: NinDto) {
     return await this.ninService.validateNIN(nin);
+  }
+
+  @ApiTags('Products')
+  @ApiCreatedResponse({
+    type: NinDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Validate Virtual NIN number' })
+  @Post('/nin/validate-virtual-nin')
+  async validateVNIN(@Body() nin: NinDto) {
+    return await this.ninService.validateVirtualNIN(nin);
   }
 
   @ApiTags('Products')
