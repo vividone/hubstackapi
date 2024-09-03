@@ -5,9 +5,10 @@ import { ProductRepository } from 'src/entity/repositories/product.repo';
 import { Product, ProductSchema } from 'src/entity/schema/product.schema';
 import { HttpModule } from '@nestjs/axios';
 import { MongooseModule } from '@nestjs/mongoose';
+import { NinService } from './nin.service';
 
 @Module({
-  providers: [ProductService, ProductRepository],
+  providers: [ProductService, NinService, ProductRepository],
   controllers: [ProductController],
   imports: [
     MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]),

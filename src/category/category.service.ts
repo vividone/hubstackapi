@@ -113,6 +113,7 @@ export class CategoryService {
     }
   }
 
+
   private handleAxiosError(error: any, customMessage: string) {
     if (error.response) {
       console.error(

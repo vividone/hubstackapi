@@ -6,6 +6,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ApiKeyModule } from 'src/auth/apikey.module';
 import { TransactionModule } from 'src/transactions/transaction.module';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { WalletModule } from 'src/wallet/wallet.module';
     ApiKeyModule
   ],
   controllers: [AdminProfileController],
-  providers: [AdminProfileService],
+  providers: [AdminProfileService, JwtService],
 })
 export class AdminProfileModule {}

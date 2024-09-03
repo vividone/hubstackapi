@@ -2,6 +2,9 @@ import { Controller, Get, InternalServerErrorException, UseGuards } from '@nestj
 import { AdminProfileService } from './admin.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
+import { RolesAuth } from 'src/role_auth_middleware/role.auth';
+import { Roles } from 'src/role_auth_middleware/roles.decorator';
 @ApiTags('Admin Operations')
 @Controller('admin')
 @UseGuards(ApiKeyGuard)
@@ -10,6 +13,8 @@ export class AdminProfileController {
     private readonly adminServices: AdminProfileService,
   ) { }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('/users')
   @ApiOperation({ summary: 'Get list of users' })
   @ApiResponse({ status: 200, description: 'List of users' })
@@ -18,6 +23,8 @@ export class AdminProfileController {
     return allUsers;
   }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('/users/role')
   @ApiOperation({ summary: 'Get list of users based on role' })
   @ApiResponse({ status: 200, description: 'List of users based on role' })
@@ -26,6 +33,8 @@ export class AdminProfileController {
     return userCount;
   }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('/transactions/status')
   @ApiOperation({ summary: 'Get list of transactions based on status' })
   @ApiResponse({ status: 200, description: 'List of transactions based on status' })
@@ -34,6 +43,8 @@ export class AdminProfileController {
     return transactions;
   }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('/transactions')
   @ApiOperation({ summary: 'Get list of transactions' })
   @ApiResponse({ status: 200, description: 'List of transactions' })
@@ -42,6 +53,8 @@ export class AdminProfileController {
     return allTransactions;
   }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('/wallet-summary')
   @ApiOperation({ summary: 'Get summary of wallet operations' })
   @ApiResponse({ status: 200, description: 'wallet summary' })
@@ -55,6 +68,8 @@ export class AdminProfileController {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('/top-services')
   @ApiOperation({ summary: 'Get top services based on the number of transactions' })
   @ApiResponse({ status: 200, description: 'List of top services' })
@@ -68,6 +83,8 @@ export class AdminProfileController {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('/top-referrals')
   @ApiOperation({ summary: 'Get top referrals based on referral levels' })
   @ApiResponse({ status: 200, description: 'List of top referrals' })
@@ -81,6 +98,8 @@ export class AdminProfileController {
     }
   }
 
+  @UseGuards(JwtAuthGuard, RolesAuth)
+  @Roles('Admin')
   @Get('/active-users')
   @ApiOperation({ summary: 'Get active users based on number of transactions' })
   @ApiResponse({ status: 200, description: 'List of active users by transaction' })
