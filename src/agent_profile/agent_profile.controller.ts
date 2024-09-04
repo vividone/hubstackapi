@@ -23,8 +23,8 @@ export class AgentController {
     return await this.agentService.updateAgentProfile(email, updateAgentDto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesAuth)
-  @Roles('Admin')
+  // @UseGuards(JwtAuthGuard, RolesAuth)
+  // @Roles('Admin')
   @Put('verify-agent/:id')
   async verifyAgent(
     @Param("id") id: string,

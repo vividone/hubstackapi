@@ -47,9 +47,6 @@ class Users {
   isOtpVerified: boolean;
 
   @Prop({ default: false })
-  kyc: boolean;
-
-  @Prop({ default: false })
   isVerified: boolean;
 
   @Prop()
