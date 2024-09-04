@@ -68,7 +68,12 @@ export class AgentService {
     const objectId = new Types.ObjectId(id);
     const agent = await this.agentRepo.findOneAndUpdate(
       { user: objectId },
-      { $set: { agentVerified: true } },
+      {
+        $set: {
+          agentVerified: true,
+          kyc: 'Verified'
+        }
+      },
     );
     if (!agent) {
       throw new Error('Agent not found');
