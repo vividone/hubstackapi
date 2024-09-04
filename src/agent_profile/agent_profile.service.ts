@@ -6,12 +6,13 @@ import {
 import { AgentProfileRepository } from 'src/entity/repositories/agent_profile.repo';
 import { CreateAgentProfileDto } from './dto/agent_profile.dto';
 import { UserRepository } from 'src/entity/repositories/user.repo';
+import { Types } from 'mongoose';
 @Injectable()
 export class AgentService {
   constructor(
     private readonly agentRepo: AgentProfileRepository,
     private readonly userRepo: UserRepository,
-  ) {}
+  ) { }
 
   async updateAgentProfile(
     e_mail: string,
@@ -62,4 +63,17 @@ export class AgentService {
       user: updatedAgent,
     };
   }
+
+  async verifyAgent(id: string) {
+    const objectId = new Types.ObjectId(id);
+    const agent = await this.agentRepo.findOneAndUpdate(
+      { user: objectId },
+      { $set: { agentVerified: true } },
+    );
+    if (!agent) {
+      throw new Error('Agent not found');
+    }
+    return agent;
+  }
+
 }
