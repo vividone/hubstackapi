@@ -62,4 +62,16 @@ export class AgentService {
       user: updatedAgent,
     };
   }
+
+  async verifyAgent(id: string) {
+    const agent = await this.agentRepo.findOneAndUpdate(
+      { _id: id },
+      { $set: { agentVerified: true } }, 
+    );
+    if (!agent) {
+      throw new Error('Agent not found');
+    }
+    return agent;
+  }
+  
 }
