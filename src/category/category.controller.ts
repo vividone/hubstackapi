@@ -19,7 +19,7 @@ export class CategoryController {
   ) {}
 
   @ApiOperation({ summary: 'get all categories' })
-  @Get('category')
+  @Get()
   async getCategories() {
     return this.categoryService.getCategories();
   }

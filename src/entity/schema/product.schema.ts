@@ -21,9 +21,9 @@ class Product {
   @ApiProperty()
   price: number | null;
 
-  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Category', required: true })
   @ApiProperty()
-  category: Category;
+  category: Types.ObjectId;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

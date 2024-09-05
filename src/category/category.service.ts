@@ -20,9 +20,34 @@ export class CategoryService {
     }
   }
 
-  async getCategories (){
-    const categories = this.categoryRepo.find();
-    return categories;
+  async getCategories() {
+    const categoriesWithProducts = await this.categoryRepo.aggregate([
+      {
+        $lookup: {
+          from: 'products',
+          let: { categoryId: '$_id' }, 
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: [{ $toObjectId: '$category' }, '$$categoryId'], 
+                },
+              },
+            },
+          ],
+          as: 'products',
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          products: 1,
+        },
+      },
+    ]);
+
+    return categoriesWithProducts;
   }
 
   async getProductsByCategory(category: string){
