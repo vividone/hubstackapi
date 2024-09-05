@@ -7,9 +7,11 @@ import { HttpModule } from '@nestjs/axios';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
 import { ApiKeyModule } from 'src/auth/apikey.module';
+import { BillPaymentCategoryService } from './billpayment.category.service';
+import { ProductModule } from 'src/product/product.module';
 
 @Module({
-  providers: [CategoryService, CategoryRepository, ApiKeyGuard],
+  providers: [CategoryService, BillPaymentCategoryService, CategoryRepository, ApiKeyGuard],
   controllers: [CategoryController],
   imports: [
     MongooseModule.forFeature([
@@ -20,6 +22,7 @@ import { ApiKeyModule } from 'src/auth/apikey.module';
       maxRedirects: 5,
     }),
     ApiKeyModule,
+    ProductModule,
   ],
   exports: [],
 })

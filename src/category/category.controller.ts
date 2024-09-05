@@ -7,12 +7,28 @@ import {
 } from './category.dto';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { BillPaymentCategoryService } from './billpayment.category.service';
 
 @ApiTags('Services')
 @Controller('categories')
 @UseGuards(ApiKeyGuard)
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(
+    private readonly categoryService: CategoryService,
+    private readonly billPaymentCategoryService: BillPaymentCategoryService
+  ) {}
+
+  @ApiOperation({ summary: 'get all categories' })
+  @Get('category')
+  async getCategories() {
+    return this.categoryService.getCategories();
+  }
+
+  @ApiOperation({ summary: 'get product by category' })
+  @Get(':category')
+  async getProductsByCategories(@Param('category') category: string) {
+    return this.categoryService.getProductsByCategory(category);
+  }
 
   @ApiCreatedResponse({ type: CategoryDto, description: 'expected response' })
   @ApiOperation({ summary: 'Create biller category' })
@@ -28,7 +44,7 @@ export class CategoryController {
   @ApiOperation({ summary: 'List of bill payment categories' })
   @Get('billpayments')
   async billpaymentCategories() {
-    return this.categoryService.getBillPaymentCategories();
+    return this.billPaymentCategoryService.getBillPaymentCategories();
   }
 
   @ApiCreatedResponse({
@@ -40,7 +56,7 @@ export class CategoryController {
   async interswitchBillerCategories(
     @Param('billerCategoryId') billerCategoryId: number,
   ) {
-    return this.categoryService.getBillers(billerCategoryId);
+    return this.billPaymentCategoryService.getBillers(billerCategoryId);
   }
 
   @ApiCreatedResponse({
@@ -50,6 +66,6 @@ export class CategoryController {
   @ApiOperation({ summary: 'List of services by biller' })
   @Get('billers/services/:billerId')
   async interswitchBillerServices(@Param('billerId') billerId: number) {
-    return this.categoryService.getBillerServices(billerId);
+    return this.billPaymentCategoryService.getBillerServices(billerId);
   }
 }
