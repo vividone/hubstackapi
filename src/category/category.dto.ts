@@ -6,27 +6,11 @@ import {
   IsObject,
   IsString,
 } from 'class-validator';
-import { CategoryType } from 'src/entity/schema/category.schema';
-
 export class CategoryDto {
   @IsNotEmpty()
   @IsString()
   @ApiProperty()
   name: string;
-
-  @IsNotEmpty()
-  @ApiProperty()
-  @IsEnum(CategoryType)
-  categoryType: string;
-
-  @ApiProperty()
-  @IsNumber()
-  billerCategoryId: number;
-
-  @IsNotEmpty()
-  @IsString()
-  @ApiProperty()
-  partnerProvider: string;
 }
 
 export class BillPaymentDto {

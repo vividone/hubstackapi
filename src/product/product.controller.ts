@@ -12,12 +12,12 @@ export class ProductController {
   ) {}
 
   @ApiTags('Products')
-  @Post('create-product/:productId')
+  @Post('create-product/:category')
   async createCategory(
     @Body() productDto: ProductDto,
-    @Param('productId') productId: string,
+    @Param('category') category: string,
   ) {
-    return this.productService.createProduct(productDto, productId);
+    return this.productService.createProduct(productDto, category);
   }
 
 
