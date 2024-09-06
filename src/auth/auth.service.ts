@@ -16,6 +16,9 @@ import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletService } from 'src/wallet/wallet.service';
 import { ReferralService } from 'src/referrals/referral.service';
+import { AdminRepository } from 'src/entity/repositories/admin.repository';
+import { CreateAdminProfileDto } from 'src/admin/dto/admin.dto';
+import { Console } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +26,7 @@ export class AuthService {
     private readonly userRepo: UserRepository,
     private readonly userService: UsersService,
     private readonly agentRepo: AgentProfileRepository,
+    private readonly adminRepo: AdminRepository,
     private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
@@ -73,6 +77,44 @@ export class AuthService {
 
     return { agentUser, agentProfile };
   }
+
+  async createAndLoginAdmin(createAdminDto: CreateAdminProfileDto) {
+    createAdminDto.role = 'Admin';
+    try {
+      let { email, password } = createAdminDto;
+      if (!email) {
+        throw new BadRequestException('Email is required');
+      }
+
+      email = email.toLowerCase();
+      const existingUser = await this.userRepo.findOne({ email });
+      if (existingUser) {
+        throw new BadRequestException('Email already exists');
+      }
+      let adminUser = await this.userRepo.create({ ...createAdminDto, email });
+      const adminProfile = await this.adminRepo.create({
+        user: adminUser._id,
+      });
+      
+      const user = await this.userRepo.findOne({ email });
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+      if (!(await user.comparePassword(password))) {
+        throw new BadRequestException('Invalid credentials');
+      }
+      const userData = await this.userRepo.findOne(user._id, { password: false });
+      const token = await this.generateToken(userData);
+      return {
+        status: 'Success',
+        message: 'Admin created and login successful',
+        data: userData,
+        token,
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'An error occurred');
+    }
+}
 
   async validateUser(email: string, password: string) {
     const user = await this.userRepo.findOne({ email });
@@ -183,7 +225,7 @@ export class AuthService {
     }
     const otp = this.otpService.generateOTP();
     const currentTime = new Date();
-    const otpExpiry = new Date(currentTime.getTime() + 10 * 60 * 1000 - currentTime.getTimezoneOffset() * 60 * 1000);
+    const otpExpiry = new Date(currentTime.getTime() + 1 * 60 * 1000 - currentTime.getTimezoneOffset() * 60 * 1000);
     user.otp = otp;
     user.otpExpiry = otpExpiry;
     await user.save();

@@ -24,6 +24,7 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { ApiKeyGuard } from './apikey.guard';
 import { ForgotPasswordDto, ResetPasswordDto, UpdatePasswordDto } from './dto/reset.password.dto';
 import { ResendOtp, VerifyEmail, VerifyOtp } from './dto/otp.dto';
+import { CreateAdminProfileDto } from 'src/admin/dto/admin.dto';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
@@ -39,6 +40,29 @@ export class AuthController {
     return this.authService.createUser(createUserDto, req);
   }
 
+
+  @ApiCreatedResponse({
+    type: LoginDtoResponse,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'one time use: Create and log in admin' })
+  @Post('admin-login')
+  async createAndLoginAdmin(
+    @Body() createAdminDto: CreateAdminProfileDto,
+  ) {
+    try {
+      const result = await this.authService.createAndLoginAdmin(createAdminDto);
+      return {
+        status: 'Success',
+        message: 'Admin created and login successful',
+        data: result.data,
+        token: result.token,
+      };
+    } catch (error) {
+      console.error('Error in createAndLoginAdmin Controller:', error);
+      throw new BadRequestException(error.message || 'Error logging in Admin');
+    }
+  }
   // @Post('agent-referral-registration')
   // async registerAgentByInvitation(
   //   @Body() createAgentDto: CreateAgentProfileDto,
