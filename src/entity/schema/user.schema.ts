@@ -18,10 +18,6 @@ class Users {
   lastname: string;
 
   @Prop({ unique: true })
-  @ApiProperty()
-  username: string;
-
-  @Prop({ unique: true })
   email: string;
 
   @Prop()

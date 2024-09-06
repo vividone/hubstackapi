@@ -16,6 +16,9 @@ import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletService } from 'src/wallet/wallet.service';
 import { ReferralService } from 'src/referrals/referral.service';
+import { AdminRepository } from 'src/entity/repositories/admin.repository';
+import { CreateAdminProfileDto } from 'src/admin/dto/admin.dto';
+import { Console } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +26,7 @@ export class AuthService {
     private readonly userRepo: UserRepository,
     private readonly userService: UsersService,
     private readonly agentRepo: AgentProfileRepository,
+    private readonly adminRepo: AdminRepository,
     private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
@@ -72,6 +76,36 @@ export class AuthService {
     });
 
     return { agentUser, agentProfile };
+  }
+
+  async createAndLoginAdmin(createAdminDto: CreateAdminProfileDto) {
+    createAdminDto.role = 'Admin';
+    try {
+      const adminUser = await this.userRepo.create(createAdminDto);
+      const adminProfile = await this.adminRepo.create({
+        user: adminUser._id,
+      });
+      let { email, password } = createAdminDto;
+      email = email.toLowerCase();
+      const user = await this.userRepo.findOne({ email });
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+      if (!(await user.comparePassword(password))) {
+        throw new BadRequestException('Invalid credentials');
+      }
+      const userData = await this.userRepo.findOne(user._id, { password: false });
+      const token = await this.generateToken(userData);
+      return {
+        status: 'Success',
+        message: 'Admin created and login successful',
+        data: userData,
+        token,
+      };
+  } catch (error) {
+    console.error('Error in createAndLoginAdmin:', error);
+    throw new BadRequestException('An error occurred');
+  }
   }
 
   async validateUser(email: string, password: string) {
@@ -183,7 +217,7 @@ export class AuthService {
     }
     const otp = this.otpService.generateOTP();
     const currentTime = new Date();
-    const otpExpiry = new Date(currentTime.getTime() + 10 * 60 * 1000 - currentTime.getTimezoneOffset() * 60 * 1000);
+    const otpExpiry = new Date(currentTime.getTime() + 1 * 60 * 1000 - currentTime.getTimezoneOffset() * 60 * 1000);
     user.otp = otp;
     user.otpExpiry = otpExpiry;
     await user.save();
