@@ -52,10 +52,14 @@ export class AuthController {
   ) {
     try {
       const result = await this.authService.createAndLoginAdmin(createAdminDto);
-      return result;
+      return {
+        status: 'Success',
+        message: 'Admin created and login successful',
+        data: result.data,
+        token: result.token,
+      };
     } catch (error) {
-      console.log(error)
-     throw new BadRequestException('error logging in Admin')
+      throw new BadRequestException(error.message || 'Error logging in Admin');
     }
   }
   // @Post('agent-referral-registration')

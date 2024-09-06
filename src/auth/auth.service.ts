@@ -81,12 +81,21 @@ export class AuthService {
   async createAndLoginAdmin(createAdminDto: CreateAdminProfileDto) {
     createAdminDto.role = 'Admin';
     try {
-      const adminUser = await this.userRepo.create(createAdminDto);
+      let { email, password } = createAdminDto;
+      if (!email) {
+        throw new BadRequestException('Email is required');
+      }
+
+      email = email.toLowerCase();
+      const existingUser = await this.userRepo.findOne({ email });
+      if (existingUser) {
+        throw new BadRequestException('Email already exists');
+      }
+      let adminUser = await this.userRepo.create({ ...createAdminDto, email });
       const adminProfile = await this.adminRepo.create({
         user: adminUser._id,
       });
-      let { email, password } = createAdminDto;
-      email = email.toLowerCase();
+      
       const user = await this.userRepo.findOne({ email });
       if (!user) {
         throw new BadRequestException('User not found');
@@ -102,11 +111,10 @@ export class AuthService {
         data: userData,
         token,
       };
-  } catch (error) {
-    console.error('Error in createAndLoginAdmin:', error);
-    throw new BadRequestException('An error occurred');
-  }
-  }
+    } catch (error) {
+      throw new BadRequestException(error.message || 'An error occurred');
+    }
+}
 
   async validateUser(email: string, password: string) {
     const user = await this.userRepo.findOne({ email });
