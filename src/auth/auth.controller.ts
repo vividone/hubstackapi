@@ -59,6 +59,7 @@ export class AuthController {
         token: result.token,
       };
     } catch (error) {
+      console.error('Error in createAndLoginAdmin Controller:', error);
       throw new BadRequestException(error.message || 'Error logging in Admin');
     }
   }
