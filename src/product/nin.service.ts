@@ -7,7 +7,7 @@ import axios from 'axios';
 export class NinService {
   constructor(private readonly productRepo: ProductRepository) { }
 
-  async validateNIN(nin: string){
+  public async validateNIN(nin: string){
     
     const url = `${process.env.CKID_BASE_URL}/identity/nin-direct`;
     const token = process.env.CKID_TOKEN;
@@ -33,32 +33,32 @@ export class NinService {
     }
   }
 
-  async validateVirtualNIN(nin: string){
+  // async validateVirtualNIN(nin: string){
     
-    const url = `${process.env.CKID_BASE_URL}/identity/nin`;
-    const token = process.env.CKID_TOKEN;
+  //   const url = `${process.env.CKID_BASE_URL}/identity/nin`;
+  //   const token = process.env.CKID_TOKEN;
 
-    try {
-      const response = await axios.post(
-        url,
-        {
-          nin
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-      console.log(response)
-      return response.data;
-    } catch (error) {
-      throw new Error(`Failed to validate Virtual NIN: ${error.message}`);
-    }
-  }
+  //   try {
+  //     const response = await axios.post(
+  //       url,
+  //       {
+  //         nin
+  //       },
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           'Content-Type': 'application/json',
+  //         },
+  //       },
+  //     );
+  //     console.log(response)
+  //     return response.data;
+  //   } catch (error) {
+  //     throw new Error(`Failed to validate Virtual NIN: ${error.message}`);
+  //   }
+  // }
 
-  async getNIN(ninDataDto: NinDataDto){
+  public async getNIN(ninDataDto: NinDataDto){
     
     const url = `${process.env.CKID_BASE_URL}/identity/nin-demo`;
     const token = process.env.CKID_TOKEN;

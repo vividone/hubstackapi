@@ -22,7 +22,7 @@ export enum transactionType {
   BillPayment = 'billpayment',
   BuyUnit = 'buyunit',
   NINSearch = 'ninsearch',
-  ValidateNin = 'validatenin'
+  ValidateNin = 'validate-nin'
 }
 
 export enum paymentMode {
@@ -113,11 +113,7 @@ export class BuyUnitTransaction {
   paymentStatus: paymentStatus.Pending;
 }
 
-export class NINTransaction {
-  @IsString()
-  @ApiProperty()
-  service: string;
-
+export class NINValidateTransaction {
   @IsString()
   @ApiProperty()
   amount: number;
@@ -125,10 +121,32 @@ export class NINTransaction {
   @IsString()
   @ApiProperty()
   nin: string;
+}
 
+export class NINDetailsTransaction {
   @IsString()
   @ApiProperty()
-  paymentStatus: paymentStatus.Pending;
+  amount: number;
+
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty()
+  firstname: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty()
+  lastname: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty()
+  dateOfBirth: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @ApiProperty()
+  gender: string;
 }
 
 export class InitializeWalletFunding {
@@ -202,7 +220,8 @@ export class TransactionDto {
     | BillPaymentTransaction
     | FundWalletTransaction
     | InitializeWalletFunding
-    | NINTransaction
+    | NINValidateTransaction
+    | NINDetailsTransaction
     | WalletFundingDto
     | string;
 
