@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -15,7 +16,8 @@ import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import {
   BillPaymentTransaction,
   BuyUnitTransaction,
-  NINTransaction,
+  NINDetailsTransaction,
+  NINValidateTransaction,
   PaymentValidation,
   TransactionDto,
 } from './transaction.dto';
@@ -157,30 +159,41 @@ export class TransactionController {
     }
   }
 
-  @Roles('Agent')
+  @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
     type: TransactionDto,
     description: 'expected response',
   })
-  @ApiOperation({ summary: 'NIN Search' })
-  @Post('/:userId/nin-search')
-  async debitUnit(
-    @Body() ninTransaction: NINTransaction,
+  @ApiOperation({ summary: 'NIN Validation' })
+  @Post('/:userId/nin-validate')
+  async ninValidate(
+    @Body() ninTransaction: NINValidateTransaction,
     @Param('userId') userId: string,
   ) {
     try {
-      const wallet = await this.transactService.ninSearch(
-        ninTransaction,
-        userId,
-      );
-      return wallet;
+      return await this.transactService.ninValidate(ninTransaction, userId);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while retrieving the wallet');
-      }
+        throw new InternalServerErrorException( error.message,'An error occurred while performing NIN operation.');
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'NIN Details' })
+  @Post('/:userId/nin')
+  async nin(
+    @Body() userDetails: NINDetailsTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      return await this.transactService.ninDetails(userDetails, userId);
+    } catch (error) {
+        throw new InternalServerErrorException( error.message,'An error occurred while performing NIN operation.');
     }
   }
 

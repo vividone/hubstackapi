@@ -17,6 +17,6 @@ import { NinService } from './nin.service';
       maxRedirects: 5,
     }),
   ],
-  exports: [ProductService, ProductRepository],
+  exports: [ProductService, ProductRepository, NinService],
 })
 export class ProductModule {}
