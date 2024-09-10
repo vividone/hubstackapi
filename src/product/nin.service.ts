@@ -1,19 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { ProductRepository } from 'src/entity/repositories/product.repo';
-import { NinDataDto, NinDto, ProductDto } from './product.dto';
+import { NinDataDto } from './product.dto';
 import axios from 'axios';
 
 @Injectable()
 export class NinService {
   constructor(private readonly productRepo: ProductRepository) { }
 
-  async validateNIN(ninDto: NinDto){
+  async validateNIN(nin: string){
     
     const url = `${process.env.CKID_BASE_URL}/identity/nin-direct`;
     const token = process.env.CKID_TOKEN;
 
     try {
-        const { nin } = ninDto;
       const response = await axios.post(
         url,
         {
@@ -34,13 +33,12 @@ export class NinService {
     }
   }
 
-  async validateVirtualNIN(ninDto: NinDto){
+  async validateVirtualNIN(nin: string){
     
     const url = `${process.env.CKID_BASE_URL}/identity/nin`;
     const token = process.env.CKID_TOKEN;
 
     try {
-        const { nin } = ninDto;
       const response = await axios.post(
         url,
         {

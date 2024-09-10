@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   Post,
@@ -157,30 +158,22 @@ export class TransactionController {
     }
   }
 
-  @Roles('Agent')
+  @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
     type: TransactionDto,
     description: 'expected response',
   })
-  @ApiOperation({ summary: 'NIN Search' })
-  @Post('/:userId/nin-search')
-  async debitUnit(
+  @ApiOperation({ summary: 'NIN Validation' })
+  @Post('/:userId/nin-validate')
+  async ninValidate(
     @Body() ninTransaction: NINTransaction,
     @Param('userId') userId: string,
   ) {
     try {
-      const wallet = await this.transactService.ninSearch(
-        ninTransaction,
-        userId,
-      );
-      return wallet;
+      return await this.transactService.ninValidate(ninTransaction, userId);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while retrieving the wallet');
-      }
+        throw new InternalServerErrorException( error.message,'An error occurred while performing NIN operation.');
     }
   }
 

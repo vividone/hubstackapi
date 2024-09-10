@@ -22,10 +22,13 @@ import { Types } from 'mongoose';
 import { UsersService } from 'src/users/users.service';
 import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { NotificationMailingService } from 'src/mailing/notification.mails';
+import { NinService } from 'src/product/nin.service';
+import { NinDataDto } from 'src/product/product.dto';
 @Injectable()
 export class TransactionService {
   constructor(
     private readonly userService: UsersService,
+    private readonly ninService: NinService,
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
     private readonly notificationMailingService: NotificationMailingService,
@@ -191,22 +194,45 @@ export class TransactionService {
     }
   }
 
-  async ninSearch(ninTransaction: NINTransaction, userId: string) {
+  async ninValidate(ninTransaction: NINTransaction, userId: string) {
     const reference = this.generateRequestReference();
+    const { amount } = ninTransaction;
+
+    try {
+        await this.debitWallet(userId, amount);
+    } catch (error) {
+        throw new Error('Unable to debit wallet. Please ensure sufficient balance.');
+    }
+
+    let response: any;
+    try {
+        response = await this.ninService.validateNIN(ninTransaction.nin);
+    } catch (error) {
+        throw new Error('NIN validation failed. Please verify the NIN and try again.');
+    }
 
     const transactionData = {
-      transactionReference: reference,
-      amount: ninTransaction.amount,
-      transactionType: transactionType.NINSearch,
-      transactionStatus: transactionStatus.Pending,
-      paymentStatus: paymentStatus.Pending,
-      transactionDetails: ninTransaction,
-      paymentMode: paymentMode.units,
-      user: userId,
+        transactionReference: reference,
+        amount: ninTransaction.amount,
+        transactionType: transactionType.ValidateNin,
+        transactionStatus: transactionStatus.Successful,
+        paymentStatus: paymentStatus.Completed,
+        transactionDetails: ninTransaction,
+        paymentMode: paymentMode.wallet,
+        user: userId,
     };
-    return transactionData;
-    // console.log(ninTransaction, userId);
-  }
+
+    let createdTransaction: any;
+    try {
+        createdTransaction = await this.createTransaction(transactionData);
+    } catch (error) {
+        throw new Error('Failed to create transaction record. Please try again later.');
+    }
+    return {
+        response,
+        transaction: createdTransaction,
+    };
+}
 
   async buyUnits(buyUnitsDto: BuyUnitTransaction, userId: string) {
     const reference = this.generateRequestReference();

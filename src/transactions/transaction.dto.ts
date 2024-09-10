@@ -22,6 +22,7 @@ export enum transactionType {
   BillPayment = 'billpayment',
   BuyUnit = 'buyunit',
   NINSearch = 'ninsearch',
+  ValidateNin = 'validatenin'
 }
 
 export enum paymentMode {
@@ -123,7 +124,7 @@ export class NINTransaction {
 
   @IsString()
   @ApiProperty()
-  searchItem: string;
+  nin: string;
 
   @IsString()
   @ApiProperty()
@@ -201,6 +202,7 @@ export class TransactionDto {
     | BillPaymentTransaction
     | FundWalletTransaction
     | InitializeWalletFunding
+    | NINTransaction
     | WalletFundingDto
     | string;
 

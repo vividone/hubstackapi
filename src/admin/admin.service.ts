@@ -33,9 +33,11 @@ export class AdminProfileService {
         try {
             const individualCount = await this.userRepo.countDocument({ role: 'Individual'});
             const agentCount = await this.userRepo.countDocument({ role: 'Agent'});
+            const adminCount = await this.userRepo.countDocument({ role: 'Admin'});
             return {
                 individualCount,
                 agentCount,
+                adminCount,
             };
         } catch (error) {
             throw new InternalServerErrorException('Could not count users');
