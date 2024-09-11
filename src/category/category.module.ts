@@ -11,7 +11,12 @@ import { BillPaymentCategoryService } from './billpayment.category.service';
 import { ProductModule } from 'src/product/product.module';
 
 @Module({
-  providers: [CategoryService, BillPaymentCategoryService, CategoryRepository, ApiKeyGuard],
+  providers: [
+    CategoryService,
+    BillPaymentCategoryService,
+    CategoryRepository,
+    ApiKeyGuard,
+  ],
   controllers: [CategoryController],
   imports: [
     MongooseModule.forFeature([

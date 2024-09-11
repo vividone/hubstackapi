@@ -24,7 +24,7 @@ class Agent extends Users {
   @ApiProperty()
   location: string;
 
-  @Prop({ default: 'Pending'})
+  @Prop({ default: 'Pending' })
   @ApiProperty()
   kyc: string;
 

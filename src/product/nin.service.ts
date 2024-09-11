@@ -5,10 +5,9 @@ import axios from 'axios';
 
 @Injectable()
 export class NinService {
-  constructor(private readonly productRepo: ProductRepository) { }
+  constructor(private readonly productRepo: ProductRepository) {}
 
-  public async validateNIN(nin: string){
-    
+  public async validateNIN(nin: string) {
     const url = `${process.env.CKID_BASE_URL}/identity/nin-direct`;
     const token = process.env.CKID_TOKEN;
 
@@ -16,8 +15,8 @@ export class NinService {
       const response = await axios.post(
         url,
         {
-          nin, 
-          level: 1, 
+          nin,
+          level: 1,
         },
         {
           headers: {
@@ -34,7 +33,7 @@ export class NinService {
   }
 
   // async validateVirtualNIN(nin: string){
-    
+
   //   const url = `${process.env.CKID_BASE_URL}/identity/nin`;
   //   const token = process.env.CKID_TOKEN;
 
@@ -58,20 +57,19 @@ export class NinService {
   //   }
   // }
 
-  public async getNIN(ninDataDto: NinDataDto){
-    
+  public async getNIN(ninDataDto: NinDataDto) {
     const url = `${process.env.CKID_BASE_URL}/identity/nin-demo`;
     const token = process.env.CKID_TOKEN;
     try {
-        const { firstname, lastname, dateOfBirth, gender } = ninDataDto;
+      const { firstname, lastname, dateOfBirth, gender } = ninDataDto;
       const response = await axios.post(
         url,
         {
           firstname,
           lastname,
           dateOfBirth,
-          gender, 
-          level: 1, 
+          gender,
+          level: 1,
         },
         {
           headers: {

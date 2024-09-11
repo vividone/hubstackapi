@@ -1,4 +1,12 @@
-import { Body, Controller, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AgentService } from './agent_profile.service';
 import { CreateAgentProfileDto } from './dto/agent_profile.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
@@ -26,9 +34,7 @@ export class AgentController {
   // @UseGuards(JwtAuthGuard, RolesAuth)
   // @Roles('Admin')
   @Put('verify-agent/:id')
-  async verifyAgent(
-    @Param("id") id: string,
-  ) {
+  async verifyAgent(@Param('id') id: string) {
     return await this.agentService.verifyAgent(id);
   }
 }

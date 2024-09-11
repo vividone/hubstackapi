@@ -21,5 +21,3 @@ export class CreateAgentProfileDto extends CreateUserDto {
   @IsString()
   operationAddress: string;
 }
-
-

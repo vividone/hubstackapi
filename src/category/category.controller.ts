@@ -15,7 +15,7 @@ import { BillPaymentCategoryService } from './billpayment.category.service';
 export class CategoryController {
   constructor(
     private readonly categoryService: CategoryService,
-    private readonly billPaymentCategoryService: BillPaymentCategoryService
+    private readonly billPaymentCategoryService: BillPaymentCategoryService,
   ) {}
 
   @ApiOperation({ summary: 'get all categories' })

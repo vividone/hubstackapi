@@ -12,7 +12,7 @@ export class AgentService {
   constructor(
     private readonly agentRepo: AgentProfileRepository,
     private readonly userRepo: UserRepository,
-  ) { }
+  ) {}
 
   async updateAgentProfile(
     e_mail: string,
@@ -71,8 +71,8 @@ export class AgentService {
       {
         $set: {
           agentVerified: true,
-          kyc: 'Verified'
-        }
+          kyc: 'Verified',
+        },
       },
     );
     if (!agent) {
@@ -80,5 +80,4 @@ export class AgentService {
     }
     return agent;
   }
-
 }

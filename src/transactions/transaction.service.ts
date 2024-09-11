@@ -32,7 +32,7 @@ export class TransactionService {
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
     private readonly notificationMailingService: NotificationMailingService,
-  ) { }
+  ) {}
 
   async getAllTransactions() {
     const transactions = await this.transactionRepo.find();
@@ -86,7 +86,10 @@ export class TransactionService {
     const { paymentCode, customerId } = billPaymentDto;
 
     // Validate Customer
-    const validateCustomer = await this.validateCustomer(paymentCode, customerId);
+    const validateCustomer = await this.validateCustomer(
+      paymentCode,
+      customerId,
+    );
 
     if (!validateCustomer) {
       return 'Customer data is invalid';
@@ -106,10 +109,8 @@ export class TransactionService {
 
     const createTransaction = await this.createTransaction(transactionData);
 
-
     return createTransaction;
   }
-
 
   // async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
   //   const { paymentCode, customerId } = billPaymentDto;
@@ -152,9 +153,9 @@ export class TransactionService {
     try {
       const { customerId } = billPaymentDto;
 
-      const user = await this.userService.findUserById(userId)
+      const user = await this.userService.findUserById(userId);
       if (!user) {
-        throw new NotFoundException('user not found')
+        throw new NotFoundException('user not found');
       }
       const email = user.email;
       const reference = this.generateRequestReference();
@@ -189,7 +190,7 @@ export class TransactionService {
     } catch (error) {
       throw new Error(
         'An error occurred while processing the phone bill payment: ' +
-        error.message,
+          error.message,
       );
     }
   }
@@ -199,83 +200,94 @@ export class TransactionService {
     const { amount } = ninDto;
 
     try {
-        await this.debitWallet(userId, amount);
+      await this.debitWallet(userId, amount);
     } catch (error) {
-        throw new Error('Unable to debit wallet. Please ensure sufficient balance.');
+      throw new Error(
+        'Unable to debit wallet. Please ensure sufficient balance.',
+      );
     }
 
     let response: any;
     try {
-        response = await this.ninService.validateNIN(ninDto.nin);
+      response = await this.ninService.validateNIN(ninDto.nin);
     } catch (error) {
-        throw new Error('NIN validation failed. Please verify the NIN and try again.');
+      throw new Error(
+        'NIN validation failed. Please verify the NIN and try again.',
+      );
     }
 
     const transactionData = {
-        transactionReference: reference,
-        amount: ninDto.amount,
-        transactionType: transactionType.ValidateNin,
-        transactionStatus: transactionStatus.Successful,
-        paymentStatus: paymentStatus.Completed,
-        transactionDetails: { ...ninDto, nin: undefined },
-        paymentMode: paymentMode.wallet,
-        user: userId,
+      transactionReference: reference,
+      amount: ninDto.amount,
+      transactionType: transactionType.ValidateNin,
+      transactionStatus: transactionStatus.Successful,
+      paymentStatus: paymentStatus.Completed,
+      transactionDetails: { ...ninDto, nin: undefined },
+      paymentMode: paymentMode.wallet,
+      user: userId,
     };
 
     let createdTransaction: any;
     try {
-        createdTransaction = await this.createTransaction(transactionData);
+      createdTransaction = await this.createTransaction(transactionData);
     } catch (error) {
-        throw new Error('Failed to create transaction record. Please try again later.');
+      throw new Error(
+        'Failed to create transaction record. Please try again later.',
+      );
     }
-    
+
     return {
-        response,
-        transaction: createdTransaction,
+      response,
+      transaction: createdTransaction,
     };
   }
 
   async ninDetails(userDetails: NINDetailsTransaction, userId: string) {
     const reference = this.generateRequestReference();
     const { amount } = userDetails;
-    const {firstname, lastname, gender, dateOfBirth} = userDetails;
+    const { firstname, lastname, gender, dateOfBirth } = userDetails;
 
     try {
-        await this.debitWallet(userId, amount);
+      await this.debitWallet(userId, amount);
     } catch (error) {
-        throw new Error('Unable to debit wallet. Please ensure sufficient balance.');
+      throw new Error(
+        'Unable to debit wallet. Please ensure sufficient balance.',
+      );
     }
 
     let response: any;
     try {
-        response = await this.ninService.getNIN(userDetails);
+      response = await this.ninService.getNIN(userDetails);
     } catch (error) {
-        throw new Error('NIN validation failed. Please verify the NIN and try again.');
+      throw new Error(
+        'NIN validation failed. Please verify the NIN and try again.',
+      );
     }
 
     const transactionData = {
-        transactionReference: reference,
-        amount: userDetails.amount,
-        transactionType: transactionType.NINSearch,
-        transactionStatus: transactionStatus.Successful,
-        paymentStatus: paymentStatus.Completed,
-        transactionDetails: userDetails,
-        paymentMode: paymentMode.wallet,
-        user: userId,
+      transactionReference: reference,
+      amount: userDetails.amount,
+      transactionType: transactionType.NINSearch,
+      transactionStatus: transactionStatus.Successful,
+      paymentStatus: paymentStatus.Completed,
+      transactionDetails: userDetails,
+      paymentMode: paymentMode.wallet,
+      user: userId,
     };
 
     let createdTransaction: any;
     try {
-        createdTransaction = await this.createTransaction(transactionData);
+      createdTransaction = await this.createTransaction(transactionData);
     } catch (error) {
-        throw new Error('Failed to create transaction record. Please try again later.');
+      throw new Error(
+        'Failed to create transaction record. Please try again later.',
+      );
     }
     return {
-        response,
-        transaction: createdTransaction,
+      response,
+      transaction: createdTransaction,
     };
-}
-
+  }
 
   async buyUnits(buyUnitsDto: BuyUnitTransaction, userId: string) {
     const reference = this.generateRequestReference();
@@ -326,7 +338,7 @@ export class TransactionService {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-  
+
     try {
       const customerEmail = user.email;
       const {
@@ -336,7 +348,7 @@ export class TransactionService {
         amount,
         requestReference,
       } = transactionDetails;
-  
+
       const amountInKobo = this.convertToKobo(amount);
       const data = {
         customerEmail,
@@ -346,11 +358,11 @@ export class TransactionService {
         amount: amountInKobo,
         requestReference,
       };
-  
+
       const authResponse = await this.genISWAuthToken();
       const token = authResponse.access_token;
       const url = `${baseUrl}/Transactions`;
-  
+
       const response = await axios.post(url, data, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -358,15 +370,15 @@ export class TransactionService {
           TerminalId,
         },
       });
-  
+
       console.log('data: ', response.data);
-  
+
       if (response.data.ResponseDescription === 'Success') {
         const updateTransactionData = {
           transactionStatus: transactionStatus.Successful,
           paymentStatus: paymentStatus.Completed,
         };
-  
+
         const updatedTransaction = await this.updateTransaction(
           transactionId,
           updateTransactionData,
@@ -376,8 +388,11 @@ export class TransactionService {
         Amount: ${updatedTransaction.amount}\n
         Type: ${updatedTransaction.transactionType}\n
       `;
-        await this.notificationMailingService.sendTransactionSummary(customerEmail, formattedTransactionData);
-  
+        await this.notificationMailingService.sendTransactionSummary(
+          customerEmail,
+          formattedTransactionData,
+        );
+
         return { success: true, transaction: updatedTransaction };
       } else {
         return { success: false, message: response.data.ResponseDescription };
@@ -387,7 +402,6 @@ export class TransactionService {
       return { success: false, message: error.message };
     }
   }
-  
 
   public async verifyPayment(reference: string) {
     const baseUrl = process.env.PSTK_BASE_URL;
@@ -421,7 +435,7 @@ export class TransactionService {
     } catch (error) {
       throw new Error(
         'An error occurred while processing bill payment via wallet: ' +
-        error.message,
+          error.message,
       );
     }
   }
@@ -586,7 +600,7 @@ export class TransactionService {
           'Content-Type': 'application/json',
         },
       });
-      console.log(response.data)
+      console.log(response.data);
       return response.data;
     } catch (error) {
       this.handleAxiosError(

@@ -8,7 +8,7 @@ import { ProductRepository } from 'src/entity/repositories/product.repo';
 export class CategoryService {
   constructor(
     private readonly categoryRepo: CategoryRepository,
-    private readonly productRepo: ProductRepository
+    private readonly productRepo: ProductRepository,
   ) {}
 
   async createCategory(categoryDto: CategoryDto) {
@@ -25,12 +25,12 @@ export class CategoryService {
       {
         $lookup: {
           from: 'products',
-          let: { categoryId: '$_id' }, 
+          let: { categoryId: '$_id' },
           pipeline: [
             {
               $match: {
                 $expr: {
-                  $eq: [{ $toObjectId: '$category' }, '$$categoryId'], 
+                  $eq: [{ $toObjectId: '$category' }, '$$categoryId'],
                 },
               },
             },
@@ -50,9 +50,8 @@ export class CategoryService {
     return categoriesWithProducts;
   }
 
-  async getProductsByCategory(category: string){
-    const products = this.productRepo.find({category: category});
+  async getProductsByCategory(category: string) {
+    const products = this.productRepo.find({ category: category });
     return products;
   }
-
 }

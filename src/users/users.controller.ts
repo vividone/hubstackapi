@@ -27,7 +27,6 @@ export class UsersController {
     return this.usersService.findUserById(id);
   }
 
-
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Individual')
   @Put('update-profile')

@@ -4,7 +4,7 @@ import { ProductDto } from './product.dto';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly productRepo: ProductRepository) { }
+  constructor(private readonly productRepo: ProductRepository) {}
   async findAll() {
     const products = await this.productRepo.find();
     return products;
@@ -17,6 +17,4 @@ export class ProductService {
     });
     return createdProduct;
   }
-
-
 }

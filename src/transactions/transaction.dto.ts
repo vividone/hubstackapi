@@ -22,7 +22,7 @@ export enum transactionType {
   BillPayment = 'billpayment',
   BuyUnit = 'buyunit',
   NINSearch = 'ninsearch',
-  ValidateNin = 'validate-nin'
+  ValidateNin = 'validate-nin',
 }
 
 export enum paymentMode {

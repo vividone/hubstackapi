@@ -174,7 +174,10 @@ export class TransactionController {
     try {
       return await this.transactService.ninValidate(ninTransaction, userId);
     } catch (error) {
-        throw new InternalServerErrorException( error.message,'An error occurred while performing NIN operation.');
+      throw new InternalServerErrorException(
+        error.message,
+        'An error occurred while performing NIN operation.',
+      );
     }
   }
 
@@ -193,7 +196,10 @@ export class TransactionController {
     try {
       return await this.transactService.ninDetails(userDetails, userId);
     } catch (error) {
-        throw new InternalServerErrorException( error.message,'An error occurred while performing NIN operation.');
+      throw new InternalServerErrorException(
+        error.message,
+        'An error occurred while performing NIN operation.',
+      );
     }
   }
 
@@ -340,7 +346,10 @@ export class TransactionController {
     @Param('userId') userId: string,
   ) {
     try {
-      const bill = await this.transactService.payPhoneBills(billPaymentDto, userId);
+      const bill = await this.transactService.payPhoneBills(
+        billPaymentDto,
+        userId,
+      );
       return bill;
     } catch (error) {
       if (error.message.includes('Insufficient Wallet Balance')) {
@@ -350,14 +359,13 @@ export class TransactionController {
       } else if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        console.error('Error occurred:', error); 
+        console.error('Error occurred:', error);
         throw new BadRequestException(
           'An error occurred while buying airtime. Please try again later.',
         );
       }
     }
   }
-  
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)

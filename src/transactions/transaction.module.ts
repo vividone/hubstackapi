@@ -18,7 +18,13 @@ import { NotificationMailingService } from 'src/mailing/notification.mails';
 import { ProductModule } from 'src/product/product.module';
 
 @Module({
-  providers: [TransactionService, TransactionRepository, ApiKeyGuard, EmailService, NotificationMailingService],
+  providers: [
+    TransactionService,
+    TransactionRepository,
+    ApiKeyGuard,
+    EmailService,
+    NotificationMailingService,
+  ],
   controllers: [TransactionController],
   exports: [TransactionRepository, TransactionService],
   imports: [

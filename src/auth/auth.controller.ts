@@ -22,7 +22,11 @@ import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { ApiKeyGuard } from './apikey.guard';
-import { ForgotPasswordDto, ResetPasswordDto, UpdatePasswordDto } from './dto/reset.password.dto';
+import {
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  UpdatePasswordDto,
+} from './dto/reset.password.dto';
 import { ResendOtp, VerifyEmail, VerifyOtp } from './dto/otp.dto';
 import { CreateAdminProfileDto } from 'src/admin/dto/admin.dto';
 
@@ -30,7 +34,7 @@ import { CreateAdminProfileDto } from 'src/admin/dto/admin.dto';
 @Controller('auth')
 @UseGuards(ApiKeyGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register-individual')
   registerUser(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
@@ -40,16 +44,13 @@ export class AuthController {
     return this.authService.createUser(createUserDto, req);
   }
 
-
   @ApiCreatedResponse({
     type: LoginDtoResponse,
     description: 'expected response',
   })
   @ApiOperation({ summary: 'one time use: Create and log in admin' })
   @Post('admin-login')
-  async createAndLoginAdmin(
-    @Body() createAdminDto: CreateAdminProfileDto,
-  ) {
+  async createAndLoginAdmin(@Body() createAdminDto: CreateAdminProfileDto) {
     try {
       const result = await this.authService.createAndLoginAdmin(createAdminDto);
       return {
@@ -130,7 +131,6 @@ export class AuthController {
     }
   }
 
-
   @ApiCreatedResponse({
     type: LoginDtoResponse,
     description: 'expected response',
@@ -199,7 +199,7 @@ export class AuthController {
   @Put('update-password')
   async updatePassword(
     @Req() request: CustomRequest,
-    @Body() body:UpdatePasswordDto,
+    @Body() body: UpdatePasswordDto,
   ) {
     const { oldPassword, newPassword } = body;
     const userId = request.user.id;

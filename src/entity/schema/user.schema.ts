@@ -39,7 +39,7 @@ class Users {
   @Prop()
   otpExpiry: Date;
 
-  @Prop({ default: false})
+  @Prop({ default: false })
   isOtpVerified: boolean;
 
   @Prop({ default: false })
@@ -89,7 +89,7 @@ UserSchema.methods.comparePassword = async function (
   password: string,
 ): Promise<boolean> {
   try {
-   return await bcrypt.compare(password, this.password);
+    return await bcrypt.compare(password, this.password);
   } catch (error) {
     return false;
   }

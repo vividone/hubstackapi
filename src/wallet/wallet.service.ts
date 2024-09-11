@@ -10,9 +10,7 @@ import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { Types } from 'mongoose';
 import { TransactionService } from 'src/transactions/transaction.service';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
-import {
-  transactionStatus,
-} from 'src/transactions/transaction.dto';
+import { transactionStatus } from 'src/transactions/transaction.dto';
 import { BankAccountRepository } from 'src/entity/repositories/bankaccount.repo';
 import { NotificationMailingService } from 'src/mailing/notification.mails';
 import { UsersService } from 'src/users/users.service';
@@ -25,8 +23,8 @@ export class WalletService {
     private readonly transactionService: TransactionService,
     private readonly transactionRepo: TransactionRepository,
     private readonly bankRepo: BankAccountRepository,
-    private readonly notificationMailingService: NotificationMailingService
-  ) { }
+    private readonly notificationMailingService: NotificationMailingService,
+  ) {}
 
   async fetchBankAccounts(userId: string) {
     if (!Types.ObjectId.isValid(userId)) {
@@ -234,7 +232,6 @@ export class WalletService {
   async getUserWalletBalance(userId: string) {
     const userIdString = new Types.ObjectId(userId).toString();
     try {
-
       const user = await this.walletRepo.findOne({ user: userIdString });
       if (!user) {
         throw new NotFoundException('Wallet not found');
@@ -259,8 +256,6 @@ export class WalletService {
       throw error;
     }
   }
-
-
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
@@ -301,7 +296,10 @@ export class WalletService {
         Transaction Reference: ${transaction.transactionReference}\n
         Amount: ${transaction.amount}\n
       `;
-      await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
+      await this.notificationMailingService.sendTransactionSummary(
+        email,
+        formattedTransactionData,
+      );
       return updatedTransaction;
     } catch (error) {
       if (

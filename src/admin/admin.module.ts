@@ -21,10 +21,10 @@ import { MongooseModule } from '@nestjs/mongoose';
     WalletModule,
     UsersModule,
     TransactionModule,
-    ApiKeyModule
+    ApiKeyModule,
   ],
   controllers: [AdminProfileController],
   providers: [AdminProfileService, AdminRepository, JwtService],
-  exports: [AdminProfileService, AdminRepository]
+  exports: [AdminProfileService, AdminRepository],
 })
 export class AdminProfileModule {}

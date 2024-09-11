@@ -6,8 +6,7 @@ import axios from 'axios';
 export class BillPaymentCategoryService {
   constructor(private readonly categoryRepo: CategoryRepository) {}
 
-
-async getBillPaymentCategories() {
+  async getBillPaymentCategories() {
     const categories = await this.categoryRepo.find({
       categoryType: 'billpayments',
     });
@@ -103,7 +102,6 @@ async getBillPaymentCategories() {
       this.handleAxiosError(error, 'An error occurred authenticating!');
     }
   }
-
 
   private handleAxiosError(error: any, customMessage: string) {
     if (error.response) {

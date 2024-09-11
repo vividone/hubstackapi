@@ -40,7 +40,7 @@ import { AdminProfileModule } from './admin/admin.module';
     TransactionModule,
     ApiKeyModule,
   ],
-  providers: [KeepAliveService]
+  providers: [KeepAliveService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
