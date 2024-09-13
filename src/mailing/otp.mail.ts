@@ -9,11 +9,9 @@ export class OtpService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  async sendOtpEmail(
-    email: string,
-    otp: string
-  ) {
-    const templateString = '<p>Your OTP is: %OTP% The otp will expire in 20 minutes</p>';
+  async sendOtpEmail(email: string, otp: string) {
+    const templateString =
+      '<p>Your OTP is: %OTP% The otp will expire in 1 minute</p>';
     const loadedTemplate = this.emailService.loadTemplate(templateString, {
       '%OTP%': otp,
     });

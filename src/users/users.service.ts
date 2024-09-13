@@ -22,8 +22,7 @@ export class UsersService {
     }
     if (user.role === 'Individual') {
       return user;
-    }
-    else if (user.role === 'Agent') {
+    } else if (user.role === 'Agent') {
       const agentProfile = await this.agentRepo.findOne({ user: user._id });
       return agentProfile;
     }
@@ -88,20 +87,20 @@ export class UsersService {
     const { email, firstname, lastname, password, role, ...otherFields } =
       updateUserDto;
 
-      const userProfile = await this.userRepo.findOne({ email: e_mail });
-      if (!userProfile) {
-        throw new NotFoundException('User profile not found');
+    const userProfile = await this.userRepo.findOne({ email: e_mail });
+    if (!userProfile) {
+      throw new NotFoundException('User profile not found');
+    }
+
+    if (email) {
+      const existingUser = await this.userRepo.findOne({ email });
+      if (
+        existingUser &&
+        existingUser._id.toString() !== userProfile._id.toString()
+      ) {
+        throw new BadRequestException('Email already exists');
       }
-  
-      if (email) {
-        const existingUser = await this.userRepo.findOne({ email });
-        if (
-          existingUser &&
-          existingUser._id.toString() !== userProfile._id.toString()
-        ) {
-          throw new BadRequestException('Email already exists');
-        }
-      }
+    }
 
     const updateData = { ...otherFields };
 
@@ -121,9 +120,9 @@ export class UsersService {
     try {
       const result = await this.userRepo.findOneAndUpdate(
         { email },
-        { $set: { otp } }
+        { $set: { otp } },
       );
-  
+
       if (result.nModified === 0) {
         throw new NotFoundException('User not found or OTP not updated');
       }

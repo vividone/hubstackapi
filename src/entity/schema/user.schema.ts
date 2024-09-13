@@ -18,10 +18,6 @@ class Users {
   lastname: string;
 
   @Prop({ unique: true })
-  @ApiProperty()
-  username: string;
-
-  @Prop({ unique: true })
   email: string;
 
   @Prop()
@@ -43,11 +39,8 @@ class Users {
   @Prop()
   otpExpiry: Date;
 
-  @Prop({ default: false})
-  isOtpVerified: boolean;
-
   @Prop({ default: false })
-  kyc: boolean;
+  isOtpVerified: boolean;
 
   @Prop({ default: false })
   isVerified: boolean;
@@ -96,7 +89,7 @@ UserSchema.methods.comparePassword = async function (
   password: string,
 ): Promise<boolean> {
   try {
-   return await bcrypt.compare(password, this.password);
+    return await bcrypt.compare(password, this.password);
   } catch (error) {
     return false;
   }

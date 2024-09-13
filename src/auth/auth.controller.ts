@@ -22,14 +22,19 @@ import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { ApiKeyGuard } from './apikey.guard';
-import { ForgotPasswordDto, ResetPasswordDto, UpdatePasswordDto } from './dto/reset.password.dto';
+import {
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  UpdatePasswordDto,
+} from './dto/reset.password.dto';
 import { ResendOtp, VerifyEmail, VerifyOtp } from './dto/otp.dto';
+import { CreateAdminProfileDto } from 'src/admin/dto/admin.dto';
 
 @ApiTags('Authentication Operations')
 @Controller('auth')
 @UseGuards(ApiKeyGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register-individual')
   registerUser(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
@@ -39,6 +44,24 @@ export class AuthController {
     return this.authService.createUser(createUserDto, req);
   }
 
+  @ApiCreatedResponse({
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'create Admin' })
+  @Post('register-admin')
+  async createAdmin(@Body() createAdminDto: CreateAdminProfileDto) {
+    try {
+      const result = await this.authService.createAdmin(createAdminDto);
+      return {
+        status: 'Success',
+        message: 'Admin created',
+        data: result.data,
+      };
+    } catch (error) {
+      console.error('Error in createAndLoginAdmin Controller:', error);
+      throw new BadRequestException(error.message || 'Error Creating Admin');
+    }
+  }
   // @Post('agent-referral-registration')
   // async registerAgentByInvitation(
   //   @Body() createAgentDto: CreateAgentProfileDto,
@@ -105,7 +128,6 @@ export class AuthController {
       throw new BadRequestException('Internal Server Error');
     }
   }
-
 
   @ApiCreatedResponse({
     type: LoginDtoResponse,
@@ -175,7 +197,7 @@ export class AuthController {
   @Put('update-password')
   async updatePassword(
     @Req() request: CustomRequest,
-    @Body() body:UpdatePasswordDto,
+    @Body() body: UpdatePasswordDto,
   ) {
     const { oldPassword, newPassword } = body;
     const userId = request.user.id;

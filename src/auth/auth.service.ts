@@ -16,6 +16,9 @@ import { UsersService } from 'src/users/users.service';
 import { ResetPasswordService } from '../mailing/resetPassword.mail';
 import { WalletService } from 'src/wallet/wallet.service';
 import { ReferralService } from 'src/referrals/referral.service';
+import { AdminRepository } from 'src/entity/repositories/admin.repository';
+import { CreateAdminProfileDto } from 'src/admin/dto/admin.dto';
+import { Console } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -23,11 +26,12 @@ export class AuthService {
     private readonly userRepo: UserRepository,
     private readonly userService: UsersService,
     private readonly agentRepo: AgentProfileRepository,
+    private readonly adminRepo: AdminRepository,
     private readonly walletService: WalletService,
     private readonly jwtService: JwtService,
     private readonly otpService: OtpService,
     private readonly referralService: ReferralService,
-  ) { }
+  ) {}
 
   async createUser(
     createUserDto: CreateUserDto | CreateAgentProfileDto,
@@ -55,10 +59,7 @@ export class AuthService {
     }
 
     const otp = this.otpService.generateOTP();
-    await this.otpService.sendOtpEmail(
-      email,
-      otp,
-    );
+    await this.otpService.sendOtpEmail(email, otp);
     await this.userService.saveOtpToUser(email, otp);
 
     return user;
@@ -73,6 +74,35 @@ export class AuthService {
 
     return { agentUser, agentProfile };
   }
+
+  async createAdmin(createAdminDto: CreateAdminProfileDto) {
+    createAdminDto.role = 'Admin';
+    try {
+        let { email } = createAdminDto;
+
+        if (!email) {
+            throw new BadRequestException('Email is required');
+        }
+
+        email = email.toLowerCase();
+        const existingUser = await this.userRepo.findOne({ email });
+        if (existingUser) {
+            throw new BadRequestException('Email already exists');
+        }
+        const adminUser = await this.userRepo.create({ ...createAdminDto, email });
+
+        await this.adminRepo.create({ user: adminUser._id });
+
+        return {
+            status: 'Success',
+            message: 'Admin created successfully',
+            data: adminUser,
+        };
+    } catch (error) {
+        throw new BadRequestException(error.message || 'An error occurred while creating the admin');
+    }
+}
+
 
   async validateUser(email: string, password: string) {
     const user = await this.userRepo.findOne({ email });
@@ -119,7 +149,7 @@ export class AuthService {
     let { email, password } = loginUserDto;
     email = email.toLowerCase();
     const user = await this.userRepo.findOne({ email });
-  
+
     if (!user || !(await user.comparePassword(password))) {
       throw new BadRequestException('Invalid credentials');
     }
@@ -127,35 +157,35 @@ export class AuthService {
     if (!user.isVerified) {
       await this.resendOtp(email);
     }
-  
+
     const refreshToken = this.generateRefreshToken(user._id);
     await this.userService.updateRefreshToken(
       user._id,
       refreshToken.refresh_token,
     );
-  
+
     let hasWallet = false;
     let balance = 0;
-  
+
     try {
       const wallet = await this.walletService.getUserWallet(user._id);
       hasWallet = !!wallet;
-  
+
       if (hasWallet) {
         balance = await this.walletService.getUserWalletBalance(user._id);
       }
     } catch (error) {
       console.error('Error fetching wallet or balance:', error.message);
     }
-  
+
     const userData = await this.userRepo.findOne(user._id, { password: false });
 
     let agentProfile = null;
     if (user.role === 'Agent') {
       agentProfile = await this.agentRepo.findOne({ user: user._id });
-    }    
+    }
     const token = await this.generateToken(userData);
-  
+
     return {
       status: 'Success',
       message: 'Login successful',
@@ -166,7 +196,6 @@ export class AuthService {
       token,
     };
   }
-  
 
   // private setRefreshTokenCookie(res: any, token: string) {
   //   res.cookie('refreshToken', token, {
@@ -183,7 +212,11 @@ export class AuthService {
     }
     const otp = this.otpService.generateOTP();
     const currentTime = new Date();
-    const otpExpiry = new Date(currentTime.getTime() + 10 * 60 * 1000 - currentTime.getTimezoneOffset() * 60 * 1000);
+    const otpExpiry = new Date(
+      currentTime.getTime() +
+        1 * 60 * 1000 -
+        currentTime.getTimezoneOffset() * 60 * 1000,
+    );
     user.otp = otp;
     user.otpExpiry = otpExpiry;
     await user.save();
@@ -199,7 +232,7 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('Invalid OTP');
     }
-  
+
     if (user.otpExpiry && new Date() > user.otpExpiry) {
       throw new BadRequestException('OTP has expired');
     }
@@ -209,19 +242,17 @@ export class AuthService {
     user.isOtpVerified = true;
     await user.save();
     const token = this.jwtService.sign({ userId: user._id });
-  
+
     return { token, message: 'OTP verified successfully' };
   }
-  
-
 
   async resetForgottenPassword(password: string, token: string) {
     try {
       const decoded = this.jwtService.verify(token);
       const userId = String(decoded.userId);
-  
+
       const user = await this.userRepo.findOne({ _id: userId });
-  
+
       if (!user || !user.isOtpVerified) {
         throw new BadRequestException('User not found or OTP not verified');
       }
@@ -231,21 +262,20 @@ export class AuthService {
       }
       user.password = await bcrypt.hash(password, 10);
       user.isOtpVerified = false;
-  
+
       await user.save();
-  
+
       return {
         status: 'Success',
         message: 'Password has been reset successfully',
       };
     } catch (error) {
       throw new BadRequestException(
-        error.message || 'An error occurred while resetting the password'
+        error.message || 'An error occurred while resetting the password',
       );
     }
   }
-  
-  
+
   async updatePassword(
     userId: string,
     oldPassword: string,
@@ -262,7 +292,9 @@ export class AuthService {
       throw new BadRequestException('Old password is incorrect');
     }
     if (await bcrypt.compare(newPassword, user.password)) {
-      throw new BadRequestException('New password cannot be the same as the old password');
+      throw new BadRequestException(
+        'New password cannot be the same as the old password',
+      );
     }
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
@@ -279,32 +311,33 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Email does not exist');
     }
-  
+
     let otp: string;
     let isUniqueOtp = false;
     while (!isUniqueOtp) {
       otp = this.otpService.generateOTP();
       const checkOtp = await this.userRepo.findOne({ otp });
-  
+
       if (!checkOtp) {
         isUniqueOtp = true;
       }
     }
     const currentTime = new Date();
-    const otpExpiry = new Date(currentTime.getTime() + 10 * 60 * 1000 - currentTime.getTimezoneOffset() * 60 * 1000);
+    const otpExpiry = new Date(
+      currentTime.getTime() +
+        10 * 60 * 1000 -
+        currentTime.getTimezoneOffset() * 60 * 1000,
+    );
     user.otp = otp;
     user.otpExpiry = otpExpiry;
     await user.save();
     await this.otpService.sendOtpEmail(email, otp);
-  
+
     return {
       status: 'Success',
       message: 'A new OTP has been sent to your email',
     };
   }
-  
-
-
 
   private generateReferralCode() {
     const length = 10;

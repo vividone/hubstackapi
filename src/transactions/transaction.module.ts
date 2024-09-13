@@ -15,9 +15,16 @@ import { ApiKeyGuard } from 'src/auth/apikey.guard';
 import { ApiKeyModule } from 'src/auth/apikey.module';
 import { EmailService } from 'src/configs/email.helper';
 import { NotificationMailingService } from 'src/mailing/notification.mails';
+import { ProductModule } from 'src/product/product.module';
 
 @Module({
-  providers: [TransactionService, TransactionRepository, ApiKeyGuard, EmailService, NotificationMailingService],
+  providers: [
+    TransactionService,
+    TransactionRepository,
+    ApiKeyGuard,
+    EmailService,
+    NotificationMailingService,
+  ],
   controllers: [TransactionController],
   exports: [TransactionRepository, TransactionService],
   imports: [
@@ -28,6 +35,7 @@ import { NotificationMailingService } from 'src/mailing/notification.mails';
       timeout: 5000,
       maxRedirects: 5,
     }),
+    ProductModule,
     JwtModule,
     UsersModule,
     ApiKeyModule,

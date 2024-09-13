@@ -5,8 +5,10 @@ import { Cron } from '@nestjs/schedule';
 export class KeepAliveService {
   private readonly logger = new Logger(KeepAliveService.name);
 
-  @Cron('*/1 * * * *') 
+  @Cron('*/1 * * * *')
   handleCron() {
-    this.logger.debug('Keep-alive cron job running every minute to keep the server alive.');
+    this.logger.debug(
+      'Keep-alive cron job running every minute to keep the server alive.',
+    );
   }
 }

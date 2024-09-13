@@ -16,4 +16,8 @@ export class CreateAgentProfileDto extends CreateUserDto {
   @IsNotEmpty()
   @IsString()
   region: string;
+
+  @IsNotEmpty()
+  @IsString()
+  operationAddress: string;
 }

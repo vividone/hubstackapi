@@ -15,6 +15,7 @@ import { WalletModule } from 'src/wallet/wallet.module';
 import { ApiKeyGuard } from './apikey.guard';
 import { ApiKeyService } from './apikey.service';
 import { ApiKeyModule } from './apikey.module';
+import { AdminProfileModule } from 'src/admin/admin.module';
 
 @Module({
   controllers: [AuthController],
@@ -39,6 +40,7 @@ import { ApiKeyModule } from './apikey.module';
     }),
     ReferralModule,
     AgentProfileModule,
+    AdminProfileModule,
     UsersModule,
     PassportModule,
     WalletModule,

@@ -6,9 +6,14 @@ import { HttpModule } from '@nestjs/axios';
 import { ApiKeyModule } from 'src/auth/apikey.module';
 import { TransactionModule } from 'src/transactions/transaction.module';
 import { WalletModule } from 'src/wallet/wallet.module';
+import { JwtService } from '@nestjs/jwt';
+import { AdminRepository } from 'src/entity/repositories/admin.repository';
+import { Admin, AdminSchema } from 'src/entity';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
+    MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }]),
     HttpModule.register({
       timeout: 5000,
       maxRedirects: 5,
@@ -16,9 +21,10 @@ import { WalletModule } from 'src/wallet/wallet.module';
     WalletModule,
     UsersModule,
     TransactionModule,
-    ApiKeyModule
+    ApiKeyModule,
   ],
   controllers: [AdminProfileController],
-  providers: [AdminProfileService],
+  providers: [AdminProfileService, AdminRepository, JwtService],
+  exports: [AdminProfileService, AdminRepository],
 })
 export class AdminProfileModule {}
