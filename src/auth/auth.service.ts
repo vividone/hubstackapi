@@ -75,45 +75,34 @@ export class AuthService {
     return { agentUser, agentProfile };
   }
 
-  async createAndLoginAdmin(createAdminDto: CreateAdminProfileDto) {
+  async createAdmin(createAdminDto: CreateAdminProfileDto) {
     createAdminDto.role = 'Admin';
     try {
-      let { email, password } = createAdminDto;
-      if (!email) {
-        throw new BadRequestException('Email is required');
-      }
+        let { email } = createAdminDto;
 
-      email = email.toLowerCase();
-      const existingUser = await this.userRepo.findOne({ email });
-      if (existingUser) {
-        throw new BadRequestException('Email already exists');
-      }
-      let adminUser = await this.userRepo.create({ ...createAdminDto, email });
-      const adminProfile = await this.adminRepo.create({
-        user: adminUser._id,
-      });
+        if (!email) {
+            throw new BadRequestException('Email is required');
+        }
 
-      const user = await this.userRepo.findOne({ email });
-      if (!user) {
-        throw new BadRequestException('User not found');
-      }
-      if (!(await user.comparePassword(password))) {
-        throw new BadRequestException('Invalid credentials');
-      }
-      const userData = await this.userRepo.findOne(user._id, {
-        password: false,
-      });
-      const token = await this.generateToken(userData);
-      return {
-        status: 'Success',
-        message: 'Admin created and login successful',
-        data: userData,
-        token,
-      };
+        email = email.toLowerCase();
+        const existingUser = await this.userRepo.findOne({ email });
+        if (existingUser) {
+            throw new BadRequestException('Email already exists');
+        }
+        const adminUser = await this.userRepo.create({ ...createAdminDto, email });
+
+        await this.adminRepo.create({ user: adminUser._id });
+
+        return {
+            status: 'Success',
+            message: 'Admin created successfully',
+            data: adminUser,
+        };
     } catch (error) {
-      throw new BadRequestException(error.message || 'An error occurred');
+        throw new BadRequestException(error.message || 'An error occurred while creating the admin');
     }
-  }
+}
+
 
   async validateUser(email: string, password: string) {
     const user = await this.userRepo.findOne({ email });

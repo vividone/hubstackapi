@@ -45,23 +45,21 @@ export class AuthController {
   }
 
   @ApiCreatedResponse({
-    type: LoginDtoResponse,
     description: 'expected response',
   })
-  @ApiOperation({ summary: 'one time use: Create and log in admin' })
-  @Post('admin-login')
-  async createAndLoginAdmin(@Body() createAdminDto: CreateAdminProfileDto) {
+  @ApiOperation({ summary: 'create Admin' })
+  @Post('register-admin')
+  async createAdmin(@Body() createAdminDto: CreateAdminProfileDto) {
     try {
-      const result = await this.authService.createAndLoginAdmin(createAdminDto);
+      const result = await this.authService.createAdmin(createAdminDto);
       return {
         status: 'Success',
-        message: 'Admin created and login successful',
+        message: 'Admin created',
         data: result.data,
-        token: result.token,
       };
     } catch (error) {
       console.error('Error in createAndLoginAdmin Controller:', error);
-      throw new BadRequestException(error.message || 'Error logging in Admin');
+      throw new BadRequestException(error.message || 'Error Creating Admin');
     }
   }
   // @Post('agent-referral-registration')
