@@ -30,6 +30,7 @@ async function bootstrap() {
       'access-token',
     )
     .addServer('https://dev-api.hubstack.app', 'Development Server')
+    .addServer('https://prod-api.hubstack.app', 'Production Server')
     .build();
   const document = SwaggerModule.createDocument(app, configSwagger);
   SwaggerModule.setup('/', app, document, {
