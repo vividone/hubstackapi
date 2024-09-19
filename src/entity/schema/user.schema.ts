@@ -64,6 +64,10 @@ class Users {
   @Prop({ default: 'Steel' })
   @ApiProperty()
   referralLevel: string;
+
+  @Prop()
+  @ApiProperty()
+  avatar: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(Users);
