@@ -82,6 +82,12 @@ export class TransactionService {
     return transaction;
   }
 
+  // async findTransactionByUserId(userId: any) {
+  //   const convertedId = userId.toString();
+  //   return this.transactionRepo.findOne({ user: convertedId });
+  // }
+  
+
   async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     const { paymentCode, customerId } = billPaymentDto;
 
