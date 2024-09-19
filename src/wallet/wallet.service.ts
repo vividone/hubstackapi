@@ -271,13 +271,13 @@ export class WalletService {
         throw new NotFoundException('User not found');
       }
       const email = user.email;
-      // const { transactionReference } = transaction;
-      // const verifyPayment =
-      //   await this.transactionService.verifyPayment(transactionReference);
-      // const { status } = verifyPayment;
-      // if (status !== true) {
-      //   throw new BadRequestException('Payment verification failed.');
-      // }
+      const { transactionReference } = transaction;
+      const verifyPayment =
+        await this.transactionService.verifyFLWPayment(transactionReference);
+      const { status } = verifyPayment;
+      if (status !== 'success') {
+        throw new BadRequestException('Payment verification failed.');
+      }
       const updateWallet = await this.fundWallet(userId, transaction);
       if (!updateWallet) {
         throw new InternalServerErrorException('Failed to fund wallet.');

@@ -159,6 +159,24 @@ export class TransactionController {
     }
   }
 
+
+  @Post('/:txrf')
+  async getdetails(
+    @Param('txrf') reference: string,
+  ) {
+    try {
+      const units = await this.transactService.verifyFLWPayment(reference);
+      return units;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred getting trans details');
+      }
+    }
+  }
+
+
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({

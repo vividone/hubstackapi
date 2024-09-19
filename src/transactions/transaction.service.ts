@@ -403,12 +403,32 @@ export class TransactionService {
     }
   }
 
-  public async verifyPayment(reference: string) {
+  public async verifyPSTKPayment(reference: string) {
     const baseUrl = process.env.PSTK_BASE_URL;
     const secretKey = process.env.PSTK_SECRET_KEY;
     try {
       const verifyResponse = await axios.get(
         `${baseUrl}/transaction/verify/${reference}`,
+        {
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      console.log(verifyResponse.data);
+      return verifyResponse.data;
+    } catch (error) {
+      this.handleAxiosError(error, 'error verifying payment');
+    }
+  }
+
+  public async verifyFLWPayment(reference: string) {
+    const baseUrl = process.env.FLW_BASE_URL;
+    const secretKey = process.env.FLW_SECRET_KEY;
+    try {
+      const verifyResponse = await axios.get(
+        `${baseUrl}/transactions/${reference}/verify`,
         {
           headers: {
             Authorization: `Bearer ${secretKey}`,
