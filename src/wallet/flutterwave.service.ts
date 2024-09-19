@@ -141,26 +141,20 @@ export class FlutterwaveWalletService {
     amount: number,
   ) {
     const { email } = customer;
-
+  
     try {
       const wallet = await this.walletRepo.findOne({ email });
       if (!wallet) {
         throw new NotFoundException('Wallet not found.');
       }
-
-      await this.createAndProcessTransaction(
-        wallet.userId,
-        transactionReference,
-        amount,
-      );
+  
+      await this.createAndProcessTransaction(wallet.userId, transactionReference, amount);
     } catch (error) {
       console.error('Error processing Flutterwave charge:', error);
-      throw new InternalServerErrorException(
-        'An error occurred while processing the charge.',
-      );
+      throw new InternalServerErrorException('An error occurred while processing the charge.');
     }
   }
-
+  
   async createAndProcessTransaction(
     userId: string,
     transactionReference: string,
@@ -170,8 +164,8 @@ export class FlutterwaveWalletService {
       const transactionData = {
         transactionReference: transactionReference,
         amount: amount,
-        transactionType: transactionType.WalletFunding,
-        transactionStatus: transactionStatus.Pending,
+        transactionType: transactionType.WalletFunding, 
+        transactionStatus: transactionStatus.Funded,
         paymentMode: 'account_transfer',
         transactionDetails: 'wallet-funding',
         user: userId,
@@ -181,35 +175,47 @@ export class FlutterwaveWalletService {
         await this.transactionService.createTransaction(transactionData);
       const { _id } = createTransaction;
       const transactionId = _id.toString();
-      await this.fundWalletProcess(userId, transactionId);
+      await this.walletService.fundWalletProcess(userId, transactionId);
     } catch (error) {
       console.error('Error creating transaction:', error);
       throw new InternalServerErrorException('Failed to create transaction.');
     }
   }
 
-  async fundWalletProcess(userId: string, transactionId: string) {
-    try {
-      const transaction = await this.transactionRepo.findOne({
-        _id: transactionId,
-      });
-      if (!transaction) {
-        throw new NotFoundException('Transaction not found.');
-      }
+  // async fundWalletProcess(userId: string, transactionId: string) {
+  //   try {
+  //     const transaction = await this.transactionRepo.findOne({ _id: transactionId });
+  
+  //     if (!transaction) {
+  //       throw new NotFoundException('Transaction not found.');
+  //     }
+  //     if (transaction.status === 'funded') {
+  //       return { message: 'Wallet has already been funded for this transaction.' };
+  //     }
 
-      const wallet = await this.walletRepo.findOne({ userId });
-      if (!wallet) {
-        throw new NotFoundException('Wallet not found.');
-      }
+  //     const wallet = await this.walletRepo.findOne({ userId });
+  
+  //     if (!wallet) {
+  //       throw new NotFoundException('Wallet not found.');
+  //     }
+  
+  //     wallet.balance += transaction.amount;
+  //     await wallet.save();
+  //     transaction.status = 'funded'; 
+  //     await transaction.save();
 
-      wallet.balance += transaction.amount;
-      await wallet.save();
-
-      transaction.status = transactionStatus.Successful;
-      await transaction.save();
-    } catch (error) {
-      console.error('Error funding wallet:', error);
-      throw new InternalServerErrorException('Failed to fund wallet.');
-    }
-  }
+  //     // const email = user.email;
+  //     // const formattedTransactionData = `
+  //     //   Transaction Reference: ${transaction.transactionReference}\n
+  //     //   Amount: ${transaction.amount}\n
+  //     // `;
+  //     // await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
+  
+  //     return { message: 'Wallet funded successfully.' };
+  //   } catch (error) {
+  //     console.error('Error funding wallet:', error);
+  //     throw new InternalServerErrorException('Failed to fund wallet.');
+  //   }
+  // }
+  
 }

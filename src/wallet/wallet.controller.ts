@@ -34,6 +34,7 @@ import {
 } from 'src/transactions/transaction.dto';
 import { FlutterwaveWalletService } from './flutterwave.service';
 import { PaystackWalletService } from './paystack.service';
+import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -41,9 +42,10 @@ import { PaystackWalletService } from './paystack.service';
 export class WalletController {
   constructor(
     private readonly walletService: WalletService,
+    private readonly transactionRepo: TransactionRepository,
     private readonly flutterwaveWalletService: FlutterwaveWalletService,
     private readonly paystackWalletService: PaystackWalletService,
-  ) {}
+  ) { }
 
   // Paystack Implementation
   // @Roles('SuperAgent', 'Agent', 'Individual')
@@ -118,61 +120,85 @@ export class WalletController {
     }
   }
 
-  @Roles('Agent', 'Individual')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: TransactionDto,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'Fund user wallet' })
-  @Post('/fund-wallet/initialize')
-  async fundWallet(
-    @Body() fundWalletDto: InitializeWalletFunding,
-    @Req() request: CustomRequest,
-  ) {
-    try {
-      const userId = request.user.id;
-      const wallet =
-        await this.paystackWalletService.initializePaystackWalletFunding(
-          fundWalletDto,
-          userId,
-        );
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while funding wallet');
-      }
-    }
-  }
+  // @Roles('Agent', 'Individual')
+  // @UseGuards(JwtAuthGuard)
+  // @ApiCreatedResponse({
+  //   type: TransactionDto,
+  //   description: 'expected response',
+  // })
+  // @ApiOperation({ summary: 'Fund user wallet' })
+  // @Post('/fund-wallet/initialize')
+  // async fundWallet(
+  //   @Body() fundWalletDto: InitializeWalletFunding,
+  //   @Req() request: CustomRequest,
+  // ) {
+  //   try {
+  //     const userId = request.user.id;
+  //     const wallet =
+  //       await this.paystackWalletService.initializePaystackWalletFunding(
+  //         fundWalletDto,
+  //         userId,
+  //       );
+  //     return wallet;
+  //   } catch (error) {
+  //     if (error instanceof NotFoundException) {
+  //       throw new NotFoundException(error.message);
+  //     } else {
+  //       throw new Error('An error occurred while funding wallet');
+  //     }
+  //   }
+  // }
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
-    description: 'expected response',
+    description: 'Verify wallet funding by automatically fetching transaction',
   })
   @ApiOperation({ summary: 'Verify wallet funding' })
-  @Post('/fund-wallet/verify/:transactionId')
-  async verifyFunding(
-    @Param('transactionId') transactionId: string,
-    @Req() request: CustomRequest,
-  ) {
+  @Post('/fund-wallet/verify')
+  async verifyFunding(@Req() request: CustomRequest) {
     try {
       const userId = request.user.id;
+
+      const transactions = await this.transactionRepo.find({
+        user: userId,
+        transactionStatus: 'funded',
+        manualVerify: false,
+      });
+
+      if (transactions.length === 0) {
+        throw new NotFoundException('No matching funded transactions found for this user.');
+      }
+
+      const sortedTransactions = transactions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      const latestTransaction = sortedTransactions[0];
+
+      if (latestTransaction.transactionStatus === 'funded') {
+        latestTransaction.manualVerify = true;
+        await latestTransaction.save(); 
+
+        return { message: 'Wallet has already been funded.' };
+      }
+
       const wallet = await this.walletService.fundWalletProcess(
         userId,
-        transactionId,
+        latestTransaction._id.toString(),
       );
+
+      latestTransaction.manualVerify = true;
+      await latestTransaction.save();
+
       return wallet;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       } else {
-        throw new Error('An error occurred while funding wallet');
+        throw new Error('An error occurred while verifying funding');
       }
     }
   }
+
+
 
   // @Roles('Agent', 'Individual')
   // @ApiCreatedResponse({ type: Wallet, description: 'expected response' })

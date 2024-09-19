@@ -259,48 +259,48 @@ export class WalletService {
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
-      const transaction = await this.transactionRepo.findOne({
-        _id: transactionId,
-      });
+      const transaction = await this.transactionRepo.findOne({ _id: transactionId });
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }
-
+  
+      if (transaction.status === 'funded') {
+        return { message: 'Wallet has already been funded for this transaction.' };
+      }
+  
       const user = await this.userService.findUserById(userId);
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException('User not found.');
       }
-      const email = user.email;
+  
+      
       // const { transactionReference } = transaction;
-      // const verifyPayment =
-      //   await this.transactionService.verifyPayment(transactionReference);
+      // const verifyPayment = await this.transactionService.verifyFLWPayment(transactionReference);
       // const { status } = verifyPayment;
-      // if (status !== true) {
+      // if (status !== 'success') {
       //   throw new BadRequestException('Payment verification failed.');
       // }
-      const updateWallet = await this.fundWallet(userId, transaction);
-      if (!updateWallet) {
-        throw new InternalServerErrorException('Failed to fund wallet.');
+  
+      
+      const wallet = await this.walletRepo.findOne({ userId });
+      if (!wallet) {
+        throw new NotFoundException('Wallet not found.');
       }
-      const transactionData = {
-        transactionStatus: transactionStatus.Successful,
-      };
+  
+      wallet.balance += transaction.amount;
+      await wallet.save();
 
-      const updatedTransaction =
-        await this.transactionService.updateTransaction(
-          transactionId,
-          transactionData,
-        );
-
+      transaction.status = 'funded';
+      await transaction.save();
+  
+      const email = user.email;
       const formattedTransactionData = `
         Transaction Reference: ${transaction.transactionReference}\n
         Amount: ${transaction.amount}\n
       `;
-      await this.notificationMailingService.sendTransactionSummary(
-        email,
-        formattedTransactionData,
-      );
-      return updatedTransaction;
+      await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
+  
+      return { message: 'Wallet funded successfully.' };
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -309,13 +309,14 @@ export class WalletService {
       ) {
         throw error;
       } else {
+        console.error('Unexpected error:', error);
         throw new InternalServerErrorException(
-          'An unexpected error occurred. Please try again later.',
+          'An unexpected error occurred. Please try again later.'
         );
       }
     }
   }
-
+  
   public generateAccountNumber(): string {
     return Math.floor(1000000000 + Math.random() * 9000000000).toString();
   }
