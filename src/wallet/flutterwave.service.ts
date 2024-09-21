@@ -143,18 +143,23 @@ export class FlutterwaveWalletService {
     amount: number,
   ) {
     const { email } = customer;
+    Logger.log('User EMAil', email);
 
     try {
-      const userID = await this.userRepo.findOne({ email: email });
-      const { _id } = userID;
+      const userDetails = await this.userRepo.findOne({ email: email });
+      Logger.log('User Details', userDetails);
+      const { _id } = userDetails;
       const transformedUserid = _id.toString();
+
+      Logger.log('User ID', transformedUserid);
+
       const wallet = await this.walletRepo.findOne({ user: transformedUserid });
       if (!wallet) {
         throw new NotFoundException('Wallet not found.');
       }
 
       await this.createAndProcessTransaction(
-        userID._id.toString(),
+        userDetails._id.toString(),
         transactionReference,
         amount,
       );
