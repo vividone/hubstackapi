@@ -259,30 +259,19 @@ export class WalletService {
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
-      const transaction = await this.transactionRepo.findOne({
-        _id: transactionId,
-      });
+      const transaction = await this.transactionRepo.findOne({ _id: transactionId });
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }
 
       if (transaction.status === 'funded') {
-        return {
-          message: 'Wallet has already been funded for this transaction.',
-        };
+        return { message: 'Wallet has already been funded for this transaction.' };
       }
 
       const user = await this.userService.findUserById(userId);
       if (!user) {
         throw new NotFoundException('User not found.');
       }
-
-      // const { transactionReference } = transaction;
-      // const verifyPayment = await this.transactionService.verifyFLWPayment(transactionReference);
-      // const { status } = verifyPayment;
-      // if (status !== 'success') {
-      //   throw new BadRequestException('Payment verification failed.');
-      // }
 
       const wallet = await this.walletRepo.findOne({ userId });
       if (!wallet) {
@@ -300,18 +289,11 @@ export class WalletService {
         Transaction Reference: ${transaction.transactionReference}\n
         Amount: ${transaction.amount}\n
       `;
-      await this.notificationMailingService.sendTransactionSummary(
-        email,
-        formattedTransactionData,
-      );
+      await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
 
       return { message: 'Wallet funded successfully.' };
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException ||
-        error instanceof InternalServerErrorException
-      ) {
+      if (error instanceof NotFoundException) {
         throw error;
       } else {
         console.error('Unexpected error:', error);
@@ -320,6 +302,39 @@ export class WalletService {
         );
       }
     }
+  }
+
+  async checkAndVerifyFunding(userId: string) {
+    const transactions = await this.transactionRepo.find({
+      user: userId,
+      transactionStatus: 'funded',
+      manualVerify: false,
+    });
+
+    if (transactions.length > 0) {
+      return await this.handleTransactions(transactions);
+    }
+    await this.delay(180000); 
+    return { message: 'No funded transactions found. Verification will be attempted after a delay.' };
+  }
+
+  private async delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async handleTransactions(transactions: any) {
+    const sortedTransactions = transactions.sort(
+      (a: any, b: any) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+    const latestTransaction = sortedTransactions[0];
+
+    if (latestTransaction.transactionStatus === 'funded') {
+      latestTransaction.manualVerify = true;
+      await latestTransaction.save();
+      return { message: 'Wallet has already been funded.' };
+    }
+
+    return await this.fundWalletProcess(latestTransaction.user, latestTransaction._id.toString());
   }
 
   public generateAccountNumber(): string {

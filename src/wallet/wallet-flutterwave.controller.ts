@@ -34,20 +34,9 @@ export class FlutterwaveWebhookController {
     Logger.log('WH Event', req.body.event);
     Logger.log('WH Data', req.body.data);
 
-    const bodyString = JSON.stringify(req.body);
-
-    const hash = crypto
-      .createHmac('sha512', this.secret)
-      .update(bodyString)
-      .digest('hex');
-
-    if (signature !== hash) {
-      throw new HttpException('Invalid signature', HttpStatus.UNAUTHORIZED);
-    }
-
     let body: { event: any; data: any };
     try {
-      body = JSON.parse(bodyString);
+      body = req.body;
     } catch (error) {
       throw new HttpException('Invalid request body', HttpStatus.BAD_REQUEST);
     }
