@@ -282,7 +282,7 @@ export class TransactionController {
         );
       }
       if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
+        throw new NotFoundException(error);
       } else {
         throw new Error('An error occurred while paying cable bill');
       }
