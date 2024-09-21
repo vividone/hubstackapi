@@ -152,7 +152,7 @@ export class FlutterwaveWalletService {
       const { _id } = userDetails;
       const transformedUserid = _id.toString();
 
-      Logger.log('User ID', transformedUserid);
+      console.log('User ID', transformedUserid);
 
       // const wallet = await this.walletRepo.findOne({ user: transformedUserid });
       // if (!wallet) {
