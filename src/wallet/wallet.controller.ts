@@ -45,7 +45,7 @@ export class WalletController {
     private readonly transactionRepo: TransactionRepository,
     private readonly flutterwaveWalletService: FlutterwaveWalletService,
     private readonly paystackWalletService: PaystackWalletService,
-  ) { }
+  ) {}
 
   // Paystack Implementation
   // @Roles('SuperAgent', 'Agent', 'Individual')
@@ -167,15 +167,19 @@ export class WalletController {
       });
 
       if (transactions.length === 0) {
-        throw new NotFoundException('No matching funded transactions found for this user.');
+        throw new NotFoundException(
+          'No matching funded transactions found for this user.',
+        );
       }
 
-      const sortedTransactions = transactions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      const sortedTransactions = transactions.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      );
       const latestTransaction = sortedTransactions[0];
 
       if (latestTransaction.transactionStatus === 'funded') {
         latestTransaction.manualVerify = true;
-        await latestTransaction.save(); 
+        await latestTransaction.save();
 
         return { message: 'Wallet has already been funded.' };
       }
@@ -197,8 +201,6 @@ export class WalletController {
       }
     }
   }
-
-
 
   // @Roles('Agent', 'Individual')
   // @ApiCreatedResponse({ type: Wallet, description: 'expected response' })
