@@ -259,47 +259,52 @@ export class WalletService {
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
-      const transaction = await this.transactionRepo.findOne({ _id: transactionId });
+      const transaction = await this.transactionRepo.findOne({
+        _id: transactionId,
+      });
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }
-  
+
       if (transaction.status === 'funded') {
-        return { message: 'Wallet has already been funded for this transaction.' };
+        return {
+          message: 'Wallet has already been funded for this transaction.',
+        };
       }
-  
+
       const user = await this.userService.findUserById(userId);
       if (!user) {
         throw new NotFoundException('User not found.');
       }
-  
-      
+
       // const { transactionReference } = transaction;
       // const verifyPayment = await this.transactionService.verifyFLWPayment(transactionReference);
       // const { status } = verifyPayment;
       // if (status !== 'success') {
       //   throw new BadRequestException('Payment verification failed.');
       // }
-  
-      
+
       const wallet = await this.walletRepo.findOne({ userId });
       if (!wallet) {
         throw new NotFoundException('Wallet not found.');
       }
-  
+
       wallet.balance += transaction.amount;
       await wallet.save();
 
       transaction.status = 'funded';
       await transaction.save();
-  
+
       const email = user.email;
       const formattedTransactionData = `
         Transaction Reference: ${transaction.transactionReference}\n
         Amount: ${transaction.amount}\n
       `;
-      await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
-  
+      await this.notificationMailingService.sendTransactionSummary(
+        email,
+        formattedTransactionData,
+      );
+
       return { message: 'Wallet funded successfully.' };
     } catch (error) {
       if (
@@ -311,12 +316,12 @@ export class WalletService {
       } else {
         console.error('Unexpected error:', error);
         throw new InternalServerErrorException(
-          'An unexpected error occurred. Please try again later.'
+          'An unexpected error occurred. Please try again later.',
         );
       }
     }
   }
-  
+
   public generateAccountNumber(): string {
     return Math.floor(1000000000 + Math.random() * 9000000000).toString();
   }

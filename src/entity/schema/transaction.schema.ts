@@ -4,8 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Users } from './user.schema';
 
 export type TransactionDocument = HydratedDocument<Transaction>;
-export
-class Transaction {
+export class Transaction {
   @Prop()
   @ApiProperty()
   amount: number;
@@ -35,10 +34,10 @@ class Transaction {
   user: Users | Types.ObjectId;
 
   @ApiProperty()
-  createdAt: Date; 
+  createdAt: Date;
 
   @ApiProperty()
-  updatedAt: Date; 
+  updatedAt: Date;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

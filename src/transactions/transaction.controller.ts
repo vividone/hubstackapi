@@ -159,11 +159,8 @@ export class TransactionController {
     }
   }
 
-
   @Post('/:txrf')
-  async getdetails(
-    @Param('txrf') reference: string,
-  ) {
+  async getdetails(@Param('txrf') reference: string) {
     try {
       const units = await this.transactService.verifyFLWPayment(reference);
       return units;
@@ -175,7 +172,6 @@ export class TransactionController {
       }
     }
   }
-
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
