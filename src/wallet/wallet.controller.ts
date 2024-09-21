@@ -151,55 +151,23 @@ export class WalletController {
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    description: 'Verify wallet funding by automatically fetching transaction',
-  })
+  @ApiCreatedResponse({ description: 'Verify wallet funding by automatically fetching transaction' })
   @ApiOperation({ summary: 'Verify wallet funding' })
-  @Post('/fund-wallet/verify')
+  @Post('fund-wallet/verify')
   async verifyFunding(@Req() request: CustomRequest) {
-    try {
-      const userId = request.user.id;
+    const userId = request.user.id;
+    const response = await this.walletService.checkAndVerifyFunding(userId);
+    return response;
+  }
 
-      const transactions = await this.transactionRepo.find({
-        user: userId,
-        transactionStatus: 'funded',
-        manualVerify: false,
-      });
-
-      if (transactions.length === 0) {
-        throw new NotFoundException(
-          'No matching funded transactions found for this user.',
-        );
-      }
-
-      const sortedTransactions = transactions.sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
-      );
-      const latestTransaction = sortedTransactions[0];
-
-      if (latestTransaction.transactionStatus === 'funded') {
-        latestTransaction.manualVerify = true;
-        await latestTransaction.save();
-
-        return { message: 'Wallet has already been funded.' };
-      }
-
-      const wallet = await this.walletService.fundWalletProcess(
-        userId,
-        latestTransaction._id.toString(),
-      );
-
-      latestTransaction.manualVerify = true;
-      await latestTransaction.save();
-
-      return wallet;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred while verifying funding');
-      }
-    }
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Retry wallet funding verification' })
+  @Post('fund-wallet/retry-verify')
+  async retryVerifyFunding(@Req() request: CustomRequest) {
+    const userId = request.user.id;
+    const response = await this.walletService.checkAndVerifyFunding(userId);
+    return response;
   }
 
   // @Roles('Agent', 'Individual')
