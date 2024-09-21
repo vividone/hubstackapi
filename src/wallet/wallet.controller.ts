@@ -151,7 +151,9 @@ export class WalletController {
 
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({ description: 'Verify wallet funding by automatically fetching transaction' })
+  @ApiCreatedResponse({
+    description: 'Verify wallet funding by automatically fetching transaction',
+  })
   @ApiOperation({ summary: 'Verify wallet funding' })
   @Post('fund-wallet/verify')
   async verifyFunding(@Req() request: CustomRequest) {

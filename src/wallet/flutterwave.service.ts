@@ -144,9 +144,8 @@ export class FlutterwaveWalletService {
   ) {
     const { email } = customer;
 
-    const e_mail = email.toLowerCase();
     try {
-      const userID = await this.userRepo.findOne({email: e_mail})
+      const userID = await this.userRepo.findOne({ email: email });
       const { _id } = userID;
       const transformedUserid = _id.toString();
       const wallet = await this.walletRepo.findOne({ user: transformedUserid });
