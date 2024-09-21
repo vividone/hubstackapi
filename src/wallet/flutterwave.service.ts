@@ -20,6 +20,7 @@ import {
   transactionStatus,
 } from 'src/transactions/transaction.dto';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class FlutterwaveWalletService {
@@ -27,6 +28,7 @@ export class FlutterwaveWalletService {
     private readonly walletRepo: WalletRepository,
     private readonly userRepo: UserRepository,
     private readonly walletService: WalletService,
+    private readonly userService: UsersService,
     private readonly transactionRepo: TransactionRepository,
     private readonly bankRepo: BankAccountRepository,
     private readonly transactionService: TransactionService,
@@ -143,13 +145,14 @@ export class FlutterwaveWalletService {
     const { email } = customer;
 
     try {
-      const wallet = await this.walletRepo.findOne({ email });
+      const userID = await this.userService.findUserByEmail(email)
+      const wallet = await this.walletRepo.findOne({ user: userID._id });
       if (!wallet) {
         throw new NotFoundException('Wallet not found.');
       }
 
       await this.createAndProcessTransaction(
-        wallet.userId,
+        userID._id.toString(),
         transactionReference,
         amount,
       );
