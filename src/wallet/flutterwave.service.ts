@@ -138,15 +138,16 @@ export class FlutterwaveWalletService {
 
   //WEBHOOKS
   async handleSuccessfulCharge(
-    customer: any,
+    customer: string,
     transactionReference: string,
     amount: number,
   ) {
-    const { email } = customer;
-    Logger.log('User EMAil', email);
+    Logger.log('Customer Data', customer);
+    Logger.log('transactionReference', transactionReference);
+    Logger.log('amount ', amount);
 
     try {
-      const userDetails = await this.userRepo.findOne({ email: email });
+      const userDetails = await this.userRepo.findOne({ email: customer });
       Logger.log('User Details', userDetails);
       const { _id } = userDetails;
       const transformedUserid = _id.toString();
