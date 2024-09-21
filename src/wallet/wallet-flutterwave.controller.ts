@@ -24,11 +24,15 @@ export class FlutterwaveWebhookController {
   async handleFlutterwaveWebhook(@Req() req: Request, @Res() res: Response) {
     Logger.log('Received Flutterwave webhook request');
     const signature = req.headers['verif-hash'] as string;
+    Logger.log('Signature', req.headers['verif-hash']);
+    Logger.log('Signature', signature);
 
     if (!signature) {
       throw new HttpException('Signature missing', HttpStatus.BAD_REQUEST);
     }
-    Logger.log('WH Request', req);
+    console.log('WH Request Body', req.body);
+    Logger.log('WH Event', req.body.event);
+    Logger.log('WH Data', req.body.data);
 
     let body: { event: any; data: any };
     try {
@@ -36,12 +40,7 @@ export class FlutterwaveWebhookController {
     } catch (error) {
       throw new HttpException('Invalid request body', HttpStatus.BAD_REQUEST);
     }
-    Logger.log('WH Body', body);
-
     const { event, data } = body;
-    Logger.log('WH Event', event);
-    Logger.log('WH Data', data);
-
     if (event === 'charge.completed' && data.status === 'successful') {
       const customer = data.customer.email;
       const transactionReference = data.tx_ref;
