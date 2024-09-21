@@ -160,7 +160,7 @@ export class FlutterwaveWalletService {
       // }
 
       await this.createAndProcessTransaction(
-        userDetails._id.toString(),
+        transformedUserid,
         transactionReference,
         amount,
       );

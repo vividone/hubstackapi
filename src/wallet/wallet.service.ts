@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { WalletFundingDto } from './wallet.dto';
@@ -276,6 +277,8 @@ export class WalletService {
       if (!user) {
         throw new NotFoundException('User not found.');
       }
+      Logger.log('UUser', user);
+      Logger.log('UUserID', userId);
 
       const wallet = await this.walletRepo.findOne({ user: userId });
       if (!wallet) {
