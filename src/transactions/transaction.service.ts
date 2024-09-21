@@ -74,7 +74,7 @@ export class TransactionService {
   async getWalletTransactions(userId: string) {
     const transactions = await this.transactionRepo.find({
       user: userId,
-      transactionType: { $in: ['fundwallet', 'debitwallet'] },
+      transactionType: { $in: ['wallet-funding', 'fundwallet', 'debitwallet'] },
     });
     return transactions;
   }
