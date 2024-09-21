@@ -32,6 +32,7 @@ export class TransactionService {
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
     private readonly notificationMailingService: NotificationMailingService,
+    private readonly TerminalId = process.env.ISW_TERMINAL_ID,
   ) {}
 
   async getAllTransactions() {
@@ -364,7 +365,6 @@ export class TransactionService {
     transactionId: string,
   ) {
     const baseUrl = process.env.ISW_BASE_URL;
-    const TerminalId = process.env.ISW_TERMINAL_ID;
     const user = await this.userService.findUserById(userId);
     if (!user) {
       throw new BadRequestException('User not found');
@@ -398,7 +398,7 @@ export class TransactionService {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-          TerminalId,
+          TerminalId: this.TerminalId,
         },
       });
 
@@ -539,12 +539,12 @@ export class TransactionService {
   ) {
     const baseUrl = process.env.ISW_BASE_URL;
     const url = `${baseUrl}/Transactions?requestRef=${requestReference}`;
-    console.log(token, requestReference, TerminalId);
+    console.log(token, requestReference, this.TerminalId);
     const response = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
-        TerminalId,
+        TerminalId: this.TerminalId,
       },
     });
     return response.data;
@@ -634,7 +634,7 @@ export class TransactionService {
           CustomerId: customerId,
         },
       ],
-      TerminalId: TerminalId,
+      TerminalId: this.TerminalId,
     };
 
     let token: string;
@@ -653,7 +653,7 @@ export class TransactionService {
       const response = await axios.post(url, validatePayload, {
         headers: {
           Authorization: `Bearer ${token}`,
-          TerminalId,
+          TerminalId: this.TerminalId,
           'Content-Type': 'application/json',
         },
       });
