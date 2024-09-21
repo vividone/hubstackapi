@@ -49,11 +49,8 @@ export class UsersService {
     await this.userRepo.findOneAndUpdate({ _id: userId }, { refreshToken });
   }
 
-  private async findUserByEmail(email: string) {
+  async findUserByEmail(email: string) {
     const user = await this.userRepo.findOne({ email });
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
     return user;
   }
 

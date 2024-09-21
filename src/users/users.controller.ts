@@ -1,11 +1,11 @@
-import { Body, Get, Param, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Get, NotFoundException, Param, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
 import { CreateUserDto } from './users.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
 import { CustomRequest } from 'src/configs/custom_request';
 
@@ -22,10 +22,21 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get('user/:id')
-  async getAUser(@Param('id') id: string) {
-    return this.usersService.findUserById(id);
-  }
+  // @Get('user/:id')
+  // async getAUser(@Param('id') id: string) {
+  //   return this.usersService.findUserById(id);
+  // }
+  // @Get('find-by-email')
+  // @ApiOperation({ summary: 'Find user by email' })
+  // async findUserByEmail(@Query('email') email: string) {
+  //   const user = await this.usersService.findUserByEmail(email);
+
+  //   if (!user) {
+  //     throw new NotFoundException('User with this email not found.');
+  //   }
+
+  //   return user;
+  // }
 
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Individual')
