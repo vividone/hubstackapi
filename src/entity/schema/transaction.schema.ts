@@ -6,7 +6,7 @@ import { Users } from './user.schema';
 export type TransactionDocument = HydratedDocument<Transaction>;
 
 export
-@Schema()
+@Schema({ timestamps: true })
 class Transaction {
   @Prop({ required: true })
   @ApiProperty()

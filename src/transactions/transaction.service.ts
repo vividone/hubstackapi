@@ -576,14 +576,15 @@ export class TransactionService {
   }
 
   public async createTransaction(transactionDto: TransactionDto) {
-    const createdAt = new Date();
+    // const createdAt = new Date();
 
-    const finalData = {
-      ...transactionDto,
-      createdAt: createdAt,
-    };
+    // const finalData = {
+    //   ...transactionDto,
+    //   createdAt: createdAt,
+    // };
     try {
-      const createTransaction = await this.transactionRepo.create(finalData);
+      const createTransaction =
+        await this.transactionRepo.create(transactionDto);
       return createTransaction;
     } catch (error) {
       this.handleAxiosError(error, 'Error creating transaction!');
