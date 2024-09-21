@@ -5,13 +5,14 @@ import { Users } from './user.schema';
 
 export type TransactionDocument = HydratedDocument<Transaction>;
 export
+@Schema()
 class Transaction {
-  @Prop()
+  @Prop({ required: true })
   @ApiProperty()
   amount: number;
 
   @ApiProperty()
-  @Prop()
+  @Prop({ required: true })
   transactionReference: string;
 
   @Prop()

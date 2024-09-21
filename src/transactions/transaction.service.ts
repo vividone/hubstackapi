@@ -157,31 +157,48 @@ export class TransactionService {
   //buying airtime and data function
   async payPhoneBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     try {
-      const { customerId } = billPaymentDto;
-
+      const { customerId, amount, paymentMode } = billPaymentDto;
+  
+      if (!amount || !paymentMode || !customerId) {
+        throw new BadRequestException('Required payment details are missing');
+      }
+  
       const user = await this.userService.findUserById(userId);
       if (!user) {
-        throw new NotFoundException('user not found');
+        throw new NotFoundException('User not found');
       }
+  
       const email = user.email;
       const reference = this.generateRequestReference();
+  
       const transactionData = {
         transactionReference: reference,
-        amount: billPaymentDto.amount,
+        amount,
         transactionType: transactionType.BillPayment,
         transactionStatus: transactionStatus.Pending,
-        paymentMode: billPaymentDto.paymentMode,
-        transactionDetails: billPaymentDto,
+        paymentMode,
+        transactionDetails: billPaymentDto,  
         user: userId,
       };
+
+      console.log('dto: ', billPaymentDto)
+  
+      console.log('Transaction Data:', transactionData);
+  
       const createTransaction = await this.createTransaction(transactionData);
       const { transactionDetails, _id } = createTransaction;
+  
+      
+      if (!transactionDetails || !_id) {
+        console.error('Transaction creation failed:', createTransaction);
+        throw new Error('Transaction creation failed');
+      }
+  
       const transactionId = _id.toString();
-      const response = await this.sendPaymentAdvice(
-        transactionDetails,
-        userId,
-        transactionId,
-      );
+  
+    
+      const response = await this.sendPaymentAdvice(transactionDetails, userId, transactionId);
+  
       if (response.success) {
         return {
           status: 'Success',
@@ -189,17 +206,18 @@ export class TransactionService {
           transaction: response.transaction,
         };
       } else {
-        throw new Error(
-          `Payment advice failed with message: ${response.message}`,
-        );
+        console.error('Payment advice error:', response);
+        throw new Error(`Payment advice failed with message: ${response.message}`);
       }
+  
     } catch (error) {
+      console.error('Error processing phone bill payment:', error);
       throw new Error(
-        'An error occurred while processing the phone bill payment: ' +
-          error.message,
+        'An error occurred while processing the phone bill payment: ' + error.message,
       );
     }
   }
+  
 
   async ninValidate(ninDto: NINValidateTransaction, userId: string) {
     const reference = this.generateRequestReference();
