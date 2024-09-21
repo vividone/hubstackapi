@@ -52,6 +52,17 @@ export class TransactionController {
     }
   }
 
+  @Get(':id')
+  async getTransactionById(@Param('id') id: string) {
+    const transaction = await this.transactService.getATransaction(id);
+
+    if (!transaction) {
+      throw new NotFoundException(`Transaction with ID ${id} not found.`);
+    }
+
+    return transaction;
+  }
+
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({

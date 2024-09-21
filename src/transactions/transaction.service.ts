@@ -39,6 +39,11 @@ export class TransactionService {
     return transactions;
   }
 
+  async getATransaction(id: string) {
+    const transactions = await this.transactionRepo.findOne({_id: id});
+    return transactions;
+  }
+
   async getTransactions(userId: string, transactionType?: string) {
     const transactions = await this.transactionRepo.find({
       user: userId,
