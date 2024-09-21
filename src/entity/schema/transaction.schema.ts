@@ -4,13 +4,16 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Users } from './user.schema';
 
 export type TransactionDocument = HydratedDocument<Transaction>;
-export class Transaction {
-  @Prop()
+
+export
+@Schema()
+class Transaction {
+  @Prop({ required: true })
   @ApiProperty()
   amount: number;
 
   @ApiProperty()
-  @Prop()
+  @Prop({ required: true })
   transactionReference: string;
 
   @Prop()
