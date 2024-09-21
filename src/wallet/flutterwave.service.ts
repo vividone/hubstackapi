@@ -144,9 +144,12 @@ export class FlutterwaveWalletService {
   ) {
     const { email } = customer;
 
+    const e_mail = email.toLowerCase();
     try {
-      const userID = await this.userService.findUserByEmail(email)
-      const wallet = await this.walletRepo.findOne({ user: userID._id });
+      const userID = await this.userRepo.findOne({email: e_mail})
+      const { _id } = userID;
+      const transformedUserid = _id.toString();
+      const wallet = await this.walletRepo.findOne({ user: transformedUserid });
       if (!wallet) {
         throw new NotFoundException('Wallet not found.');
       }
