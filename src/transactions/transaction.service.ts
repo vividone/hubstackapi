@@ -32,8 +32,8 @@ export class TransactionService {
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
     private readonly notificationMailingService: NotificationMailingService,
-    private readonly TerminalId = process.env.ISW_TERMINAL_ID,
   ) {}
+  private readonly TerminalId = process.env.ISW_TERMINAL_ID;
 
   async getAllTransactions() {
     const transactions = await this.transactionRepo.find();
