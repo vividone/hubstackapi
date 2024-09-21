@@ -106,8 +106,9 @@ export class TransactionController {
   @Get('/wallet-transactions/')
   async getWalletTransactions(@Req() request: CustomRequest) {
     const userId = request.user.id.toString();
+    Logger.log('FT RequestU', request.user);
 
-    Logger.log('userId', userId);
+    Logger.log('FT userId', userId);
 
     try {
       const getTransaction =
