@@ -14,7 +14,7 @@ export enum transactionStatus {
   Pending = 'pending',
   Successful = 'successful',
   Failed = 'failed',
-  Funded = 'funded'
+  Funded = 'funded',
 }
 
 export enum transactionType {

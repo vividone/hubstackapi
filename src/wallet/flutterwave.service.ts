@@ -141,20 +141,26 @@ export class FlutterwaveWalletService {
     amount: number,
   ) {
     const { email } = customer;
-  
+
     try {
       const wallet = await this.walletRepo.findOne({ email });
       if (!wallet) {
         throw new NotFoundException('Wallet not found.');
       }
-  
-      await this.createAndProcessTransaction(wallet.userId, transactionReference, amount);
+
+      await this.createAndProcessTransaction(
+        wallet.userId,
+        transactionReference,
+        amount,
+      );
     } catch (error) {
-      console.error('Error processing Flutterwave charge:', error);
-      throw new InternalServerErrorException('An error occurred while processing the charge.');
+      Logger.error('Error processing Flutterwave charge:', error);
+      throw new InternalServerErrorException(
+        'An error occurred while processing the charge.',
+      );
     }
   }
-  
+
   async createAndProcessTransaction(
     userId: string,
     transactionReference: string,
@@ -164,7 +170,7 @@ export class FlutterwaveWalletService {
       const transactionData = {
         transactionReference: transactionReference,
         amount: amount,
-        transactionType: transactionType.WalletFunding, 
+        transactionType: transactionType.WalletFunding,
         transactionStatus: transactionStatus.Funded,
         paymentMode: 'account_transfer',
         transactionDetails: 'wallet-funding',
@@ -185,7 +191,7 @@ export class FlutterwaveWalletService {
   // async fundWalletProcess(userId: string, transactionId: string) {
   //   try {
   //     const transaction = await this.transactionRepo.findOne({ _id: transactionId });
-  
+
   //     if (!transaction) {
   //       throw new NotFoundException('Transaction not found.');
   //     }
@@ -194,14 +200,14 @@ export class FlutterwaveWalletService {
   //     }
 
   //     const wallet = await this.walletRepo.findOne({ userId });
-  
+
   //     if (!wallet) {
   //       throw new NotFoundException('Wallet not found.');
   //     }
-  
+
   //     wallet.balance += transaction.amount;
   //     await wallet.save();
-  //     transaction.status = 'funded'; 
+  //     transaction.status = 'funded';
   //     await transaction.save();
 
   //     // const email = user.email;
@@ -210,12 +216,11 @@ export class FlutterwaveWalletService {
   //     //   Amount: ${transaction.amount}\n
   //     // `;
   //     // await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
-  
+
   //     return { message: 'Wallet funded successfully.' };
   //   } catch (error) {
   //     console.error('Error funding wallet:', error);
   //     throw new InternalServerErrorException('Failed to fund wallet.');
   //   }
   // }
-  
 }
