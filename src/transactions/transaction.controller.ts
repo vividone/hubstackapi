@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   Param,
   Post,
@@ -104,7 +105,9 @@ export class TransactionController {
   @ApiOperation({ summary: 'Get wallet transactions by logged in user' })
   @Get('/wallet-transactions/')
   async getWalletTransactions(@Req() request: CustomRequest) {
-    const userId = request.user.id;
+    const userId = request.user.id.toString();
+
+    Logger.log('userId', userId);
 
     try {
       const getTransaction =
