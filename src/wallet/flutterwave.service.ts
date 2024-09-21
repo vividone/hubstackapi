@@ -154,10 +154,10 @@ export class FlutterwaveWalletService {
 
       Logger.log('User ID', transformedUserid);
 
-      const wallet = await this.walletRepo.findOne({ user: transformedUserid });
-      if (!wallet) {
-        throw new NotFoundException('Wallet not found.');
-      }
+      // const wallet = await this.walletRepo.findOne({ user: transformedUserid });
+      // if (!wallet) {
+      //   throw new NotFoundException('Wallet not found.');
+      // }
 
       await this.createAndProcessTransaction(
         userDetails._id.toString(),
