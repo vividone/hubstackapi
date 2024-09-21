@@ -40,7 +40,7 @@ export class TransactionService {
   }
 
   async getATransaction(id: string) {
-    const transactions = await this.transactionRepo.findOne({_id: id});
+    const transactions = await this.transactionRepo.findOne({ _id: id });
     return transactions;
   }
 

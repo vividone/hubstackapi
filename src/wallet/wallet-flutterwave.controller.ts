@@ -8,7 +8,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import * as crypto from 'crypto';
 import { FlutterwaveWalletService } from './flutterwave.service';
 import { ApiTags } from '@nestjs/swagger';
 

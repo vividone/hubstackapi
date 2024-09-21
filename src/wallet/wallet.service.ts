@@ -259,13 +259,17 @@ export class WalletService {
 
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
-      const transaction = await this.transactionRepo.findOne({ _id: transactionId });
+      const transaction = await this.transactionRepo.findOne({
+        _id: transactionId,
+      });
       if (!transaction) {
         throw new NotFoundException('Transaction not found.');
       }
 
       if (transaction.status === 'funded') {
-        return { message: 'Wallet has already been funded for this transaction.' };
+        return {
+          message: 'Wallet has already been funded for this transaction.',
+        };
       }
 
       const user = await this.userService.findUserById(userId);
@@ -289,7 +293,10 @@ export class WalletService {
         Transaction Reference: ${transaction.transactionReference}\n
         Amount: ${transaction.amount}\n
       `;
-      await this.notificationMailingService.sendTransactionSummary(email, formattedTransactionData);
+      await this.notificationMailingService.sendTransactionSummary(
+        email,
+        formattedTransactionData,
+      );
 
       return { message: 'Wallet funded successfully.' };
     } catch (error) {
@@ -314,8 +321,11 @@ export class WalletService {
     if (transactions.length > 0) {
       return await this.handleTransactions(transactions);
     }
-    await this.delay(180000); 
-    return { message: 'No funded transactions found. Verification will be attempted after a delay.' };
+    await this.delay(180000);
+    return {
+      message:
+        'No funded transactions found. Verification will be attempted after a delay.',
+    };
   }
 
   private async delay(ms: number) {
@@ -334,7 +344,10 @@ export class WalletService {
       return { message: 'Wallet has already been funded.' };
     }
 
-    return await this.fundWalletProcess(latestTransaction.user, latestTransaction._id.toString());
+    return await this.fundWalletProcess(
+      latestTransaction.user,
+      latestTransaction._id.toString(),
+    );
   }
 
   public generateAccountNumber(): string {
