@@ -24,13 +24,16 @@ export class FlutterwaveWebhookController {
   async handleFlutterwaveWebhook(@Req() req: Request, @Res() res: Response) {
     Logger.log('Received Flutterwave webhook request');
     const signature = req.headers['verif-hash'] as string;
+    Logger.log('Signature', req.headers['verif-hash']);
+    Logger.log('Signature', signature);
 
     if (!signature) {
       throw new HttpException('Signature missing', HttpStatus.BAD_REQUEST);
     }
-    Logger.log('WH Request', req);
+    console.log('WH Request', req);
 
     const bodyString = JSON.stringify(req.body);
+
     const hash = crypto
       .createHmac('sha512', this.secret)
       .update(bodyString)
