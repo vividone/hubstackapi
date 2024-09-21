@@ -277,7 +277,7 @@ export class WalletService {
         throw new NotFoundException('User not found.');
       }
 
-      const wallet = await this.walletRepo.findOne({ userId });
+      const wallet = await this.walletRepo.findOne({ user: userId });
       if (!wallet) {
         throw new NotFoundException('Wallet not found.');
       }
