@@ -78,8 +78,9 @@ export class TransactionController {
   async getTransactions(
     @Req() request: CustomRequest,
     @Param('transactionType') transactionType: string,
+    @Param('userId') userId: string,
   ) {
-    const userId = request.user.id;
+    // const userId = request.user.id;
 
     try {
       const getTransaction = await this.transactService.getTransactions(
@@ -103,10 +104,10 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Get wallet transactions by logged in user' })
-  @Get('/wallet-transactions/')
-  async getWalletTransactions(@Req() request: CustomRequest) {
-    const userId = request.user.id.toString();
-    Logger.log('FT RequestU', request.user);
+  @Get('/wallet-transactions/:userId')
+  async getWalletTransactions(@Param('userid') userId: string) {
+    // const userId = request.user.id.toString();
+    // Logger.log('FT RequestU', request.user);
 
     Logger.log('FT userId', userId);
 
