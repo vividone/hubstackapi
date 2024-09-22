@@ -104,16 +104,12 @@ export class TransactionController {
     description: 'expected response',
   })
   @ApiOperation({ summary: 'Get wallet transactions by logged in user' })
-  @Get('/wallet-transactions/:userId')
-  async getWalletTransactions(@Param('userid') userId: string) {
-    // const userId = request.user.id.toString();
-    // Logger.log('FT RequestU', request.user);
-
-    Logger.log('FT userId', userId);
-
+  @Get(':id/wallet-transactions/')
+  async getWalletTransactions(@Param('id') id: string) {
+    console.log('userId', id);
     try {
       const getTransaction =
-        await this.transactService.getWalletTransactions(userId);
+        await this.transactService.getWalletTransactions(id);
       return getTransaction;
     } catch (error) {
       if (error instanceof NotFoundException) {
