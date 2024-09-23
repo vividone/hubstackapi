@@ -409,7 +409,7 @@ export class TransactionService {
           transactionStatus: transactionStatus.Successful,
           paymentStatus: paymentStatus.Completed,
         };
-
+        await this.debitWallet(userId, amount);
         const updatedTransaction = await this.updateTransaction(
           transactionId,
           updateTransactionData,
