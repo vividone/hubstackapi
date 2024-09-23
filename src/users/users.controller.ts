@@ -31,10 +31,10 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  // @Get('user/:id')
-  // async getAUser(@Param('id') id: string) {
-  //   return this.usersService.findUserById(id);
-  // }
+  @Get('user/:id')
+  async getAUser(@Param('id') id: string) {
+    return this.usersService.findUserById(id);
+  }
   // @Get('find-by-email')
   // @ApiOperation({ summary: 'Find user by email' })
   // async findUserByEmail(@Query('email') email: string) {
