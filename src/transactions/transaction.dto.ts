@@ -191,7 +191,11 @@ export class FundWalletTransaction {
 
   @IsString()
   @ApiProperty()
-  reference: string;
+  transactionReference: string;
+
+  @IsString()
+  @ApiProperty()
+  user: string;
 }
 
 export class TransactionDto {
