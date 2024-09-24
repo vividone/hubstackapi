@@ -18,6 +18,8 @@ import { TransactionService } from 'src/transactions/transaction.service';
 import {
   transactionType,
   transactionStatus,
+  FundWalletTransaction,
+  paymentMode,
 } from 'src/transactions/transaction.dto';
 import { TransactionRepository } from 'src/entity/repositories/transaction.repo';
 import { UsersService } from 'src/users/users.service';
@@ -150,19 +152,19 @@ export class FlutterwaveWalletService {
       const userDetails = await this.userRepo.findOne({ email: customer });
       Logger.log('User Details', userDetails);
       const { _id } = userDetails;
-      const transformedUserid = _id.toString();
+      const user = _id.toString();
 
-      console.log('User ID', transformedUserid);
+      console.log('User ID', user);
 
       // const wallet = await this.walletRepo.findOne({ user: transformedUserid });
       // if (!wallet) {
       //   throw new NotFoundException('Wallet not found.');
       // }
 
+      let transaction = {amount, transactionReference, user, paymentMode: 'account_transfer'}
+
       await this.createAndProcessTransaction(
-        transformedUserid,
-        transactionReference,
-        amount,
+        transaction
       );
     } catch (error) {
       Logger.error('Error processing Flutterwave charge:', error);
@@ -173,26 +175,24 @@ export class FlutterwaveWalletService {
   }
 
   async createAndProcessTransaction(
-    userId: string,
-    transactionReference: string,
-    amount: number,
+    fundWalletDto: FundWalletTransaction,
   ) {
     try {
       const transactionData = {
-        transactionReference: transactionReference,
-        amount: amount,
+        transactionReference: fundWalletDto.transactionReference,
+        amount: fundWalletDto.amount,
         transactionType: transactionType.WalletFunding,
         transactionStatus: transactionStatus.Funded,
-        paymentMode: 'account_transfer',
-        transactionDetails: 'wallet-funding',
-        user: userId,
+        paymentMode: fundWalletDto.paymentMode,
+        transactionDetails: fundWalletDto,
+        user: fundWalletDto.user,
       };
 
       const createTransaction =
         await this.transactionService.createTransaction(transactionData);
       const { _id } = createTransaction;
       const transactionId = _id.toString();
-      await this.walletService.fundWalletProcess(userId, transactionId);
+      await this.walletService.fundWalletProcess(fundWalletDto.user, transactionId);
     } catch (error) {
       console.error('Error creating transaction:', error);
       throw new InternalServerErrorException('Failed to create transaction.');
