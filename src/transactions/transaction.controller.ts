@@ -78,15 +78,15 @@ export class TransactionController {
   async getTransactions(
     @Req() request: CustomRequest,
     @Param('transactionType') transactionType: string,
-    @Param('userId') userId: string,
   ) {
-    // const userId = request.user.id;
+    const userId = request.user.id;
 
     try {
       const getTransaction = await this.transactService.getTransactions(
         userId,
         transactionType,
       );
+
       return getTransaction;
     } catch (error) {
       if (error instanceof NotFoundException) {

@@ -45,7 +45,7 @@ export class TransactionService {
     return transactions;
   }
 
-  async getTransactions(userId: string, transactionType?: string) {
+  async getTransactions(userId: string, transactionType: string) {
     const transactions = await this.transactionRepo.find({
       user: userId,
       transactionType: transactionType,
