@@ -53,6 +53,13 @@ export class TransactionService {
     return transactions;
   }
 
+  async getTransactionsOfAUser(userId: string) {
+    const transactions = await this.transactionRepo.find({
+      user: userId,
+    });
+    return transactions;
+  }
+
   async getUserWallet(userId: string) {
     // console.log('convertedUserId', convertedUserId);
     try {
