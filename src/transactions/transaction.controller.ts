@@ -78,15 +78,15 @@ export class TransactionController {
   async getTransactions(
     @Req() request: CustomRequest,
     @Param('transactionType') transactionType: string,
-    @Param('userId') userId: string,
   ) {
-    // const userId = request.user.id;
+    const userId = request.user.id;
 
     try {
       const getTransaction = await this.transactService.getTransactions(
         userId,
         transactionType,
       );
+
       return getTransaction;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -126,7 +126,7 @@ export class TransactionController {
     type: TransactionDto,
     description: 'expected response',
   })
-  @ApiOperation({ summary: 'Get all transactions' })
+  @ApiOperation({ summary: 'Get a user transaction' })
   @Get('/transaction/:userId/:transactionId')
   async getTransaction(
     @Param('userid') userId: string,
@@ -146,6 +146,34 @@ export class TransactionController {
       }
     }
   }
+
+
+  @Roles('Agent', 'Admin', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'expected response',
+  })
+  @ApiOperation({ summary: 'Get a user transactions' })
+  @Get('/:userId/all-transactions')
+  async getUserTransactions(
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const getTransaction = await this.transactService.getTransactionsOfAUser(
+        userId,
+      );
+      return getTransaction;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        throw new Error('An error occurred while retrieving transactions');
+      }
+    }
+  }
+
+
 
   @Roles('Agent')
   @UseGuards(JwtAuthGuard)
