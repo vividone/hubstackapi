@@ -193,10 +193,6 @@ export class TransactionService {
         user: userId,
       };
 
-      console.log('dto: ', billPaymentDto);
-
-      console.log('Transaction Data:', transactionData);
-
       const createTransaction = await this.createTransaction(transactionData);
       const { transactionDetails, _id } = createTransaction;
 
@@ -386,6 +382,13 @@ export class TransactionService {
         amount,
         requestReference,
       } = transactionDetails;
+
+    const walletBalance = await this.getUserWallet(userId);
+    const { balance } = walletBalance;
+
+      if (balance < amount) {
+        throw new Error('Insufficient Wallet Balance');
+      }
 
       const amountInKobo = this.convertToKobo(amount);
       const data = {
