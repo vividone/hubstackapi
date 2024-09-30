@@ -110,7 +110,7 @@ export class PurchasePhoneBillsDto {
 
   @IsEnum(paymentMode)
   @ApiProperty()
-  paymentMode: paymentMode.wallet
+  paymentMode: paymentMode;
 }
 
 export class PaymentValidation {

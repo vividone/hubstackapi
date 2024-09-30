@@ -453,9 +453,7 @@ export class TransactionService {
       },
     });
 
-    console.log('data: ', response.data);
-
-    if (response.data.ResponseDescription === 'Success') {
+    if (response.data.ResponseCodeGrouping === 'SUCCESSFUL') {
       const updateTransactionData = {
         transactionStatus: transactionStatus.Successful,
         paymentStatus: paymentStatus.Completed,
@@ -479,7 +477,7 @@ export class TransactionService {
     } else {
       console.error('Error response from payment advice:', response.data);
       throw new BadRequestException(
-        `Payment failed with message: ${response.data.ResponseDescription || 'Unknown error'}`,
+        `Payment failed with message: ${response.data.ResponseCodeGrouping || 'Unknown error'}`,
       );
     }
   } catch (error) {
@@ -487,12 +485,12 @@ export class TransactionService {
       throw error;
     }
     if (axios.isAxiosError(error)) {
-    console.error('Axios error in sendPaymentAdvice:', JSON.stringify(error.response?.data || error.message, null, 2));
+    //console.error('Axios error in sendPaymentAdvice:', JSON.stringify(error.response?.data || error.message, null, 2));
     throw new BadRequestException(
       `Error sending payment advice: ${JSON.stringify(error.response?.data || error.message)}`
     );
     }
-    console.error('Unexpected error in sendPaymentAdvice:', error);
+    //console.error('Unexpected error in sendPaymentAdvice:', error);
     throw new BadRequestException(
       `Unexpected error occurred while processing the payment: ${error.message}`,
     );

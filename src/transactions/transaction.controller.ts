@@ -392,40 +392,6 @@ export class TransactionController {
     }
   }
 
-  // @Roles('Agent', 'Individual')
-  // @UseGuards(JwtAuthGuard)
-  // @ApiCreatedResponse({
-  //   type: TransactionDto,
-  //   description: 'Expected response',
-  // })
-  // @ApiOperation({ summary: 'Buy Airtime' })
-  // @Post('/:userId/pay-bill/buy-airtime')
-  // async buyAirtime(
-  //   @Body() billPaymentDto: BillPaymentTransaction,
-  //   @Param('userId') userId: string,
-  // ) {
-  //   try {
-  //     const bill = await this.transactService.payPhoneBills(
-  //       billPaymentDto,
-  //       userId,
-  //     );
-  //     return bill;
-  //   } catch (error) {
-  //     if (error.message.includes('Insufficient Wallet Balance')) {
-  //       throw new BadRequestException(
-  //         'Insufficient wallet balance. Please top up your wallet and try again.',
-  //       );
-  //     } else if (error instanceof NotFoundException) {
-  //       throw new NotFoundException(error.message);
-  //     } else {
-  //       console.error('Error occurred:', error);
-  //       throw new BadRequestException(
-  //         'An error occurred while buying airtime. Please try again later.',
-  //       );
-  //     }
-  //   }
-  // }
-
   @Roles('Agent', 'Individual')
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({
@@ -433,7 +399,41 @@ export class TransactionController {
     description: 'Expected response',
   })
   @ApiOperation({ summary: 'Buy Airtime' })
-  @Post('buy-airtime/:userId')
+  @Post('/:userId/pay-bill/buy-airtime')
+  async buyAirtime(
+    @Body() billPaymentDto: BillPaymentTransaction,
+    @Param('userId') userId: string,
+  ) {
+    try {
+      const bill = await this.transactService.payPhoneBills(
+        billPaymentDto,
+        userId,
+      );
+      return bill;
+    } catch (error) {
+      if (error.message.includes('Insufficient Wallet Balance')) {
+        throw new BadRequestException(
+          'Insufficient wallet balance. Please top up your wallet and try again.',
+        );
+      } else if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else {
+        console.error('Error occurred:', error);
+        throw new BadRequestException(
+          'An error occurred while buying airtime. Please try again later.',
+        );
+      }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'Expected response',
+  })
+  @ApiOperation({ summary: '{SME PROVIDER } Buy Airtime' })
+  @Post(':userId/buy-airtime')
   async purchaseAirtime(
     @Body() purchaseAirtimeDto: PurchasePhoneBillsDto,
     @Param('userId') userId: string
@@ -459,8 +459,8 @@ export class TransactionController {
     type: TransactionDto,
     description: 'Expected response',
   })
-  @ApiOperation({ summary: 'Buy Data' })
-  @Post('buy-data/:userId')
+  @ApiOperation({ summary: '{ SME PROVIDER} Buy Data' })
+  @Post('/:userId/buy-data')
   async purchaseData(
     @Body() purchaseDataDto: PurchasePhoneBillsDto,
     @Param('userId') userId: string
