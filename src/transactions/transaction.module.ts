@@ -16,6 +16,7 @@ import { ApiKeyModule } from 'src/auth/apikey.module';
 import { EmailService } from 'src/configs/email.helper';
 import { NotificationMailingService } from 'src/mailing/notification.mails';
 import { ProductModule } from 'src/product/product.module';
+import { SmeService } from './sme.service';
 
 @Module({
   providers: [
@@ -24,6 +25,7 @@ import { ProductModule } from 'src/product/product.module';
     ApiKeyGuard,
     EmailService,
     NotificationMailingService,
+    SmeService,
   ],
   controllers: [TransactionController],
   exports: [TransactionRepository, TransactionService],

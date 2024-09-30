@@ -9,6 +9,7 @@ import { ApiKeyGuard } from 'src/auth/apikey.guard';
 import { ApiKeyModule } from 'src/auth/apikey.module';
 import { BillPaymentCategoryService } from './billpayment.category.service';
 import { ProductModule } from 'src/product/product.module';
+import { SmeCategoryService } from './sme.category.service';
 
 @Module({
   providers: [
@@ -16,6 +17,7 @@ import { ProductModule } from 'src/product/product.module';
     BillPaymentCategoryService,
     CategoryRepository,
     ApiKeyGuard,
+    SmeCategoryService,
   ],
   controllers: [CategoryController],
   imports: [

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { WalletFundingDto } from 'src/wallet/wallet.dto';
 
 export enum paymentStatus {
@@ -21,6 +21,8 @@ export enum transactionType {
   WalletFunding = 'fundwallet',
   DebitWallet = 'debitwallet',
   BillPayment = 'billpayment',
+  BuyAirtime = 'buyAirtime',
+  BuyData = 'buyData',
   BuyUnit = 'buyunit',
   NINSearch = 'ninsearch',
   ValidateNin = 'validate-nin',
@@ -83,6 +85,32 @@ export class BillPaymentTransaction {
 
   @IsString()
   ISWTransactionRef: string;
+}
+
+export class PurchasePhoneBillsDto {
+  @IsString()
+  @ApiProperty()
+  @IsNotEmpty()
+  network_id: string;
+
+  @IsString()
+  @ApiProperty()
+  @IsNotEmpty()
+  plan_id: string;
+
+  @IsString()
+  @ApiProperty()
+  @IsNotEmpty()
+  phone: string;
+
+  @IsNumber()
+  @ApiProperty()
+  @IsNotEmpty()
+  amount: number;
+
+  @IsEnum(paymentMode)
+  @ApiProperty()
+  paymentMode: paymentMode.wallet
 }
 
 export class PaymentValidation {
@@ -228,6 +256,7 @@ export class TransactionDto {
     | NINValidateTransaction
     | NINDetailsTransaction
     | WalletFundingDto
+    | PurchasePhoneBillsDto
     | string;
 
   @IsString()
