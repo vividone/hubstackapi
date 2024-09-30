@@ -369,9 +369,45 @@ export class TransactionService {
     }
   }
 
-  //TOD: COMPLETE THIS AND INTEGRATE IN PAYBILLS
- 
-async sendPaymentAdvice(
+
+  async handleMobileBillPayment(
+    transactionDetails: any,
+    userId: string,
+    transactionId: string,
+  ) {
+    const user = await this.userService.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    const customerEmail = user.email;
+    const { amount, transactionReference } = transactionDetails;
+  
+    if (!amount || !transactionReference) {
+      throw new BadRequestException('Invalid transaction details');
+    }
+  
+    const updateTransactionData = {
+      transactionStatus: transactionStatus.Successful,
+      paymentStatus: paymentStatus.Completed,
+    };
+  
+    try {
+      await this.debitWallet(userId, amount);
+      const updatedTransaction = await this.updateTransaction(transactionId, updateTransactionData);
+      if (!updatedTransaction) {
+        throw new InternalServerErrorException('Failed to update transaction status');
+      }
+      const formattedTransactionData = `Transaction Reference: ${updatedTransaction.transactionReference}\nAmount: ${updatedTransaction.amount}\nType: ${updatedTransaction.transactionType}\n`;
+      await this.notificationMailingService.sendTransactionSummary(customerEmail, formattedTransactionData);
+  
+      return { success: true, transaction: updatedTransaction };
+    } catch (error) {
+      console.error('Error during handleMobileBillPayment:', error);
+      throw new InternalServerErrorException('Error processing mobile bill payment');
+    }
+  }
+  async sendPaymentAdvice(
   transactionDetails: any,
   userId: string,
   transactionId: string,
@@ -384,13 +420,8 @@ async sendPaymentAdvice(
 
   try {
     const customerEmail = user.email;
-    const {
-      paymentCode,
-      customerId,
-      customerMobile,
-      amount,
-      requestReference,
-    } = transactionDetails;
+    const { paymentCode, customerId, customerMobile, amount, requestReference } =
+      transactionDetails;
 
     const walletBalance = await this.getUserWallet(userId);
     const { balance } = walletBalance;
@@ -410,6 +441,7 @@ async sendPaymentAdvice(
     };
 
     const authResponse = await this.genISWAuthToken();
+    console.log(authResponse);
     const token = authResponse.access_token;
     const url = `${baseUrl}/Transactions`;
 
@@ -421,23 +453,21 @@ async sendPaymentAdvice(
       },
     });
 
-    console.log('data: ', response.data);
-
-    if (response.data.ResponseDescription === 'Success') {
+    if (response.data.ResponseCodeGrouping === 'SUCCESSFUL') {
       const updateTransactionData = {
         transactionStatus: transactionStatus.Successful,
         paymentStatus: paymentStatus.Completed,
       };
+
       await this.debitWallet(userId, amount);
+
       const updatedTransaction = await this.updateTransaction(
         transactionId,
         updateTransactionData,
       );
-      const formattedTransactionData = `
-      Transaction Reference: ${updatedTransaction.transactionReference}\n
-      Amount: ${updatedTransaction.amount}\n
-      Type: ${updatedTransaction.transactionType}\n
-    `;
+
+      const formattedTransactionData = `Transaction Reference: ${updatedTransaction.transactionReference}\nAmount: ${updatedTransaction.amount}\nType: ${updatedTransaction.transactionType}\n`;
+
       await this.notificationMailingService.sendTransactionSummary(
         customerEmail,
         formattedTransactionData,
@@ -445,17 +475,25 @@ async sendPaymentAdvice(
 
       return { success: true, transaction: updatedTransaction };
     } else {
-      throw new BadRequestException(response.data.ResponseDescription);
+      console.error('Error response from payment advice:', response.data);
+      throw new BadRequestException(
+        `Payment failed with message: ${response.data.ResponseCodeGrouping || 'Unknown error'}`,
+      );
     }
   } catch (error) {
     if (error instanceof BadRequestException || error instanceof NotFoundException) {
-      throw error; 
+      throw error;
     }
     if (axios.isAxiosError(error)) {
-      this.handleAxiosError(error, 'Error sending payment advice');
+    //console.error('Axios error in sendPaymentAdvice:', JSON.stringify(error.response?.data || error.message, null, 2));
+    throw new BadRequestException(
+      `Error sending payment advice: ${JSON.stringify(error.response?.data || error.message)}`
+    );
     }
-    console.error('Unexpected error in sendPaymentAdvice:', error);
-    throw new BadRequestException('An unexpected error occurred while processing the payment');
+    //console.error('Unexpected error in sendPaymentAdvice:', error);
+    throw new BadRequestException(
+      `Unexpected error occurred while processing the payment: ${error.message}`,
+    );
   }
 }
 
@@ -705,7 +743,7 @@ async sendPaymentAdvice(
     return result;
   }
 
-  private generateRequestReference(): string {
+  public generateRequestReference(): string {
     let referenceCode = Math.floor(
       1000000000 + Math.random() * 900000000,
     ).toString();

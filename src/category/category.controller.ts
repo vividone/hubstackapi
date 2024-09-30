@@ -8,6 +8,7 @@ import {
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
 import { BillPaymentCategoryService } from './billpayment.category.service';
+import { SmeCategoryService } from './sme.category.service';
 
 @ApiTags('Services')
 @Controller('categories')
@@ -16,7 +17,8 @@ export class CategoryController {
   constructor(
     private readonly categoryService: CategoryService,
     private readonly billPaymentCategoryService: BillPaymentCategoryService,
-  ) {}
+    private readonly smeCategory: SmeCategoryService,
+  ) { }
 
   @ApiOperation({ summary: 'get all categories' })
   @Get()
@@ -67,5 +69,27 @@ export class CategoryController {
   @Get('billers/services/:billerId')
   async interswitchBillerServices(@Param('billerId') billerId: number) {
     return this.billPaymentCategoryService.getBillerServices(billerId);
+  }
+
+  @ApiOperation({ summary: 'List of all networks' })
+  @Get('all-networks')
+  async getAllNetworks() {
+    const result = await this.smeCategory.getAllNetworks();
+    return {
+      status: 'success',
+      message: 'Networks retrieved successfully',
+      data: result,
+    };
+  }
+
+  @ApiOperation({ summary: 'List of data bundles' })
+  @Get('data-bundles')
+  async getDataPlans() {
+    const result = await this.smeCategory.getDataPlans();
+    return {
+      status: 'success',
+      message: 'Data plans retrieved successfully',
+      data: result,
+    };
   }
 }

@@ -20,17 +20,22 @@ import {
   NINDetailsTransaction,
   NINValidateTransaction,
   PaymentValidation,
+  PurchasePhoneBillsDto,
   TransactionDto,
 } from './transaction.dto';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { CustomRequest } from 'src/configs/custom_request';
 import { ApiKeyGuard } from 'src/auth/apikey.guard';
+import { SmeService } from './sme.service';
 
 @ApiTags('Transactions')
 @Controller('transact')
 @UseGuards(ApiKeyGuard)
 export class TransactionController {
-  constructor(private readonly transactService: TransactionService) {}
+  constructor(
+    private readonly transactService: TransactionService,
+    private readonly smeService: SmeService,
+  ) {}
 
   // @Roles('Admin')
   // @UseGuards(JwtAuthGuard)
@@ -175,29 +180,29 @@ export class TransactionController {
 
 
 
-  @Roles('Agent')
-  @UseGuards(JwtAuthGuard)
-  @ApiCreatedResponse({
-    type: TransactionDto,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'Buy Units' })
-  @Post('/:userId/buy-units')
-  async buyUnit(
-    @Body() buyUnitsDto: BuyUnitTransaction,
-    @Param('userId') userId: string,
-  ) {
-    try {
-      const units = await this.transactService.buyUnits(buyUnitsDto, userId);
-      return units;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      } else {
-        throw new Error('An error occurred in the process of buying units');
-      }
-    }
-  }
+  // @Roles('Agent')
+  // @UseGuards(JwtAuthGuard)
+  // @ApiCreatedResponse({
+  //   type: TransactionDto,
+  //   description: 'expected response',
+  // })
+  // @ApiOperation({ summary: 'Buy Units' })
+  // @Post('/:userId/buy-units')
+  // async buyUnit(
+  //   @Body() buyUnitsDto: BuyUnitTransaction,
+  //   @Param('userId') userId: string,
+  // ) {
+  //   try {
+  //     const units = await this.transactService.buyUnits(buyUnitsDto, userId);
+  //     return units;
+  //   } catch (error) {
+  //     if (error instanceof NotFoundException) {
+  //       throw new NotFoundException(error.message);
+  //     } else {
+  //       throw new Error('An error occurred in the process of buying units');
+  //     }
+  //   }
+  // }
 
   @Post('/:txrf')
   async getdetails(@Param('txrf') reference: string) {
@@ -418,6 +423,60 @@ export class TransactionController {
           'An error occurred while buying airtime. Please try again later.',
         );
       }
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'Expected response',
+  })
+  @ApiOperation({ summary: '{SME PROVIDER } Buy Airtime' })
+  @Post(':userId/buy-airtime')
+  async purchaseAirtime(
+    @Body() purchaseAirtimeDto: PurchasePhoneBillsDto,
+    @Param('userId') userId: string
+  ) {
+    try {
+      const result = await this.smeService.purchaseAirtime(purchaseAirtimeDto, userId);
+      return {
+        status: 'success',
+        message: 'Airtime purchase successful',
+        data: result,
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        message: error.message || 'Airtime purchase failed',
+      };
+    }
+  }
+
+  @Roles('Agent', 'Individual')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({
+    type: TransactionDto,
+    description: 'Expected response',
+  })
+  @ApiOperation({ summary: '{ SME PROVIDER} Buy Data' })
+  @Post('/:userId/buy-data')
+  async purchaseData(
+    @Body() purchaseDataDto: PurchasePhoneBillsDto,
+    @Param('userId') userId: string
+  ) {
+    try {
+      const result = await this.smeService.purchaseData(purchaseDataDto, userId);
+      return {
+        status: 'success',
+        message: 'Data purchase successful',
+        data: result,
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        message: error.message || 'Data purchase failed',
+      };
     }
   }
 
