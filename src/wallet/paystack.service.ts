@@ -128,7 +128,7 @@ export class PaystackWalletService {
 
   async createPaystackBankAccount(data: CreateWalletDto, id: string) {
     const { bvn, existingAccountNumber, existingBankName } = data;
-    Logger.log('Find User ', id);
+    // Logger.log('Find User ', id);
   
     const user = await this.userService.findUserById(id);
   
@@ -143,7 +143,7 @@ export class PaystackWalletService {
     let fetchPaystackCustomer: any;
     try {
       fetchPaystackCustomer = await this.fetchPaystackCustomer(email);
-      console.log('Paystack fetchPaystackCustomer', fetchPaystackCustomer);
+      //console.log('Paystack fetchPaystackCustomer', fetchPaystackCustomer);
     } catch (error) {
       if (error.response && error.response.statusCode === 404) {
         console.log('Customer not found on Paystack, creating a new customer...');
