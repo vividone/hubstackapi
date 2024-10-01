@@ -91,7 +91,6 @@ export class PaystackWalletService {
       amount: initializeWalletFunding.amount,
       reference: reference,
     };
-    // console.log('data sent to paystack', initializeWalletFunding);
     try {
       const response = await axios.post(
         `${this.baseUrl}/transaction/initialize`,
@@ -130,51 +129,31 @@ export class PaystackWalletService {
   async createPaystackBankAccount(data: CreateWalletDto, id: string) {
     const { bvn, existingAccountNumber, existingBankName } = data;
     Logger.log('Find User ', id);
-
+  
     const user = await this.userService.findUserById(id);
-
+  
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
+  
     const email: string = user.email;
     const first_name: string = user.firstname;
     const last_name: string = user.lastname;
-    const phone: string = user.mobilenumber;
-
-    const fetchPaystackCustomer = await this.fetchPaystackCustomer(email);
-    Logger.log('Paystack fetchPaystackCustomer', fetchPaystackCustomer);
-
-    const bankCode = await this.getBankCode(existingBankName);
-    // console.log('Bank Code', bankCode);
-    // Validate customer
-    const validateCustomerPayload = {
-      country: 'NG',
-      bvn: bvn,
-      bank_code: bankCode,
-      account_number: existingAccountNumber,
-      type: 'bank_account',
-      first_name,
-      last_name,
-    };
-    Logger.log('Paystack validateCustomerPayload', validateCustomerPayload);
-
-    const testValidateCustomerPayload = {
-      country: 'NG',
-      bvn: '222222222221',
-      bank_code: bankCode,
-      type: 'bank_account',
-      account_number: '0111111111',
-      first_name: 'Uchenna',
-      last_name: 'Okoro',
-    };
-
-    Logger.log(
-      'Paystack testValidateCustomerPayload',
-      testValidateCustomerPayload,
-    );
-
-    if (fetchPaystackCustomer && isEmpty(fetchPaystackCustomer)) {
+    const phone: string = user.phone_number;
+    let fetchPaystackCustomer: any;
+    try {
+      fetchPaystackCustomer = await this.fetchPaystackCustomer(email);
+      console.log('Paystack fetchPaystackCustomer', fetchPaystackCustomer);
+    } catch (error) {
+      if (error.response && error.response.statusCode === 404) {
+        console.log('Customer not found on Paystack, creating a new customer...');
+      } else {
+        //console.error('An error occurred while fetching the customer from Paystack', error);
+        throw new BadRequestException('An error occurred while fetching the customer');
+      }
+    }
+  
+    if (!fetchPaystackCustomer || isEmpty(fetchPaystackCustomer)) {
       const customer = await this.createCustomer(
         user._id,
         email,
@@ -182,18 +161,10 @@ export class PaystackWalletService {
         last_name,
         phone,
       );
-      Logger.log('Paystack Customer', customer);
-      // const validateCustomer = await this.validateCustomer(
-      //   validateCustomerPayload,
-      //   customer.customer_code,
-      // );
-      const paystackBankAccount = await this.createDVAccount(
-        customer.customer_id,
-      );
-
-      const { account_number, account_name, bank_name, slug } =
-        paystackBankAccount.data.data;
-
+      const customer_code = customer.customer_code;
+      const paystackBankAccount = await this.createDVAccount(customer_code);
+      const { account_number, account_name, bank_name, slug } = paystackBankAccount.data;
+  
       const createdVirtualAccount = {
         accountName: account_name,
         accountNumber: account_number,
@@ -202,41 +173,18 @@ export class PaystackWalletService {
         user: user._id,
         provider: 'Paystack',
       };
-
-      // Logger.log('createdVirtualAccount', createdVirtualAccount);
-      const savedVirtualAccount = await this.bankRepo.create(
-        createdVirtualAccount,
-      );
+  
+      const savedVirtualAccount = await this.bankRepo.create(createdVirtualAccount);
       return {
         message: 'Virtual Account created successfully',
         data: savedVirtualAccount,
       };
     } else {
-      const bankCode = await this.getBankCode(existingBankName);
-      // console.log('Bank Code', bankCode);
-      // Validate customer
-      const validateCustomerPayload = {
-        country: 'NG',
-        bvn: bvn,
-        bank_code: bankCode,
-        account_number: existingAccountNumber,
-        type: 'bank_account',
-        first_name,
-        last_name,
-      };
-      // Logger.log('Paystack validateCustomerPayload', validateCustomerPayload);
-
       const { customer_code, id } = fetchPaystackCustomer;
-      // const validateCustomer = await this.validateCustomer(
-      //   validateCustomerPayload,
-      //   customer_code,
-      // );
-      // Logger.log('Paystack Customer Validation', validateCustomer);
       const paystackBankAccount = await this.createDVAccount(id);
-
-      const { account_number, account_name, bank_name, slug } =
-        paystackBankAccount.data.data;
-
+  
+      const { account_number, account_name, bank_name, slug } = paystackBankAccount.data;
+  
       const createdVirtualAccount = {
         accountName: account_name,
         accountNumber: account_number,
@@ -245,17 +193,15 @@ export class PaystackWalletService {
         user: user._id,
         provider: 'Paystack',
       };
-
-      Logger.log('Paystack createdVirtualAccount', createdVirtualAccount);
-      const savedVirtualAccount = await this.bankRepo.create(
-        createdVirtualAccount,
-      );
+      const savedVirtualAccount = await this.bankRepo.create(createdVirtualAccount);
       return {
-        message: 'Paystack DVirtual Account created successfully',
+        message: 'Paystack Virtual Account created successfully',
         data: savedVirtualAccount,
       };
     }
   }
+  
+  
 
   async handleSuccessfulCharge(
     customer: any,
@@ -375,8 +321,6 @@ export class PaystackWalletService {
         },
       });
 
-      // Logger.log('Paystack fetchPaystackCustomer', response.data.data);
-
       return response.data.data;
     } catch (error) {
       handleAxiosError(error, 'An error occurred while fetching the customer');
@@ -384,18 +328,9 @@ export class PaystackWalletService {
   }
 
   private async validateCustomer(validatePayload: any, customer_code: string) {
-    // const { account_number, bank_code } = validatePayload;
-    const testPayload = {
-      country: 'NG',
-      type: 'bank_account',
-      account_number: '0111111111',
-      bvn: '222222222221',
-      bank_code: '007',
-      first_name: 'Uchenna',
-      last_name: 'Okoro',
-    };
+     const { account_number, bank_code } = validatePayload;
 
-    const payload = this.ENV === 'development' ? testPayload : validatePayload;
+    const payload = validatePayload;
     try {
       const response = await axios.post(
         `${this.baseUrl}/customer/${customer_code}/identification`,
