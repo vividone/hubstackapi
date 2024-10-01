@@ -127,7 +127,7 @@ export class FlutterwaveWalletService {
       provider: provider,
     });
 
-    Logger.log('Flutterwave Wema', wallet);
+    //Logger.log('Flutterwave Wema', wallet);
     // if (!wallet) {
     //   throw new NotFoundException('Wallet not found');
     // }
@@ -144,13 +144,13 @@ export class FlutterwaveWalletService {
     transactionReference: string,
     amount: number,
   ) {
-    Logger.log('Customer Data', customer);
-    Logger.log('transactionReference', transactionReference);
-    Logger.log('amount ', amount);
+    // Logger.log('Customer Data', customer);
+    // Logger.log('transactionReference', transactionReference);
+    // Logger.log('amount ', amount);
 
     try {
       const userDetails = await this.userRepo.findOne({ email: customer });
-      Logger.log('User Details', userDetails);
+      // Logger.log('User Details', userDetails);
       const { _id } = userDetails;
       const user = _id.toString();
 

@@ -101,17 +101,16 @@ export class WalletController {
           userId,
         );
 
-      // const paystackAccount =
-      //   await this.paystackWalletService.createPaystackBankAccount(
-      //     createWalletDto,
-      //     userId,
-      //   );
+      const paystackAccount =
+        await this.paystackWalletService.createPaystackBankAccount(
+          createWalletDto,
+          userId,
+        );
 
       const createWallet = await this.walletService.createWallet(userId);
       return {
         WemaBank: flutterwaveAccount,
-        PaystackTitan: 'Unavailable',
-        MicrobizMFB: 'Unavailable',
+        PaystackTitan: paystackAccount,
         Wallet: createWallet,
       };
     } catch (error) {
