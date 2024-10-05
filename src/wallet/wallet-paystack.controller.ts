@@ -5,9 +5,9 @@ import {
   Res,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import * as crypto from 'crypto';
 import { PaystackWalletService } from './paystack.service';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -25,37 +25,23 @@ export class PaystackWebhookController {
     console.log(signature);
 
     if (!signature) {
-      console.log('Signature missing');
       throw new HttpException('Signature missing', HttpStatus.BAD_REQUEST);
     }
+    console.log('WH Request Body', req.body);
+    Logger.log('WH Event', req.body.event);
+    Logger.log('WH Data', req.body.data);
 
-    const bodyString = JSON.stringify(req.body);
-
-    const hash = crypto
-      .createHmac('sha512', secret)
-      .update(bodyString)
-      .digest('hex');
-    console.log(hash);
-    if (signature !== hash) {
-      console.log('Invalid signature');
-      throw new HttpException('Invalid signature', HttpStatus.UNAUTHORIZED);
-    }
-
-    let body;
+    let body: { event: any; data: any };
     try {
-      body = JSON.parse(bodyString);
+      body = req.body;
     } catch (error) {
-      console.log('Invalid request body');
       throw new HttpException('Invalid request body', HttpStatus.BAD_REQUEST);
     }
-
     const { event, data } = body;
-    console.log('body of what should be the recent webhook body: ', body);
-
-    if (event === 'charge.success' && data.status === 'success') {
-      const customer = data.customer;
-      const transactionReference = data.reference;
-      const amount = data.amount / 100;
+    if (event === 'charge.completed' && data.status === 'success') {
+      const customer = data.customer.email;
+      const transactionReference = data.tx_ref;
+      const amount = data.amount;
 
       try {
         await this.paystackWalletService.handleSuccessfulCharge(
@@ -63,11 +49,16 @@ export class PaystackWebhookController {
           transactionReference,
           amount,
         );
+
+        res
+          .status(HttpStatus.OK)
+          .json({ message: 'Wallet funded successfully.' });
       } catch (error) {
-        console.error('Failed to handle successful charge:', error);
+        console.error('Failed to fund wallet:', error);
+        res
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .json({ message: 'Failed to fund wallet.' });
       }
     }
-
-    return res.status(200).send('Webhook received');
   }
 }
