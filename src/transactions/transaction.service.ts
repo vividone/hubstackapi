@@ -113,6 +113,8 @@ export class TransactionService {
       return 'Customer data is invalid';
     }
 
+    const customerName = validateCustomer;
+
     const reference = this.generateRequestReference();
 
     const transactionData = {
@@ -127,7 +129,10 @@ export class TransactionService {
 
     const createTransaction = await this.createTransaction(transactionData);
 
-    return createTransaction;
+    return {
+      customerName,
+      createTransaction
+    };
   }
 
   // async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
@@ -615,8 +620,6 @@ export class TransactionService {
 
   private handleAxiosError(error: any, defaultMessage: string) {
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       const { status, statusText, data } = error.response;
       console.error('HTTP Error:', defaultMessage, status, statusText, data);
       throw new BadRequestException({
@@ -626,13 +629,11 @@ export class TransactionService {
         details: data,
       });
     } else if (error.request) {
-      // The request was made but no response was received
       console.error('No response received from the server', error.request);
       throw new InternalServerErrorException(
         'No response received from the server',
       );
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error('Error message:', error.message);
       throw new InternalServerErrorException(defaultMessage);
     }
@@ -720,8 +721,8 @@ export class TransactionService {
           'Content-Type': 'application/json',
         },
       });
-      console.log(response.data);
-      return response.data;
+      //console.log(response.data.Customers[0].FullName);
+      return response.data.Customers[0].FullName;
     } catch (error) {
       this.handleAxiosError(
         error,
