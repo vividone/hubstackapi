@@ -37,7 +37,7 @@ export class SmeService {
       const transactionData = {
         transactionReference: reference,
         amount,
-        transactionType: transactionType.BuyAirtime,
+        transactionType: transactionType.Airtime,
         transactionStatus: transactionStatus.Pending,
         paymentMode,
         transactionDetails: purchaseAirtimeDto,
@@ -107,7 +107,7 @@ export class SmeService {
       const transactionData = {
         transactionReference: reference,
         amount,
-        transactionType: transactionType.BuyAirtime,
+        transactionType: transactionType.Data,
         transactionStatus: transactionStatus.Pending,
         paymentMode,
         transactionDetails: purchaseDataDto,

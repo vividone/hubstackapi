@@ -103,7 +103,7 @@ export class TransactionService {
   async payBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     const { paymentCode, customerId } = billPaymentDto;
 
-    // Validate Customer
+    //Validate Customer
     const validateCustomer = await this.validateCustomer(
       paymentCode,
       customerId,
@@ -191,7 +191,7 @@ export class TransactionService {
       const transactionData = {
         transactionReference: reference,
         amount,
-        transactionType: transactionType.BillPayment,
+        transactionType: transactionType.Phonebills,
         transactionStatus: transactionStatus.Pending,
         paymentMode,
         transactionDetails: billPaymentDto,
@@ -446,17 +446,18 @@ export class TransactionService {
     };
 
     const authResponse = await this.genISWAuthToken();
-    console.log(authResponse);
     const token = authResponse.access_token;
     const url = `${baseUrl}/Transactions`;
+    const url2 = `${baseUrl}/Transactions?requestRef=${requestReference}`;
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      TerminalId: this.TerminalId,
+    };
 
-    const response = await axios.post(url, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        TerminalId: this.TerminalId,
-      },
-    });
+    const response = await axios.post(url, data, { headers });
+
+    const transactionStatusResponse = await axios.post(url2, { headers });
 
     if (response.data.ResponseCodeGrouping === 'SUCCESSFUL') {
       const updateTransactionData = {
@@ -478,7 +479,11 @@ export class TransactionService {
         formattedTransactionData,
       );
 
-      return { success: true, transaction: updatedTransaction };
+      return { 
+        success: true, 
+        details: transactionStatusResponse,
+        transaction: updatedTransaction, 
+      };
     } else {
       console.error('Error response from payment advice:', response.data);
       throw new BadRequestException(
