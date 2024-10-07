@@ -52,7 +52,7 @@ export class BillPaymentCategoryService {
     const baseUrl: string = process.env.ISW_BASE_URL;
     const TerminalID: string = process.env.ISW_TERMINAL_ID;
     let token: string;
-    console.log(TerminalID);
+    //console.log(TerminalID);
     const url = `${baseUrl}/services/options?serviceid=${billerId}`;
 
     try {
