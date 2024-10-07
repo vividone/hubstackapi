@@ -163,13 +163,13 @@ export class PaystackWalletService {
       );
       const customer_code = customer.customer_code;
       const paystackBankAccount = await this.createDVAccount(customer_code);
-      const { account_number, account_name, bank_name, slug } = paystackBankAccount.data;
+      const { account_number, account_name } = paystackBankAccount.data;
+      const { name } = paystackBankAccount.data.bank;
   
       const createdVirtualAccount = {
         accountName: account_name,
         accountNumber: account_number,
-        bankName: bank_name,
-        bank_slug: slug,
+        bankName: name,
         user: user._id,
         provider: 'Paystack',
       };
@@ -183,19 +183,19 @@ export class PaystackWalletService {
       const { customer_code, id } = fetchPaystackCustomer;
       const paystackBankAccount = await this.createDVAccount(id);
   
-      const { account_number, account_name, bank_name, slug } = paystackBankAccount.data;
+      const { account_number, account_name } = paystackBankAccount.data;
+      const { name } = paystackBankAccount.data.bank;
   
       const createdVirtualAccount = {
         accountName: account_name,
         accountNumber: account_number,
-        bankName: bank_name,
-        bank_slug: slug,
+        bankName: name,
         user: user._id,
         provider: 'Paystack',
       };
       const savedVirtualAccount = await this.bankRepo.create(createdVirtualAccount);
       return {
-        message: 'Paystack Virtual Account created successfully',
+        message: 'Virtual Account already exists',
         data: savedVirtualAccount,
       };
     }
@@ -380,7 +380,7 @@ export class PaystackWalletService {
         },
       },
     );
-
+    //console.log(dvaResponse.data);
     return dvaResponse.data;
   }
 }
