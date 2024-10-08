@@ -433,13 +433,13 @@ export class TransactionController {
     description: 'Expected response',
   })
   @ApiOperation({ summary: '{SME PROVIDER } Buy Airtime' })
-  @Post(':userId/buy-airtime')
+  @Post(':userId/airtime/:networkId')
   async purchaseAirtime(
     @Body() purchaseAirtimeDto: PurchasePhoneBillsDto,
-    @Param('userId') userId: string
+    @Param('userId') userId: string, @Param('networkId') network_id: string
   ) {
     try {
-      const result = await this.smeService.purchaseAirtime(purchaseAirtimeDto, userId);
+      const result = await this.smeService.purchaseAirtime(purchaseAirtimeDto, network_id, userId);
       return {
         status: 'success',
         message: 'Airtime purchase successful',
@@ -460,13 +460,15 @@ export class TransactionController {
     description: 'Expected response',
   })
   @ApiOperation({ summary: '{ SME PROVIDER} Buy Data' })
-  @Post('/:userId/buy-data')
+  @Post('/:userId/data/:networkId/:planId')
   async purchaseData(
     @Body() purchaseDataDto: PurchasePhoneBillsDto,
-    @Param('userId') userId: string
+    @Param('userId') userId: string,
+    @Param('networkId') network_id: string,
+    @Param('planId') plan_id: string
   ) {
     try {
-      const result = await this.smeService.purchaseData(purchaseDataDto, userId);
+      const result = await this.smeService.purchaseData(purchaseDataDto,network_id, plan_id, userId);
       return {
         status: 'success',
         message: 'Data purchase successful',
