@@ -11,13 +11,13 @@ export class SmeService {
     private readonly userService: UsersService,
   ) {}
 
-  async purchaseAirtime(purchaseAirtimeDto: PurchasePhoneBillsDto, userId: string) {
+  async purchaseAirtime(purchaseAirtimeDto: PurchasePhoneBillsDto, network_id: string, userId: string) {
     const baseUrl: string = process.env.SME_BASE_URL;
     const privateKey: string = process.env.SME_PRIVATE_KEY;
   
     try {
       const url = `${baseUrl}/airtime/purchase`;
-      const { network_id, phone, amount, paymentMode } = purchaseAirtimeDto;
+      const { phone, amount, paymentMode } = purchaseAirtimeDto;
       if (!network_id || !phone || !amount) {
         throw new BadRequestException('Required payment details are missing');
       }
@@ -81,13 +81,13 @@ export class SmeService {
     }
   }
   
-  async purchaseData(purchaseDataDto: PurchasePhoneBillsDto, userId: string) {
+  async purchaseData(purchaseDataDto: PurchasePhoneBillsDto, network_id: string, plan_id: string, userId: string) {
     const baseUrl: string = process.env.SME_BASE_URL;
     const privateKey: string = process.env.SME_PRIVATE_KEY;
   
     try {
       const url = `${baseUrl}/data/purchase`;
-      const { network_id, plan_id, phone, amount, paymentMode } = purchaseDataDto;
+      const { phone, amount, paymentMode } = purchaseDataDto;
       if (!network_id || !phone || !plan_id) {
         throw new BadRequestException('Required payment details are missing');
       }
