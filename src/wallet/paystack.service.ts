@@ -32,7 +32,7 @@ export class PaystackWalletService {
     private readonly walletService: WalletService,
     private readonly transactionService: TransactionService,
     private readonly bankRepo: BankAccountRepository,
-  ) {}
+  ) { }
 
   private baseUrl = process.env.PSTK_BASE_URL;
   private secretKey = process.env.PSTK_SECRET_KEY;
@@ -129,13 +129,21 @@ export class PaystackWalletService {
   async createPaystackBankAccount(data: CreateWalletDto, id: string) {
     const { bvn, existingAccountNumber, existingBankName } = data;
     // Logger.log('Find User ', id);
-  
+
     const user = await this.userService.findUserById(id);
-  
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
+
+    const checkCustomerAccount = await this.getTitanAccount(id);
+
+    if (checkCustomerAccount.status === true) {
+      return {
+        message: 'Virtual Account already exists ',
+        data: checkCustomerAccount.data,
+      };
+    }
     const email: string = user.email;
     const first_name: string = user.firstname;
     const last_name: string = user.lastname;
@@ -152,7 +160,7 @@ export class PaystackWalletService {
         throw new BadRequestException('An error occurred while fetching the customer');
       }
     }
-  
+
     if (!fetchPaystackCustomer || isEmpty(fetchPaystackCustomer)) {
       const customer = await this.createCustomer(
         user._id,
@@ -165,7 +173,7 @@ export class PaystackWalletService {
       const paystackBankAccount = await this.createDVAccount(customer_code);
       const { account_number, account_name } = paystackBankAccount.data;
       const { name } = paystackBankAccount.data.bank;
-  
+
       const createdVirtualAccount = {
         accountName: account_name,
         accountNumber: account_number,
@@ -173,7 +181,7 @@ export class PaystackWalletService {
         user: user._id,
         provider: 'Paystack',
       };
-  
+
       const savedVirtualAccount = await this.bankRepo.create(createdVirtualAccount);
       return {
         message: 'Virtual Account created successfully',
@@ -182,10 +190,10 @@ export class PaystackWalletService {
     } else {
       const { customer_code, id } = fetchPaystackCustomer;
       const paystackBankAccount = await this.createDVAccount(id);
-  
+
       const { account_number, account_name } = paystackBankAccount.data;
       const { name } = paystackBankAccount.data.bank;
-  
+
       const createdVirtualAccount = {
         accountName: account_name,
         accountNumber: account_number,
@@ -195,13 +203,35 @@ export class PaystackWalletService {
       };
       const savedVirtualAccount = await this.bankRepo.create(createdVirtualAccount);
       return {
-        message: 'Virtual Account already exists',
+        message: 'Existing Customer DVA created successfully',
         data: savedVirtualAccount,
       };
     }
   }
-  
-  
+
+  async getTitanAccount(userId: string) {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    const convertedUserId = new Types.ObjectId(userId);
+    // console.log('convertedUserId', convertedUserId);
+    const provider = 'Paystack';
+    const wallet = await this.bankRepo.findOne({
+      user: convertedUserId,
+      provider: provider,
+    });
+
+    //Logger.log('Flutterwave Wema', wallet);
+    // if (!wallet) {
+    //   throw new NotFoundException('Wallet not found');
+    // }
+    if (wallet === null) {
+      return { status: false, data: null };
+    } else {
+      return { status: true, data: wallet };
+    }
+  }
+
 
   async handleSuccessfulCharge(
     customer: string,
@@ -225,7 +255,7 @@ export class PaystackWalletService {
       //   throw new NotFoundException('Wallet not found.');
       // }
 
-      let transaction = {amount, transactionReference, user, paymentMode: 'account_transfer'}
+      let transaction = { amount, transactionReference, user, paymentMode: 'account_transfer' }
 
       await this.createAndProcessTransaction(
         transaction
@@ -334,7 +364,7 @@ export class PaystackWalletService {
   }
 
   private async validateCustomer(validatePayload: any, customer_code: string) {
-     const { account_number, bank_code } = validatePayload;
+    const { account_number, bank_code } = validatePayload;
 
     const payload = validatePayload;
     try {

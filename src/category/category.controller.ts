@@ -72,7 +72,7 @@ export class CategoryController {
   }
 
   @ApiOperation({ summary: 'List of all networks' })
-  @Get('all-networks')
+  @Get('/airtime/networks')
   async getAllNetworks() {
     const result = await this.smeCategory.getAllNetworks();
     return {
@@ -83,7 +83,7 @@ export class CategoryController {
   }
 
   @ApiOperation({ summary: 'List of data bundles' })
-  @Get('data-bundles')
+  @Get('data/data-bundles')
   async getDataPlans() {
     const result = await this.smeCategory.getDataPlans();
     return {

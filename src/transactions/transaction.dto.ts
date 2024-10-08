@@ -92,16 +92,6 @@ export class PurchasePhoneBillsDto {
   @IsString()
   @ApiProperty()
   @IsNotEmpty()
-  network_id: string;
-
-  @IsString()
-  @ApiProperty()
-  @IsNotEmpty()
-  plan_id: string;
-
-  @IsString()
-  @ApiProperty()
-  @IsNotEmpty()
   phone: string;
 
   @IsNumber()
