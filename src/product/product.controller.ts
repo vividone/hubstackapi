@@ -11,14 +11,14 @@ export class ProductController {
     private readonly ninService: NinService,
   ) {}
 
-  //   @ApiTags('Products')
-  //   @Post('create-product/:category')
-  //   async createCategory(
-  //     @Body() productDto: ProductDto,
-  //     @Param('category') category: string,
-  //   ) {
-  //     return this.productService.createProduct(productDto, category);
-  //   }
+    @ApiTags('Products')
+    @Post('create-product/:category')
+    async createCategory(
+      @Body() productDto: ProductDto,
+      @Param('category') category: string,
+    ) {
+      return this.productService.createProduct(productDto, category);
+    }
 
   //   @ApiTags('Products')
   //   @ApiOperation({ summary: 'Get all products' })

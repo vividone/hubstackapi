@@ -21,7 +21,6 @@ export class WalletService {
   constructor(
     private readonly userService: UsersService,
     private readonly walletRepo: WalletRepository,
-    private readonly transactionService: TransactionService,
     private readonly transactionRepo: TransactionRepository,
     private readonly bankRepo: BankAccountRepository,
     private readonly notificationMailingService: NotificationMailingService,
