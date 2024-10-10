@@ -40,7 +40,7 @@ export class PaystackWebhookController {
     const { event, data } = body;
     if (event === 'charge.completed' && data.status === 'success') {
       const customer = data.customer.email;
-      const transactionReference = data.tx_ref;
+      const transactionReference = data.reference;
       const amount = data.amount;
 
       try {
