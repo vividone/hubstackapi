@@ -27,9 +27,9 @@ export class CategoryController {
   }
 
   @ApiOperation({ summary: 'get product by category' })
-  @Get(':category')
-  async getProductsByCategories(@Param('category') category: string) {
-    return this.categoryService.getProductsByCategory(category);
+  @Get('/:category')
+  async getProductsByCategories(@Param('category') name: string) {
+    return this.categoryService.getProductsByCategory(name);
   }
 
   @ApiCreatedResponse({ type: CategoryDto, description: 'expected response' })
@@ -39,15 +39,15 @@ export class CategoryController {
     return this.categoryService.createCategory(createProductDto);
   }
 
-  @ApiCreatedResponse({
-    type: BillerCategoriesDto,
-    description: 'expected response',
-  })
-  @ApiOperation({ summary: 'List of bill payment categories' })
-  @Get('billpayments')
-  async billpaymentCategories() {
-    return this.billPaymentCategoryService.getBillPaymentCategories();
-  }
+  // @ApiCreatedResponse({
+  //   type: BillerCategoriesDto,
+  //   description: 'expected response',
+  // })
+  // @ApiOperation({ summary: 'List of bill payment categories' })
+  // @Get('billpayments')
+  // async billpaymentCategories() {
+  //   return this.billPaymentCategoryService.getBillPaymentCategories();
+  // }
 
   @ApiCreatedResponse({
     type: BillerCategoriesDto,

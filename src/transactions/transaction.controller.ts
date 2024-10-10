@@ -468,7 +468,7 @@ export class TransactionController {
     @Param('planId') plan_id: string
   ) {
     try {
-      const result = await this.smeService.purchaseData(purchaseDataDto,network_id, plan_id, userId);
+      const result = await this.smeService.purchaseData(purchaseDataDto, network_id, plan_id, userId);
       return {
         status: 'success',
         message: 'Data purchase successful',

@@ -50,7 +50,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesAuth)
   @Roles('Individual')
   @Put('update-profile')
-  async updateAgentProfile(
+  async updateUserProfile(
     @Body() updateUserDto: CreateUserDto,
     @Req() request: CustomRequest,
   ) {

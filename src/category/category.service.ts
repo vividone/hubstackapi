@@ -50,8 +50,8 @@ export class CategoryService {
     return categoriesWithProducts;
   }
 
-  async getProductsByCategory(category: string) {
-    const products = this.productRepo.find({ category: category });
+  async getProductsByCategory(name: string) {
+    const products = this.productRepo.find({ name: name });
     return products;
   }
 }

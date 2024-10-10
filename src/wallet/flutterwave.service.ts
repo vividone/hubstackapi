@@ -27,11 +27,8 @@ import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class FlutterwaveWalletService {
   constructor(
-    private readonly walletRepo: WalletRepository,
     private readonly userRepo: UserRepository,
     private readonly walletService: WalletService,
-    private readonly userService: UsersService,
-    private readonly transactionRepo: TransactionRepository,
     private readonly bankRepo: BankAccountRepository,
     private readonly transactionService: TransactionService,
   ) {}
