@@ -11,8 +11,9 @@ import {
   Get,
   NotFoundException,
   Res,
+  Delete,
 } from '@nestjs/common';
-import * as crypto from 'crypto';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import { WalletService } from './wallet.service';
 import {
   BankAccount,
@@ -192,6 +193,21 @@ export class WalletController {
   //     throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
   //   }
   // }
+
+  @ApiExcludeEndpoint()
+  @Delete('/delete/:id')
+  async deleteEntry(@Param('id') id: string) {
+    const bankEntry = await this.walletService.deleteEntry(id);
+    
+    if (!bankEntry) {
+      throw new NotFoundException(`Bank entry with ID ${id} not found`);
+    }
+    
+    return {
+      message: 'successfully deleted',
+      bankEntry,
+    };
+  }
 
   @Roles('Admin', 'Agent', 'Individual')
   @UseGuards(JwtAuthGuard)

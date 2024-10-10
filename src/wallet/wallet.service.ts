@@ -257,6 +257,11 @@ export class WalletService {
     }
   }
 
+  async deleteEntry(id: string){
+    const bankId = this.bankRepo.findOneAndDelete({_id: id});
+    return bankId;
+  }
+
   async fundWalletProcess(userId: string, transactionId: string) {
     try {
       const transaction = await this.transactionRepo.findOne({
@@ -329,6 +334,7 @@ export class WalletService {
         'No funded transactions found. Verification will be attempted after a delay.',
     };
   }
+
 
   private async delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));

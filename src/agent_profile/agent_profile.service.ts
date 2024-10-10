@@ -21,6 +21,7 @@ export class AgentService {
     const { email, password, firstname, lastname, role, ...otherFields } =
       updateAgentDto;
     const agentProfile = await this.agentRepo.findOne({ email: e_mail });
+    //console.log(agentProfile)
     if (!agentProfile) {
       throw new NotFoundException('Agent profile not found');
     }
@@ -38,9 +39,10 @@ export class AgentService {
     const updateData = { ...otherFields };
 
     const updatedAgent = await this.agentRepo.findOneAndUpdate(
-      { _id: agentProfile._id, role: 'Agent' },
+      { _id: agentProfile._id},
       { $set: updateData },
     );
+    //console.log(updatedAgent);
 
     if (!updatedAgent) {
       throw new NotFoundException('Agent not found');
