@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import axios from 'axios';
 import { CreateWalletDto } from './wallet.dto';
-import { WalletRepository } from 'src/entity/repositories/wallet.repo';
 import { UserRepository } from 'src/entity/repositories/user.repo';
 import { Types } from 'mongoose';
 import { TransactionService } from 'src/transactions/transaction.service';
@@ -22,13 +21,11 @@ import { handleAxiosError } from 'src/configs/handleAxiosError';
 import { WalletService } from './wallet.service';
 import { BankAccountRepository } from 'src/entity/repositories/bankaccount.repo';
 import { isEmpty } from 'class-validator';
-import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class PaystackWalletService {
   constructor(
     private readonly userRepo: UserRepository,
-    private readonly userService: UsersService,
     private readonly walletService: WalletService,
     private readonly transactionService: TransactionService,
     private readonly bankRepo: BankAccountRepository,
@@ -130,7 +127,7 @@ export class PaystackWalletService {
     const { bvn, existingAccountNumber, existingBankName } = data;
     // Logger.log('Find User ', id);
 
-    const user = await this.userService.findUserById(id);
+    const user = await this.userRepo.findOne({ _id: id });
 
     if (!user) {
       throw new NotFoundException('User not found');

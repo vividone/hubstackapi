@@ -67,8 +67,9 @@ export class AuthService {
 
   private async createAgent(createAgentDto: CreateAgentProfileDto) {
     const agentUser = await this.userRepo.create(createAgentDto);
+    const { password, role, ...rest } = createAgentDto;
     const agentProfile = await this.agentRepo.create({
-      ...createAgentDto,
+      ...rest,
       user: agentUser._id,
     });
 
