@@ -448,7 +448,8 @@ export class TransactionService {
     const authResponse = await this.genISWAuthToken();
     const token = authResponse.access_token;
     const url = `${baseUrl}/Transactions`;
-    const url2 = `${baseUrl}/Transactions?requestRef=${requestReference}`;
+    //const url2 = `${baseUrl}/Transactions?requestRef=${requestReference}`;
+    //console.log(token);
     const headers = {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -457,7 +458,7 @@ export class TransactionService {
 
     const response = await axios.post(url, data, { headers });
 
-    const transactionStatusResponse = await axios.post(url2, { headers });
+    //const transactionStatusResponse = await axios.post(url2, { headers });
 
     if (response.data.ResponseCodeGrouping === 'SUCCESSFUL') {
       const updateTransactionData = {
@@ -481,7 +482,7 @@ export class TransactionService {
 
       return { 
         success: true, 
-        details: transactionStatusResponse,
+        //details: transactionStatusResponse,
         transaction: updatedTransaction, 
       };
     } else {
@@ -495,7 +496,7 @@ export class TransactionService {
       throw error;
     }
     if (axios.isAxiosError(error)) {
-    //console.error('Axios error in sendPaymentAdvice:', JSON.stringify(error.response?.data || error.message, null, 2));
+    console.error('Axios error in sendPaymentAdvice:', JSON.stringify(error.response?.data || error.message, null, 2));
     throw new BadRequestException(
       `Error sending payment advice: ${JSON.stringify(error.response?.data || error.message)}`
     );
