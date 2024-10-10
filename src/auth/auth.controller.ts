@@ -20,6 +20,7 @@ import { LoginDto, LoginDtoResponse } from './dto/login.dto';
 import { CustomRequest } from 'src/configs/custom_request';
 import { JwtAuthGuard } from 'src/role_auth_middleware/jwt-auth.guard';
 import { RolesAuth } from 'src/role_auth_middleware/role.auth';
+import { ApiExcludeEndpoint } from '@nestjs/swagger';
 import { Roles } from 'src/role_auth_middleware/roles.decorator';
 import { ApiKeyGuard } from './apikey.guard';
 import {
@@ -44,6 +45,7 @@ export class AuthController {
     return this.authService.createUser(createUserDto, req);
   }
 
+  @ApiExcludeEndpoint()
   @ApiCreatedResponse({
     description: 'expected response',
   })
