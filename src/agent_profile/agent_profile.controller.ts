@@ -27,8 +27,9 @@ export class AgentController {
     @Body() updateAgentDto: CreateAgentProfileDto,
     @Req() request: CustomRequest,
   ) {
-    const email = request.user.email;
-    return await this.agentService.updateAgentProfile(email, updateAgentDto);
+    const e_mail = request.user.email;
+    //console.log(e_mail);
+    return await this.agentService.updateAgentProfile(e_mail, updateAgentDto);
   }
 
   // @UseGuards(JwtAuthGuard, RolesAuth)

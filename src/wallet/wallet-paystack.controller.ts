@@ -38,7 +38,7 @@ export class PaystackWebhookController {
       throw new HttpException('Invalid request body', HttpStatus.BAD_REQUEST);
     }
     const { event, data } = body;
-    if (event === 'charge.completed' && data.status === 'success') {
+    if (event === 'charge.success' && data.status === 'success') {
       const customer = data.customer.email;
       const transactionReference = data.reference;
       const amount = data.amount;
