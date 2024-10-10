@@ -43,11 +43,13 @@ export class PaystackWebhookController {
       const transactionReference = data.reference;
       const amount = data.amount;
 
+      const convertedAmount = this.convertToNaira(amount);
+
       try {
         await this.paystackWalletService.handleSuccessfulCharge(
           customer,
           transactionReference,
-          amount,
+          convertedAmount,
         );
 
         res
@@ -60,5 +62,10 @@ export class PaystackWebhookController {
           .json({ message: 'Failed to fund wallet.' });
       }
     }
+  }
+
+  private convertToNaira(amount: number) {
+    const converted = amount / 100;
+    return converted;
   }
 }
