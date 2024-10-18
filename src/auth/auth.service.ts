@@ -219,7 +219,7 @@ export class AuthService {
     const currentTime = new Date();
     const otpExpiry = new Date(
       currentTime.getTime() +
-        1 * 60 * 1000 -
+        5 * 60 * 1000 -
         currentTime.getTimezoneOffset() * 60 * 1000,
     );
     user.otp = otp;

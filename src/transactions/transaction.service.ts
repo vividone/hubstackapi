@@ -32,7 +32,7 @@ export class TransactionService {
     private readonly transactionRepo: TransactionRepository,
     private readonly walletRepo: WalletRepository,
     private readonly notificationMailingService: NotificationMailingService,
-  ) {}
+  ) { }
   private readonly TerminalId = process.env.ISW_TERMINAL_ID;
 
   async getAllTransactions() {
@@ -175,19 +175,19 @@ export class TransactionService {
   async payPhoneBills(billPaymentDto: BillPaymentTransaction, userId: string) {
     try {
       const { customerId, amount, paymentMode } = billPaymentDto;
-  
+
       if (!amount || !paymentMode || !customerId) {
         throw new BadRequestException('Required payment details are missing');
       }
-  
+
       const user = await this.userService.findUserById(userId);
       if (!user) {
         throw new NotFoundException('User not found');
       }
-  
+
       const email = user.email;
       const reference = this.generateRequestReference();
-  
+
       const transactionData = {
         transactionReference: reference,
         amount,
@@ -197,23 +197,23 @@ export class TransactionService {
         transactionDetails: billPaymentDto,
         user: userId,
       };
-  
+
       const createTransaction = await this.createTransaction(transactionData);
       const { transactionDetails, _id } = createTransaction;
-  
+
       if (!transactionDetails || !_id) {
         console.error('Transaction creation failed:', createTransaction);
         throw new BadRequestException('Transaction creation failed');
       }
-  
+
       const transactionId = _id.toString();
-  
+
       const response = await this.sendPaymentAdvice(
         transactionDetails,
         userId,
         transactionId,
       );
-  
+
       if (response.success) {
         return {
           status: 'Success',
@@ -226,11 +226,11 @@ export class TransactionService {
       }
     } catch (error) {
       console.error('Error processing phone bill payment:', error);
-  
+
       if (error instanceof BadRequestException) {
-        throw error; 
+        throw error;
       } else if (error instanceof NotFoundException) {
-        throw error; 
+        throw error;
       } else if (error.message.includes('Insufficient Wallet Balance')) {
         throw new BadRequestException(
           'Insufficient wallet balance. Please top up your wallet and try again.',
@@ -247,20 +247,20 @@ export class TransactionService {
     const reference = this.generateRequestReference();
     const { amount } = ninDto;
 
-    try {
-      await this.debitWallet(userId, amount);
-    } catch (error) {
-      throw new Error(
-        'Unable to debit wallet. Please ensure sufficient balance.',
-      );
-    }
-
     let response: any;
     try {
       response = await this.ninService.validateNIN(ninDto.nin);
     } catch (error) {
       throw new Error(
         'NIN validation failed. Please verify the NIN and try again.',
+      );
+    }
+
+    try {
+      await this.debitWallet(userId, amount);
+    } catch (error) {
+      throw new Error(
+        'Unable to debit wallet. Please ensure sufficient balance.',
       );
     }
 
@@ -384,19 +384,19 @@ export class TransactionService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
+
     const customerEmail = user.email;
     const { amount, transactionReference } = transactionDetails;
-  
+
     if (!amount || !transactionReference) {
       throw new BadRequestException('Invalid transaction details');
     }
-  
+
     const updateTransactionData = {
       transactionStatus: transactionStatus.Successful,
       paymentStatus: paymentStatus.Completed,
     };
-  
+
     try {
       await this.debitWallet(userId, amount);
       const updatedTransaction = await this.updateTransaction(transactionId, updateTransactionData);
@@ -405,7 +405,7 @@ export class TransactionService {
       }
       const formattedTransactionData = `Transaction Reference: ${updatedTransaction.transactionReference}\nAmount: ${updatedTransaction.amount}\nType: ${updatedTransaction.transactionType}\n`;
       await this.notificationMailingService.sendTransactionSummary(customerEmail, formattedTransactionData);
-  
+
       return { success: true, transaction: updatedTransaction };
     } catch (error) {
       console.error('Error during handleMobileBillPayment:', error);
@@ -413,100 +413,101 @@ export class TransactionService {
     }
   }
   async sendPaymentAdvice(
-  transactionDetails: any,
-  userId: string,
-  transactionId: string,
-) {
-  const baseUrl = process.env.ISW_BASE_URL;
-  const user = await this.userService.findUserById(userId);
-  if (!user) {
-    throw new NotFoundException('User not found');
-  }
-
-  try {
-    const customerEmail = user.email;
-    const { paymentCode, customerId, customerMobile, amount, requestReference } =
-      transactionDetails;
-
-    const walletBalance = await this.getUserWallet(userId);
-    const { balance } = walletBalance;
-
-    if (balance < amount) {
-      throw new BadRequestException('Insufficient Wallet Balance');
+    transactionDetails: any,
+    userId: string,
+    transactionId: string,
+  ) {
+    const baseUrl = process.env.ISW_BASE_URL;
+    const user = await this.userService.findUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    const amountInKobo = this.convertToKobo(amount);
-    const data = {
-      customerEmail,
-      paymentCode,
-      customerId,
-      customerMobile,
-      amount: amountInKobo,
-      requestReference,
-    };
+    try {
+      const customerEmail = user.email;
+      const { paymentCode, customerId, customerMobile, amount, requestReference } =
+        transactionDetails;
 
-    const authResponse = await this.genISWAuthToken();
-    const token = authResponse.access_token;
-    const url = `${baseUrl}/Transactions`;
-    //const url2 = `${baseUrl}/Transactions?requestRef=${requestReference}`;
-    //console.log(token);
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      TerminalId: this.TerminalId,
-    };
+      const walletBalance = await this.getUserWallet(userId);
+      const { balance } = walletBalance;
 
-    const response = await axios.post(url, data, { headers });
+      if (balance < amount) {
+        throw new BadRequestException('Insufficient Wallet Balance');
+      }
 
-    //const transactionStatusResponse = await axios.post(url2, { headers });
-
-    if (response.data.ResponseCodeGrouping === 'SUCCESSFUL') {
-      const updateTransactionData = {
-        transactionStatus: transactionStatus.Successful,
-        paymentStatus: paymentStatus.Completed,
-      };
-
-      await this.debitWallet(userId, amount);
-
-      const updatedTransaction = await this.updateTransaction(
-        transactionId,
-        updateTransactionData,
-      );
-
-      const formattedTransactionData = `Transaction Reference: ${updatedTransaction.transactionReference}\nAmount: ${updatedTransaction.amount}\nType: ${updatedTransaction.transactionType}\n`;
-
-      await this.notificationMailingService.sendTransactionSummary(
+      const amountInKobo = this.convertToKobo(amount);
+      const data = {
+        paymentCode,
+        customerId,
+        customerMobile,
         customerEmail,
-        formattedTransactionData,
-      );
-
-      return { 
-        success: true, 
-        //details: transactionStatusResponse,
-        transaction: updatedTransaction, 
+        amount: amountInKobo,
+        requestReference,
       };
-    } else {
-      console.error('Error response from payment advice:', response.data);
+
+      const authResponse = await this.genISWAuthToken();
+      const token = authResponse.access_token;
+      const url = `${baseUrl}/Transactions`;
+      //const url2 = `${baseUrl}/Transactions?requestRef=${requestReference}`;
+      //console.log(token);
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        TerminalId: this.TerminalId,
+      };
+
+      const response = await axios.post(url, data, { headers });
+
+      //const transactionStatusResponse = await axios.post(url2, { headers });
+
+      if (response.data.ResponseCodeGrouping === 'SUCCESSFUL') {
+        const updateTransactionData = {
+          transactionStatus: transactionStatus.Successful,
+          paymentStatus: paymentStatus.Completed,
+        };
+
+        await this.debitWallet(userId, amount);
+
+        const updatedTransaction = await this.updateTransaction(
+          transactionId,
+          updateTransactionData,
+        );
+        await this.notificationMailingService.sendTransactionSummary(
+          customerEmail,
+          {
+            transactionReference: updatedTransaction.transactionReference,
+            amount: updatedTransaction.amount,
+            transactionType: updatedTransaction.transactionType
+          }
+        );
+
+        return {
+          success: true,
+          //details: transactionStatusResponse,
+          transaction: updatedTransaction,
+        };
+      } else {
+        console.error('Error response from payment advice:', response.data);
+        throw new BadRequestException(
+          `Payment failed with message: ${response.data.ResponseCodeGrouping || 'Unknown error'}`,
+        );
+      }
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error in sendPaymentAdvice:', JSON.stringify(error.response?.data || error.message, null, 2));
+        throw new BadRequestException(
+          `Error sending payment advice: ${JSON.stringify(error.response?.data || error.message)}`
+        );
+      }
+      //console.error('Unexpected error in sendPaymentAdvice:', error);
       throw new BadRequestException(
-        `Payment failed with message: ${response.data.ResponseCodeGrouping || 'Unknown error'}`,
+        `Unexpected error occurred while processing the payment: ${error.message}`,
       );
     }
-  } catch (error) {
-    if (error instanceof BadRequestException || error instanceof NotFoundException) {
-      throw error;
-    }
-    if (axios.isAxiosError(error)) {
-    console.error('Axios error in sendPaymentAdvice:', JSON.stringify(error.response?.data || error.message, null, 2));
-    throw new BadRequestException(
-      `Error sending payment advice: ${JSON.stringify(error.response?.data || error.message)}`
-    );
-    }
-    //console.error('Unexpected error in sendPaymentAdvice:', error);
-    throw new BadRequestException(
-      `Unexpected error occurred while processing the payment: ${error.message}`,
-    );
   }
-}
 
   public async verifyPSTKPayment(reference: string) {
     const baseUrl = process.env.PSTK_BASE_URL;
@@ -560,7 +561,7 @@ export class TransactionService {
     } catch (error) {
       throw new Error(
         'An error occurred while processing bill payment via wallet: ' +
-          error.message,
+        error.message,
       );
     }
   }
@@ -751,15 +752,16 @@ export class TransactionService {
   }
 
   public generateRequestReference(): string {
+    const prefix = 'HUK';
     let referenceCode = Math.floor(
       1000000000 + Math.random() * 900000000,
     ).toString();
     for (let i = referenceCode.length; i < 10; i++) {
       referenceCode = '0' + referenceCode;
     }
-
-    return referenceCode;
+    return `${prefix}${referenceCode}`;
   }
+
 
   private convertToKobo(amount: number) {
     const converted = amount * 100;
