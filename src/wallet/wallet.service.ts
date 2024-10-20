@@ -296,13 +296,14 @@ export class WalletService {
       await transaction.save();
 
       const email = user.email;
-      const formattedTransactionData = `
-        Transaction Reference: ${transaction.transactionReference}\n
-        Amount: ${transaction.amount}\n
-      `;
+      
       await this.notificationMailingService.sendTransactionSummary(
         email,
-        formattedTransactionData,
+        {
+          transactionReference: transaction.transactionReference,
+          amount: transaction.amount,
+          transactionType: transaction.transactionType
+        }
       );
 
       return { message: 'Wallet funded successfully.' };
