@@ -752,7 +752,7 @@ export class TransactionService {
   }
 
   public generateRequestReference(): string {
-    const prefix = 'HUK';
+    const prefix = '2221';
     let referenceCode = Math.floor(
       1000000000 + Math.random() * 900000000,
     ).toString();
